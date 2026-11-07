@@ -39,3 +39,6 @@ Thumbs.db
 # OneDrive artifacts
 *.tmp
 ~$*
+
+# gitleaks CI output
+*.sarif
