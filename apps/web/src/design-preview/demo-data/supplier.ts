@@ -320,3 +320,211 @@ export const SHARING_GRANTS = [
     status: "有效" as "有效" | "已撤销",
   },
 ];
+
+/* ---- 企业认证 (onboarding) ------------------------------------------------------------------------ */
+
+export type DocStatus = "待上传" | "待审核" | "已核验" | "需补充";
+
+export interface OnboardingDocType {
+  key: string;
+  label: string;
+  hint: string;
+  required: boolean;
+  /** Only required for 生产型工厂 / 工贸一体. */
+  factoryOnly?: boolean | undefined;
+  certification?: boolean | undefined;
+}
+
+export const ONBOARDING_DOC_TYPES: OnboardingDocType[] = [
+  {
+    key: "licence",
+    label: "营业执照",
+    hint: "彩色扫描件或清晰照片，需显示统一社会信用代码",
+    required: true,
+  },
+  {
+    key: "rep_id",
+    label: "法定代表人或授权代表身份证明",
+    hint: "身份证正反面；如为授权代表，另需加盖公章的授权书",
+    required: true,
+  },
+  {
+    key: "premises",
+    label: "生产场地证明",
+    hint: "近期厂房照片（含门头与车间）或租赁合同首页",
+    required: true,
+    factoryOnly: true,
+  },
+  {
+    key: "export",
+    label: "出口资质",
+    hint: "对外贸易经营者备案登记表或海关注册登记",
+    required: false,
+  },
+  {
+    key: "certs",
+    label: "体系与产品证书",
+    hint: "ISO、BRC、FSC、检测报告等。核验前不会向买家显示为“已认证”",
+    required: false,
+    certification: true,
+  },
+  {
+    key: "samples",
+    label: "样品与车间照片",
+    hint: "有助于运营人员判断产能与工艺",
+    required: false,
+  },
+];
+
+export interface OnboardingDoc {
+  key: string;
+  fileName: string | null;
+  size: number | null;
+  status: DocStatus;
+  reviewerNote?: string | undefined;
+  reviewedAt?: string | undefined;
+}
+
+export interface OnboardingData {
+  company: {
+    legalName: string;
+    uscc: string;
+    companyType: "生产型工厂" | "贸易公司" | "工贸一体" | "";
+    province: string;
+    city: string;
+    address: string;
+    foundedYear: string;
+    families: string[];
+  };
+  representative: {
+    name: string;
+    title: string;
+    email: string;
+    mobile: string;
+    authority: "法定代表人本人" | "授权代表（附授权书）" | "";
+    wechat: string;
+    contactBasis: boolean;
+  };
+  documents: OnboardingDoc[];
+  trade: {
+    incoterms: string[];
+    exportExperience: "有" | "无" | "";
+    ports: string[];
+    currencies: string[];
+    monthlyCapacity: string;
+    standardLeadDays: string;
+    thirdPartyInspection: "接受" | "不接受" | "";
+    samples: "可提供" | "不提供" | "";
+    sampleFeeNote: string;
+  };
+  consent: {
+    dataProcessing: boolean;
+    truthfulness: boolean;
+    catalogDefaultInternal: boolean;
+  };
+}
+
+/** Resume scenario matching 工作台: licence and identity verified, premises proof requested, export pending. */
+export const ONBOARDING_PREFILL: OnboardingData = {
+  company: {
+    legalName: "深圳市演示标签印刷有限公司",
+    uscc: "91440300MA5DEM00A5",
+    companyType: "生产型工厂",
+    province: "广东省",
+    city: "深圳市",
+    address: "宝安区演示路 88 号 3 栋",
+    foundedYear: "2014",
+    families: ["卷筒不干胶标签", "折叠纸盒"],
+  },
+  representative: {
+    name: "李演示",
+    title: "外贸经理",
+    email: "sales@demo-supplier.example",
+    mobile: "13800138000",
+    authority: "授权代表（附授权书）",
+    wechat: "",
+    contactBasis: true,
+  },
+  documents: [
+    {
+      key: "licence",
+      fileName: "营业执照-2026.pdf",
+      size: 1_240_000,
+      status: "已核验",
+      reviewedAt: "2026-10-20",
+    },
+    {
+      key: "rep_id",
+      fileName: "授权书+身份证.pdf",
+      size: 2_030_000,
+      status: "已核验",
+      reviewedAt: "2026-10-20",
+    },
+    {
+      key: "premises",
+      fileName: null,
+      size: null,
+      status: "需补充",
+      reviewerNote:
+        "平台运营（2026年11月5日）：请上传近期厂房照片（含门头与车间）或租赁合同首页，用于核对注册地址与生产场地是否一致。",
+    },
+    { key: "export", fileName: "对外贸易经营者备案.pdf", size: 640_000, status: "待审核" },
+    { key: "certs", fileName: null, size: null, status: "待上传" },
+    { key: "samples", fileName: null, size: null, status: "待上传" },
+  ],
+  trade: {
+    incoterms: ["EXW", "FOB", "CIF"],
+    exportExperience: "有",
+    ports: ["深圳", "广州"],
+    currencies: ["CNY", "USD"],
+    monthlyCapacity: "约 2,000 万枚标签 / 50 万只纸盒",
+    standardLeadDays: "15",
+    thirdPartyInspection: "接受",
+    samples: "可提供",
+    sampleFeeNote: "样品费按实收取，批量订单后抵扣",
+  },
+  consent: { dataProcessing: true, truthfulness: true, catalogDefaultInternal: true },
+};
+
+export const ONBOARDING_EMPTY: OnboardingData = {
+  company: {
+    legalName: "",
+    uscc: "",
+    companyType: "",
+    province: "",
+    city: "",
+    address: "",
+    foundedYear: "",
+    families: [],
+  },
+  representative: {
+    name: "",
+    title: "",
+    email: "",
+    mobile: "",
+    authority: "",
+    wechat: "",
+    contactBasis: false,
+  },
+  documents: ONBOARDING_DOC_TYPES.map((d) => ({
+    key: d.key,
+    fileName: null,
+    size: null,
+    status: "待上传" as const,
+  })),
+  trade: {
+    incoterms: [],
+    exportExperience: "",
+    ports: [],
+    currencies: [],
+    monthlyCapacity: "",
+    standardLeadDays: "",
+    thirdPartyInspection: "",
+    samples: "",
+    sampleFeeNote: "",
+  },
+  consent: { dataProcessing: false, truthfulness: false, catalogDefaultInternal: true },
+};
+
+export const FAMILY_OPTIONS = ["卷筒不干胶标签", "折叠纸盒", "人发发束", "其他（需平台评估）"];
+export const PORT_OPTIONS = ["深圳", "广州", "宁波", "上海", "青岛", "厦门"];

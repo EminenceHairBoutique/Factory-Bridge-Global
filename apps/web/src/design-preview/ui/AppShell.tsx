@@ -149,7 +149,7 @@ const OPS_NAV_BOTTOM: NavItem[] = [
 
 const SUPPLIER_NAV: NavItem[] = [
   { label: "工作台", icon: "home", href: "/design-preview/supplier/dashboard", mobile: true },
-  { label: "企业资料", icon: "building" },
+  { label: "企业资料", icon: "building", href: "/design-preview/supplier/onboarding" },
   { label: "产品目录", icon: "list" },
   {
     label: "阶梯报价",

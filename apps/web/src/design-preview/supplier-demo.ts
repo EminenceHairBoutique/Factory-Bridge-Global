@@ -155,3 +155,30 @@ export function daysUntil(iso: string | null, today: string): number | null {
   const b = new Date(`${today}T00:00:00Z`).getTime();
   return Math.round((a - b) / 86_400_000);
 }
+
+/* ---- Onboarding (企业认证) validators ---------------------------------------------------------- */
+
+const USCC_CHARS = "0123456789ABCDEFGHJKLMNPQRTUWXY";
+const USCC_WEIGHTS = [1, 3, 9, 27, 19, 26, 16, 17, 20, 29, 25, 13, 8, 24, 10, 30, 28];
+
+/**
+ * 统一社会信用代码 format and check digit (GB 32100-2015). Format only: existence and ownership are verified
+ * by the platform against the registration record, never by the client.
+ */
+export function validateUscc(code: string): string | null {
+  const c = code.trim().toUpperCase();
+  if (c.length !== 18) return "统一社会信用代码应为 18 位";
+  for (const ch of c) if (!USCC_CHARS.includes(ch)) return "包含无效字符（不使用 I、O、S、V、Z）";
+  const sum = USCC_WEIGHTS.reduce((acc, w, i) => acc + w * USCC_CHARS.indexOf(c[i] as string), 0);
+  const expected = USCC_CHARS[(31 - (sum % 31)) % 31];
+  if (c[17] !== expected) return "校验位不正确，请核对营业执照上的代码";
+  return null;
+}
+
+export function validateCnMobile(value: string): string | null {
+  return /^1[3-9]\d{9}$/.test(value.replace(/\s|-/g, "")) ? null : "请填写 11 位中国大陆手机号";
+}
+
+export function validateEmail(value: string): string | null {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ? null : "请填写有效的工作邮箱";
+}

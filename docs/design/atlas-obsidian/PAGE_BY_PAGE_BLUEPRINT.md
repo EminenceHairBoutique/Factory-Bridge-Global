@@ -74,7 +74,7 @@ Chinese-first form: company, representative, families, trade readiness, allowed 
 | Screen | Key content |
 |---|---|
 | 工作台 | 待处理询价 · 待确认价格 · 即将过期报价 · 认证状态 |
-| 企业资料 | identity and representative, documents labelled 供应商提供，未核验 until reviewed |
+| 企业资料 / 企业认证 | **Prototyped** (`/design-preview/supplier/onboarding`): five-step 企业认证 with check-digit-validated 统一社会信用代码, contact basis, documents labelled 供应商提供，未核验 until reviewed, trade readiness, consent; opens in the 需补充 state; see `SUPPLIER_ONBOARDING_SCREEN.md` |
 | 产品目录 | list, 新增产品, 批量导入 with preview and per-row errors |
 | 阶梯报价 | 起订量 · 数量区间 · 单价 · 货币 · 单位 · 交易条款 (code + 指定地点 required; 出厂价 alone is stored as unknown) · 有效期 · 规格版本; actions 确认有效 · 更新报价 · 暂停产品 |
 | 询价单 | accept / decline / 需要澄清; structured quote form mirroring the quote schema; buyer specification shown read-only in both languages |

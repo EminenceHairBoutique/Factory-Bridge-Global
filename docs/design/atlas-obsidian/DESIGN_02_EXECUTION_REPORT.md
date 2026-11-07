@@ -73,6 +73,14 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-27 (`brief_spec_v1` output and brief-version write contract).
 
+## 6c. Session 5 — Supplier onboarding (2026-11-07, same branch)
+
+**Implemented in preview:** `/design-preview/supplier/onboarding` (`SupplierOnboarding.tsx`, onboarding data in `demo-data/supplier.ts`, validators in `supplier-demo.ts` with 2 new test groups): five-step 企业认证 (企业信息, 授权代表, 资质文件, 贸易能力, 确认提交), opening in the 需补充 state that 工作台 shows, with a blank first-run path; 统一社会信用代码 check-digit validation (GB 32100-2015), mobile and email format checks, contact-basis confirmation for WeChat handles, per-document statuses and the 供应商提供，未核验 label, certificate caveat, consent gate, submitted state. 企业资料 sidebar entry and the 工作台 "上传生产场地证明" action link to it; index entry. Details in `SUPPLIER_ONBOARDING_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 224: web 25); `next build` exit 0; production `next start`: `/design-preview/supplier/onboarding` → 404. Browser: resume state opens on step 3, 下一步 blocked until the premises file is added, added file labelled 供应商提供，未核验, steps 4–5 reachable, 提交补充材料 enabled and the submitted state shown; first-run path shows field errors on empty submit, rejects a wrong check digit, accepts the valid demo code; no console errors; no horizontal overflow at 320 / 375 / 768 px in Obsidian. A stale dev-server module graph produced a 500 on first load that disappeared after a restart; not a code defect.
+
+**Cross-track:** H-28 (onboarding submission and verification-check contract).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

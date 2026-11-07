@@ -46,6 +46,12 @@ const SCREENS = [
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/supplier/onboarding",
+    title: "企业资料与认证 (Supplier onboarding)",
+    body: "Five-step 企业认证: company identity with a check-digit-validated 统一社会信用代码, authorized representative with contact basis, documents labelled 供应商提供，未核验 until reviewed, trade readiness, consent. Opens in the 需补充 state.",
+    workspace: "供应商（zh-CN）",
+  },
+  {
     href: "/design-preview/supplier/pricing",
     title: "阶梯报价 (Price tier editor)",
     body: "Ascending non-overlapping tiers with inline validation, Incoterm code plus 指定地点, colloquial 出厂价 never defaulted to EXW, validity required, visibility intent.",

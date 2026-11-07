@@ -155,9 +155,13 @@ export function SupplierDashboard() {
                 </li>
               ))}
             </ul>
-            <Button className="mt-3 w-full" icon="upload" variant="primary">
+            <Link
+              href="/design-preview/supplier/onboarding"
+              className={cx(buttonClasses("primary"), "mt-3 w-full")}
+            >
+              <Icon name="upload" size={16} />
               上传生产场地证明
-            </Button>
+            </Link>
           </Panel>
         </div>
 

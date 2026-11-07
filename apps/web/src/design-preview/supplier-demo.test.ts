@@ -6,7 +6,10 @@ import {
   quoteSubmissionGate,
   tierRangeZh,
   validateBasis,
+  validateCnMobile,
+  validateEmail,
   validateTiers,
+  validateUscc,
 } from "./supplier-demo";
 
 const tier = (
@@ -118,5 +121,21 @@ describe("zh-CN formatting", () => {
     expect(tierRangeZh(tier(1, 10000, null, 0.21))).toBe("10,000 及以上");
     expect(daysUntil("2026-11-20", "2026-11-07")).toBe(13);
     expect(daysUntil("2026-10-31", "2026-11-07")).toBe(-7);
+  });
+});
+
+describe("onboarding validators", () => {
+  it("validates the unified social credit code format and check digit", () => {
+    expect(validateUscc("91440300MA5DEM00A5")).toBeNull();
+    expect(validateUscc("91110000600037341L")).toBeNull();
+    expect(validateUscc("91440300MA5DEM00A6")).toMatch(/校验位/);
+    expect(validateUscc("91440300MA5DEM00")).toMatch(/18 位/);
+    expect(validateUscc("91440300MA5DEM00I5")).toMatch(/无效字符/);
+  });
+  it("validates mainland mobile numbers and work emails", () => {
+    expect(validateCnMobile("138 0013 8000")).toBeNull();
+    expect(validateCnMobile("12345678901")).not.toBeNull();
+    expect(validateEmail("sales@example.com")).toBeNull();
+    expect(validateEmail("sales@")).not.toBeNull();
   });
 });
