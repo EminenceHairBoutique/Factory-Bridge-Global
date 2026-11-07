@@ -21,6 +21,7 @@ alter default privileges in schema app revoke execute on functions from public;
 
 -- Enums (generated) ----------------------------------------------------------
 -- BEGIN GENERATED ENUMS (packages/domain/src/enums.ts) — do not edit by hand
+create type public.check_type as enum ('business_license_reviewed', 'uscc_matched', 'address_corroborated', 'video_call_held', 'factory_visit', 'export_license_seen', 'bank_name_matches_entity', 'reference_checked');
 create type public.compliance_state as enum ('clear', 'review_required', 'blocked');
 create type public.cost_line_status as enum ('sourced', 'estimated', 'missing', 'not_applicable');
 create type public.document_status as enum ('uploaded', 'scanning', 'rejected', 'parsed', 'extracted', 'in_review', 'accepted', 'discarded');

@@ -193,11 +193,29 @@ describe("supplier_profiles", () => {
       ).toMatch(/supplier organization|row-level security/);
     });
     await asUser(db, U.op, async () => {
+      // stages are earned (0007 gate): even staff cannot create a profile above lead_identified
+      expect(
+        await expectError(
+          db,
+          "insert into public.supplier_profiles (org_id, legal_name_zh, stage) values ($1, '东莞市二号包装有限公司', 'contact_confirmed')",
+          [ORG.s2],
+        ),
+      ).toMatch(/starts at lead_identified/);
       const rows = await db.query<{ id: string }>(
-        "insert into public.supplier_profiles (org_id, legal_name_zh, stage) values ($1, '东莞市二号包装有限公司', 'contact_confirmed') returning id",
+        "insert into public.supplier_profiles (org_id, legal_name_zh) values ($1, '东莞市二号包装有限公司') returning id",
         [ORG.s2],
       );
       s2 = rows[0]!.id;
+    });
+    // contact evidence for both suppliers, so staff can later confirm contact (0007 stage gate)
+    await asUser(db, U.admin, async () => {
+      await db.exec(
+        `insert into public.supplier_contacts (supplier_id, name, wechat_handle, contact_basis) values
+           ('${s1}', '张总', 'zhang_s1_000', 'referral'), ('${s2}', '陈总', 'chen_s2_000', 'referral')`,
+      );
+      await db.exec(
+        `update public.supplier_profiles set stage = 'contact_confirmed' where id = '${s2}'`,
+      );
     });
   });
 
@@ -389,7 +407,10 @@ describe("supplier_contacts (restricted) + contact_disclosure_grants", () => {
     });
     for (const u of [U.aOwner, U.aViewer, U.bOwner, U.s2Owner, U.op]) {
       await asUser(db, u, async () => {
-        expect(await count("select 1 from public.supplier_contacts"), u).toBe(0);
+        expect(
+          await count("select 1 from public.supplier_contacts where supplier_id = $1", [s1]),
+          u,
+        ).toBe(0);
         expect(
           await count("select 1 from public.supplier_contacts where id = $1", [contactId]),
           u,
