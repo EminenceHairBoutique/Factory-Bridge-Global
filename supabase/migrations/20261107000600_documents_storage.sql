@@ -341,11 +341,17 @@ grant all on public.documents, public.document_pages, public.document_cells to s
 
 create policy documents_select on public.documents for select to authenticated
   using (app.document_readable(id));
+-- Buyer/supplier orgs: owner/admin/member. Internal org: operators, compliance and platform admins (operator imports,
+-- matrix row "Operator-imported documents"); the internal org has no owner/admin/member roles.
 create policy documents_insert on public.documents for insert to authenticated
-  with check (app.has_role(org_id, array['owner', 'admin', 'member']::public.member_role[])
-          and uploaded_by = auth.uid());
+  with check (uploaded_by = auth.uid()
+          and (app.has_role(org_id, array['owner', 'admin', 'member']::public.member_role[])
+               or (org_id = app.internal_org_id()
+                   and app.has_role(org_id, array['operator', 'compliance_reviewer', 'platform_admin']::public.member_role[]))));
 create policy documents_update on public.documents for update to authenticated
-  using (app.has_role(org_id, array['owner', 'admin', 'member']::public.member_role[]))
+  using (app.has_role(org_id, array['owner', 'admin', 'member']::public.member_role[])
+      or (org_id = app.internal_org_id()
+          and app.has_role(org_id, array['operator', 'compliance_reviewer', 'platform_admin']::public.member_role[])))
   with check (true);   -- the trigger restricts members to status -> discarded
 
 create policy document_pages_select on public.document_pages for select to authenticated

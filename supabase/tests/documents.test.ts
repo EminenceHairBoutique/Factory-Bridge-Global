@@ -218,7 +218,9 @@ describe("documents: registration, isolation, member limits", () => {
       ).toEqual([DOC.b1]);
     });
     await asUser(db, U.op, async () => {
-      expect(await count("select 1 from public.documents")).toBe(0);
+      expect(
+        await count("select 1 from public.documents where id in ($1, $2)", [DOC.a1, DOC.b1]),
+      ).toBe(0);
     });
     await asUser(db, U.admin, async () => {
       expect(
