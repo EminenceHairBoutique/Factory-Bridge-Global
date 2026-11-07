@@ -24,10 +24,6 @@ test-results/
 supabase/.branches/
 supabase/.temp/
 
-# scanner artifacts (gitleaks SARIF etc.)
-*.sarif
-gitleaks-report.*
-
 # logs
 *.log
 npm-debug.log*
@@ -46,6 +42,7 @@ Thumbs.db
 
 # gitleaks CI output
 *.sarif
+gitleaks-report.*
 
 # eval harness outputs (results are reported in docs/STATUS.md, not committed)
 eval/results/

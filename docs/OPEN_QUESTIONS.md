@@ -24,7 +24,7 @@ Living document. Each item: what is being decided, why it matters, default assum
 | **OQ-17** | Who are the first 2–3 external buyer design partners, and is the founder's hair brand an internal tenant? | Pilot data, feedback loop | Hair brand = internal design-partner tenant; externals recruited in validation sprint | Phase 1 pilot |
 | **OQ-18** | Operator staffing: founder only in Phase 1, or one part-time bilingual operator? | SLA promises, support cost | Founder only | Speed metrics |
 | **OQ-19** | Approval rules: who may approve outbound supplier messages, mark quotes confirmed, and authorize sample purchases | Policy matrix | Founder/platform_admin only in Phase 1 | Policy module |
-| **OQ-21** | GitHub repo `Factory-Bridge-Global` is **public** and contains operating/competitive planning docs. Make it private? | Competitive exposure; supplier-relationship details will follow | Agent changes nothing; founder decides in GitHub Settings → General → Danger zone | Nothing technical |
+| ~~OQ-21~~ | **Resolved 2026-11-07:** founder set the repo to **private** and configured the `main` branch ruleset (OQ-20). | — | — | — |
 | ~~OQ-20~~ | **Resolved 2026-11-07 (ADR-027):** PR-only, required CI checks. Founder configures the GitHub ruleset (steps in `STATUS.md`). | — | — | — |
 
 ## Missing legal/commercial decisions summary (for the founder's attorney and accountant)
