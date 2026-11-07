@@ -51,6 +51,8 @@ beforeAll(async () => {
     await applyMigrations(db);
     await db.exec(readSeed());
   }
+  // Shared database on real Postgres: research leads are not org-linked, so remove this suite's own from a previous run.
+  await db.exec(`delete from public.research_leads where recorded_by = '${U.op}'`);
   await db.exec(
     `delete from public.organizations where id in (${Object.values(ORG)
       .map((o) => `'${o}'`)
@@ -662,19 +664,30 @@ describe("source_permissions + app.catalog_grant_active", () => {
     expect(await active(ORG.a)).toBe(true);
     expect(await active(ORG.b)).toBe(false);
     await asUser(db, U.aOwner, async () => {
-      const ids = (await db.query<{ id: string }>("select id from public.source_permissions")).map(
-        (r) => r.id,
-      );
+      const ids = (
+        await db.query<{ id: string }>(
+          "select id from public.source_permissions where supplier_id in ($1, $2)",
+          [s1, s2],
+        )
+      ).map((r) => r.id);
       expect(ids.sort()).toEqual([platformGrant, namedGrant].sort());
     });
     await asUser(db, U.bOwner, async () => {
-      const ids = (await db.query<{ id: string }>("select id from public.source_permissions")).map(
-        (r) => r.id,
-      );
+      const ids = (
+        await db.query<{ id: string }>(
+          "select id from public.source_permissions where supplier_id in ($1, $2)",
+          [s1, s2],
+        )
+      ).map((r) => r.id);
       expect(ids).toEqual([platformGrant]);
     });
     await asUser(db, U.s2Owner, async () => {
-      expect(await count("select 1 from public.source_permissions")).toBe(1); // a platform-wide grant is visible to every signed-in org; the named one is not
+      expect(
+        await count("select 1 from public.source_permissions where supplier_id in ($1, $2)", [
+          s1,
+          s2,
+        ]),
+      ).toBe(1); // a platform-wide grant is visible to every signed-in org; the named one is not
     });
   });
 
@@ -730,7 +743,12 @@ describe("source_permissions + app.catalog_grant_active", () => {
       )[0]!.by,
     ).toBe(U.s1Owner);
     await asUser(db, U.bOwner, async () => {
-      expect(await count("select 1 from public.source_permissions")).toBe(0); // revoked rows disappear from buyers
+      expect(
+        await count("select 1 from public.source_permissions where supplier_id in ($1, $2)", [
+          s1,
+          s2,
+        ]),
+      ).toBe(0); // revoked rows disappear from buyers
     });
     // expired grant inserted directly (past dates) → predicate false
     await db.exec(
@@ -769,7 +787,9 @@ describe("research_leads (internal_market_observation only)", () => {
           [labelsTax, manualSource],
         ),
       ).toMatch(/check/);
-      expect(await count("select 1 from public.research_leads")).toBe(1);
+      expect(
+        await count("select 1 from public.research_leads where recorded_by = $1", [U.op]),
+      ).toBe(1);
     });
     for (const u of [U.aOwner, U.s1Owner, U.bOwner]) {
       await asUser(db, u, async () => {
@@ -785,7 +805,9 @@ describe("research_leads (internal_market_observation only)", () => {
       });
     }
     await asUser(db, U.comp, async () => {
-      expect(await count("select 1 from public.research_leads")).toBe(1);
+      expect(
+        await count("select 1 from public.research_leads where recorded_by = $1", [U.op]),
+      ).toBe(1);
     });
   });
 });
