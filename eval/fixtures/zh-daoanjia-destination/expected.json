@@ -1,0 +1,151 @@
+{
+  "schema": "quote_extraction_v1",
+  "supplierNameHint": {
+    "value": "示例灯具有限公司",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "示例灯具有限公司"
+    }
+  },
+  "currency": {
+    "value": "USD",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "USD 6.80/台"
+    }
+  },
+  "quantityUnit": {
+    "value": "台",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "USD 6.80/台"
+    }
+  },
+  "priceBasis": {
+    "value": null,
+    "confidence": "low",
+    "anchor": null
+  },
+  "incotermPlace": {
+    "value": "洛杉矶",
+    "confidence": "medium",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "到岸价：USD 6.80/台（洛杉矶）"
+    }
+  },
+  "moq": {
+    "value": "1000",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "起订量 1000台"
+    }
+  },
+  "tiers": [
+    {
+      "minQty": "1000",
+      "maxQty": null,
+      "unitPrice": "6.80",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "到岸价：USD 6.80/台（洛杉矶）"
+      },
+      "confidence": "high"
+    }
+  ],
+  "fees": [],
+  "productionLeadDays": {
+    "value": 30,
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "交期 30天"
+    }
+  },
+  "paymentTerms": {
+    "value": "T/T 30%定金",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "付款：T/T 30%定金"
+    }
+  },
+  "quoteDate": {
+    "value": "2026-11-02",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "报价日期 2026-11-02"
+    }
+  },
+  "validUntil": {
+    "value": "2026-12-02",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "有效期至 2026-12-02"
+    }
+  },
+  "specAttributes": {
+    "power": {
+      "value": "5W",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "LED 台灯 折叠款 5W"
+      }
+    },
+    "type": {
+      "value": "折叠款",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "折叠款"
+      }
+    }
+  },
+  "missingFields": ["price_basis", "fees"],
+  "flags": ["basis_term_colloquial", "includes_ambiguous"],
+  "notes": "到岸价（口语，可能为CFR或CIF，保险是否含不明）；目的地洛杉矶"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "zh-daoanjia-destination",
+  "slice": "zh_quotation_pdf",
+  "locale": "zh-CN",
+  "layout": "plain_list",
+  "family": "lighting",
+  "difficulty": "hard",
+  "synthetic": true,
+  "injection": false,
+  "colloquialBasis": true,
+  "forbiddenOutputStrings": [],
+  "tags": ["daoanjia", "includes_ambiguous", "destination_named"]
+}

@@ -1,0 +1,171 @@
+{
+  "schema": "quote_extraction_v1",
+  "supplierNameHint": {
+    "value": "Example Toys Co.",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Example Toys Co. quotation"
+    }
+  },
+  "currency": {
+    "value": "USD",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "USD 4.10/set"
+    }
+  },
+  "quantityUnit": {
+    "value": "set",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "USD 4.10/set"
+    }
+  },
+  "priceBasis": {
+    "value": "FOB",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "FOB Ningbo"
+    }
+  },
+  "incotermPlace": {
+    "value": "Ningbo",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "FOB Ningbo"
+    }
+  },
+  "moq": {
+    "value": "600",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "MOQ 600 sets"
+    }
+  },
+  "tiers": [
+    {
+      "minQty": "600",
+      "maxQty": "1999",
+      "unitPrice": "4.10",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "600-1,999 sets: USD 4.10/set"
+      },
+      "confidence": "high"
+    },
+    {
+      "minQty": "2000",
+      "maxQty": null,
+      "unitPrice": "3.85",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "2,000+ sets: USD 3.85/set"
+      },
+      "confidence": "high"
+    }
+  ],
+  "fees": [],
+  "productionLeadDays": {
+    "value": 40,
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Lead time 40 days"
+    }
+  },
+  "paymentTerms": {
+    "value": "30/70 T/T",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Payment 30/70 T/T"
+    }
+  },
+  "quoteDate": {
+    "value": "2026-11-05",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Example Toys Co. quotation, 2026-11-05"
+    }
+  },
+  "validUntil": {
+    "value": "2026-12-05",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Valid until 2026-12-05"
+    }
+  },
+  "specAttributes": {
+    "material": {
+      "value": "beech wood",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "beech wood"
+      }
+    },
+    "finish": {
+      "value": "water-based paint",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "water-based paint"
+      }
+    }
+  },
+  "missingFields": ["fees"],
+  "flags": ["embedded_instruction_detected"],
+  "notes": null
+}

@@ -1,0 +1,13 @@
+Example Metalworks Co. - Quotation EM-2026-118
+Issued: 2026-11-06   Valid to: 2026-12-06
+Part: Aluminum heatsink 60x60x20mm, anodized black (drawing rev C)
+Price basis: EXW Dongguan factory
+Currency: CNY
+MOQ: 500 pcs
+500-1,999 pcs: CNY 12.60/pc
+2,000-4,999 pcs: CNY 11.90/pc
+5,000+ pcs: CNY 11.20/pc
+CNC fixture (one-time): CNY 2,400
+Export documentation fee: CNY 300 per shipment
+Lead time: 28 days
+Payment: 50% deposit, 50% before shipment

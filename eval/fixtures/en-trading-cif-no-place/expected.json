@@ -1,0 +1,180 @@
+{
+  "schema": "quote_extraction_v1",
+  "supplierNameHint": {
+    "value": "Example Trading (HK) Limited",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Seller: Example Trading (HK) Limited"
+    }
+  },
+  "currency": {
+    "value": "USD",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Currency: USD"
+    }
+  },
+  "quantityUnit": {
+    "value": "pcs",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Unit: pcs"
+    }
+  },
+  "priceBasis": {
+    "value": "CIF",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Terms: CIF"
+    }
+  },
+  "incotermPlace": {
+    "value": null,
+    "confidence": "low",
+    "anchor": null
+  },
+  "moq": {
+    "value": null,
+    "confidence": "low",
+    "anchor": null
+  },
+  "tiers": [
+    {
+      "minQty": "2000",
+      "maxQty": null,
+      "unitPrice": "1.95",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "Qty 2,000 pcs  Unit price 1.95"
+      },
+      "confidence": "high"
+    },
+    {
+      "minQty": "5000",
+      "maxQty": null,
+      "unitPrice": "1.78",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "Qty 5,000 pcs  Unit price 1.78"
+      },
+      "confidence": "high"
+    }
+  ],
+  "fees": [
+    {
+      "type": "sample",
+      "amount": "60",
+      "currency": "USD",
+      "oneTime": true,
+      "includedInUnitPrice": false,
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "Sample charge: USD 60 per sample, refundable with order"
+      },
+      "confidence": "high"
+    }
+  ],
+  "productionLeadDays": {
+    "value": 35,
+    "confidence": "medium",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Production: 30-35 days"
+    }
+  },
+  "paymentTerms": {
+    "value": "50% deposit, balance before shipment",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Payment: 50% deposit, balance before shipment"
+    }
+  },
+  "quoteDate": {
+    "value": "2026-11-03",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Date: 2026-11-03"
+    }
+  },
+  "validUntil": {
+    "value": null,
+    "confidence": "low",
+    "anchor": null
+  },
+  "specAttributes": {
+    "material": {
+      "value": "Cotton canvas",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "Cotton canvas tote bag"
+      }
+    },
+    "weight": {
+      "value": "12oz",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "12oz"
+      }
+    },
+    "size": {
+      "value": "38x42cm",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "38x42cm"
+      }
+    }
+  },
+  "missingFields": ["incoterm_place", "moq", "valid_until"],
+  "flags": ["incoterm_place_missing", "relative_validity_date"],
+  "notes": "Lead time stated as range 30-35 days; sample charge refundable with order; validity 30 days from quotation date"
+}
