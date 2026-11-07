@@ -252,7 +252,7 @@ alter table public.invites        enable row level security;
 alter table public.invites        force row level security;
 
 -- Table privileges: `authenticated` gets only what a policy can allow; no INSERT/DELETE on tenancy tables.
-revoke all on public.organizations, public.user_profiles, public.memberships, public.invites from public, anon;
+revoke all on public.organizations, public.user_profiles, public.memberships, public.invites from public, anon, authenticated, service_role;
 grant select, update on public.organizations to authenticated;
 grant select, insert, update on public.user_profiles to authenticated;
 grant select, update on public.memberships to authenticated;
