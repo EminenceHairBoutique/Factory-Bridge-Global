@@ -5,6 +5,8 @@ export interface WorkerConfig {
   readonly concurrency: number;
   readonly jobMaxAttempts: number;
   readonly appEnv: "development" | "staging" | "production";
+  /** Platform default monthly AI cap (USD) for orgs without an ai_budgets row (B-16b). */
+  readonly aiMonthlyBudgetUsdDefault: number;
 }
 
 function intFromEnv(env: NodeJS.ProcessEnv, name: string, fallback: number): number {
@@ -12,6 +14,14 @@ function intFromEnv(env: NodeJS.ProcessEnv, name: string, fallback: number): num
   if (raw === undefined || raw === "") return fallback;
   const n = Number.parseInt(raw, 10);
   if (!Number.isFinite(n) || n <= 0) throw new Error(`${name} must be a positive integer`);
+  return n;
+}
+
+function usdFromEnv(env: NodeJS.ProcessEnv, name: string, fallback: number): number {
+  const raw = env[name];
+  if (raw === undefined || raw === "") return fallback;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0) throw new Error(`${name} must be a non-negative number of USD`);
   return n;
 }
 
@@ -25,5 +35,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
     concurrency: intFromEnv(env, "WORKER_CONCURRENCY", 2),
     jobMaxAttempts: intFromEnv(env, "JOB_MAX_ATTEMPTS", 5),
     appEnv,
+    aiMonthlyBudgetUsdDefault: usdFromEnv(env, "AI_MONTHLY_BUDGET_USD_DEFAULT", 50),
   };
 }

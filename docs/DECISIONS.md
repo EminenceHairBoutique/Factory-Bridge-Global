@@ -138,6 +138,17 @@ Living document. Append new ADRs; never edit an accepted ADR's substance — sup
 **Status:** accepted 2026-11-07 (founder, OQ-16 and OQ-03)
 **Decision:** Local development and GitHub Actions are the only environments. No Supabase/Vercel/worker-host paid accounts, no production deploy, no real supplier or buyer data. The bilingual supplier data-authorization form (B-00b) is drafted but **must not be used externally** before legal review (OQ-06).
 
+## ADR-029 — AI call ledger lands before documents; monthly AI budget is a worker-side guard over a SQL sum
+**Status:** accepted 2026-11-07 (B-16b)
+**Context:** `ai_runs` was planned for migration 0010 (with `ai_extractions`), but cost accounting and the per-org budget guard (B-16) must exist before the first live model call, and `ai_runs` depends only on `organizations` (0002) and the security-event writer (0003).
+**Decision:**
+1. `ai_runs` moves to migration 0003b (`20261107000350_ai_runs_budget.sql`) as an append-only ledger written **only** by `app.record_ai_run()` from the worker (`service_role`); nobody has UPDATE/DELETE. `ai_extractions`, `review_tasks`, `human_corrections` stay in 0010 and reference `ai_runs(id)`.
+2. Cost is stored as the adapter's integer `cost_nano_usd`; `cost_usd` is a generated column. No floating-point money arithmetic in SQL or TS. The ledger value is an accounting signal, never a buyer-facing total.
+3. The monthly cap is enforced in the worker (`GuardedAiRunner`) by calling `app.ai_budget_status()` **before** every provider call: a deterministic SQL sum of this UTC month's `cost_nano_usd` vs `ai_budgets.monthly_cap_nano_usd`, or the platform default (`AI_MONTHLY_BUDGET_USD_DEFAULT`) when the org has no row. A refusal is recorded as `status = budget_refused` with zero usage and emits `security_events.kind = ai_budget_exceeded` in the same transaction. Two concurrent jobs can overshoot the cap by at most one call; the cap is a spend guard, not a ledger lock (revisit if per-call costs grow).
+4. `security_events.kind` gains `ai_budget_exceeded` and `ai_canary_leak`; a validated output flagged `embedded_instruction_detected` emits `injection_flag`. Event `details` carry ids and purpose only, never model text.
+5. Ledger idempotency: `(org_id, job_id)` is unique; a replayed job returns the existing run id. If the ledger write fails after a paid call, the job fails loudly rather than drop the spend record.
+**Supersedes:** the 0010 placement of `ai_runs` in `MIGRATION_DEPENDENCY_MAP.md` and the `cost_usd numeric(12,6)` base column in `SCHEMA_PLAN.md`.
+
 ## ADR-016 — No marketplace or messaging automation; connectors gated by the data-rights matrix
 **Status:** accepted
 **Decision:** S2 and S6 in `INTEGRATIONS_AND_PERMISSIONS.md` are permanently blocked. API connectors (S8–S11) require recorded license/scopes and founder approval before design is turned into code.
