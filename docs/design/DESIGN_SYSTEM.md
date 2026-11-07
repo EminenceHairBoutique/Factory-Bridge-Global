@@ -1,5 +1,7 @@
 # Design System — Factory Bridge Global
 
+> **Superseded in part (2026-11-07):** the founder selected the **Atlas × Obsidian** direction. Color tokens, geometry, type scale and the component inventory are now defined in `docs/design/atlas-obsidian/DESIGN_TOKENS_V1.md` and `COMPONENTS_AND_INTERACTIONS.md`. This document is kept for the rationale and the original IA §4 mapping; where values differ, the Atlas × Obsidian documents win.
+
 **Scope:** tokens, type, spacing, components and accessibility rules used by the UX-01 prototypes. Source of the color tokens is `apps/web/src/app/globals.css` (shared, untouched by this track); everything else lives in `apps/web/src/design-preview/` until the owning tracks adopt it (see `INTEGRATION_HANDOFF.md`).
 
 ## 1. Tokens

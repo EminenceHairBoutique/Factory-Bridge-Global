@@ -197,12 +197,12 @@ export function OpsQuoteReview() {
                           {t.status === "in_review" ? "In review" : "Pending"}
                         </Badge>
                       </span>
-                      <span className="truncate text-[12px] text-slate">{t.project}</span>
-                      <span className="flex items-center justify-between text-[12px] text-slate">
+                      <span className="truncate text-xs text-slate">{t.project}</span>
+                      <span className="flex items-center justify-between text-xs text-slate">
                         <span className="truncate">{t.document}</span>
                         <span className="fbg-num shrink-0">{t.receivedAt.slice(5)}</span>
                       </span>
-                      <span className="text-[12px] text-slate">
+                      <span className="text-xs text-slate">
                         {t.buyerOrg} · {t.assignedTo ?? "Unassigned"}
                       </span>
                     </button>
@@ -217,7 +217,7 @@ export function OpsQuoteReview() {
             task.fields.length === 0 ? (
               <Panel title={task.supplier} description={`${task.project} · ${task.document}`}>
                 <div className="flex flex-col items-start gap-3">
-                  <p className="text-[13px] text-slate">
+                  <p className="text-sm text-slate">
                     Extraction has not run for this document yet. Assign it to yourself to start;
                     the worker parses, extracts and queues the fields for review.
                   </p>
@@ -238,7 +238,7 @@ export function OpsQuoteReview() {
                       {task.supplier}{" "}
                       <span className="font-normal text-slate">· {task.document}</span>
                     </h2>
-                    <p className="text-[12px] text-slate">
+                    <p className="text-xs text-slate">
                       {task.project} · {task.buyerOrg} · received {task.receivedAt} ·{" "}
                       {task.assignedTo}
                     </p>
@@ -247,7 +247,7 @@ export function OpsQuoteReview() {
                     <div
                       role="radiogroup"
                       aria-label="Pane"
-                      className="inline-flex rounded-md border border-line bg-paper p-0.5"
+                      className="inline-flex rounded-(--fbg-radius-control) border border-line bg-paper p-0.5"
                     >
                       {(["document", "fields"] as const).map((p) => (
                         <button
@@ -257,8 +257,8 @@ export function OpsQuoteReview() {
                           aria-checked={pane === p}
                           onClick={() => setPane(p)}
                           className={cx(
-                            "h-8 rounded px-3 text-[13px] font-medium",
-                            pane === p ? "bg-ink text-white" : "text-slate",
+                            "h-8 rounded px-3 text-sm font-medium",
+                            pane === p ? "bg-ink text-(--fbg-text-inverse)" : "text-slate",
                           )}
                         >
                           {p === "document" ? "Document" : "Fields"}
@@ -291,8 +291,8 @@ export function OpsQuoteReview() {
                                   key={l.id}
                                   id={`anchor-${l.id}`}
                                   className={cx(
-                                    "rounded px-2 py-1 text-[13px]",
-                                    l.table ? "fbg-num font-mono text-[12px]" : "",
+                                    "rounded px-2 py-1 text-sm",
+                                    l.table ? "fbg-num font-mono text-xs" : "",
                                     l.zh ? "fbg-zh" : "",
                                     active ? "bg-accent/15 ring-1 ring-accent" : "text-ink",
                                   )}
@@ -319,10 +319,7 @@ export function OpsQuoteReview() {
                       {fields.map((f) => (
                         <li key={f.key} className="flex flex-col gap-1.5 px-4 py-3">
                           <div className="flex items-center justify-between gap-2">
-                            <label
-                              htmlFor={`f_${f.key}`}
-                              className="text-[13px] font-medium text-ink"
-                            >
+                            <label htmlFor={`f_${f.key}`} className="text-sm font-medium text-ink">
                               {f.label}
                             </label>
                             <ConfidenceBand level={f.confidence} />
@@ -367,7 +364,7 @@ export function OpsQuoteReview() {
                               className={cx(f.key.startsWith("tier") && "fbg-num")}
                             />
                           )}
-                          <div className="flex flex-wrap items-center gap-2 text-[12px]">
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
                             {f.anchor ? (
                               <button
                                 type="button"
@@ -416,17 +413,17 @@ export function OpsQuoteReview() {
                     padded={false}
                   >
                     {corrections.length === 0 ? (
-                      <p className="px-4 py-3 text-[13px] text-slate">No corrections yet.</p>
+                      <p className="px-4 py-3 text-sm text-slate">No corrections yet.</p>
                     ) : (
                       <ul className="divide-y divide-line">
                         {corrections.map((c) => (
-                          <li key={c.id} className="px-4 py-2 text-[13px]">
+                          <li key={c.id} className="px-4 py-2 text-sm">
                             <p className="font-medium text-ink">{c.field}</p>
                             <p className="text-slate">
                               <span className="line-through">{c.before ?? "null"}</span> →{" "}
                               <span className="text-ink">{c.after}</span>
                             </p>
-                            <p className="fbg-num text-[12px] text-slate">
+                            <p className="fbg-num text-xs text-slate">
                               {c.who} · {c.when}
                             </p>
                           </li>

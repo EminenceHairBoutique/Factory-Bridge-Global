@@ -27,6 +27,7 @@ import {
 } from "../compare-demo";
 import { AppShell } from "../ui/AppShell";
 import { Icon } from "../ui/icons";
+import { useEscapeKey } from "../ui/useEscapeKey";
 import {
   Badge,
   Button,
@@ -43,6 +44,13 @@ import {
 
 const QUANTITIES = [5_000, 10_000, 25_000] as const;
 type Qty = (typeof QUANTITIES)[number];
+
+type View = "all" | "eligible" | "excluded";
+const VIEWS: ReadonlyArray<{ value: View; label: string }> = [
+  { value: "all", label: "All quotes" },
+  { value: "eligible", label: "Eligible only" },
+  { value: "excluded", label: "Not ranked" },
+];
 
 const QUOTE_TYPE_LABEL: Record<string, string> = {
   listing: "Indicative listing",
@@ -79,6 +87,25 @@ export function QuoteComparison() {
   const [dutySource, setDutySource] = useState("");
   const [selectedId, setSelectedId] = useState<string>("q_demo_a");
   const [clarification, setClarification] = useState<string | null>(null);
+  const [view, setView] = useState<View>("all");
+  const [compareSet, setCompareSet] = useState<Set<string>>(new Set());
+  const [compareMode, setCompareMode] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"pdf" | "xlsx">("pdf");
+  const [showSpec, setShowSpec] = useState(true);
+
+  useEscapeKey(exportOpen || clarification !== null, () => {
+    setExportOpen(false);
+    setClarification(null);
+  });
+
+  const toggleCompare = (id: string) =>
+    setCompareSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   const dutyRateNumber = Number(dutyRate);
   const dutyValid =
@@ -123,6 +150,16 @@ export function QuoteComparison() {
 
   const all = result.groups.flatMap((g) => g.quotes);
   const selected = all.find((e) => e.quote.id === selectedId) ?? all[0];
+  const visibleGroups = result.groups
+    .filter((g) =>
+      view === "all" ? true : view === "eligible" ? g.kind === "basis" : g.kind === "excluded",
+    )
+    .map((g) =>
+      compareMode && compareSet.size > 0
+        ? { ...g, quotes: g.quotes.filter((e) => compareSet.has(e.quote.id)) }
+        : g,
+    )
+    .filter((g) => g.quotes.length > 0);
   const includedCount = result.groups
     .filter((g) => g.kind === "basis")
     .reduce((n, g) => n + g.quotes.length, 0);
@@ -164,15 +201,63 @@ export function QuoteComparison() {
                   label: `${formatQty(q)} pcs`,
                 }))}
               />
-              <Button
-                icon="download"
-                title="Report generation (PDF/CSV with assumptions and exclusions) arrives with B-23"
-              >
+              <Button icon="download" onClick={() => setExportOpen(true)}>
                 Export report
               </Button>
             </>
           }
         />
+
+        {/* View filters and compare mode */}
+        <div className="flex flex-wrap items-center gap-3">
+          <SegmentedControl
+            label="Show"
+            size="sm"
+            options={VIEWS}
+            value={view}
+            onChange={setView}
+          />
+          <label className="flex items-center gap-2 text-sm text-(--fbg-text-secondary)">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-(--fbg-action-primary)"
+              checked={showSpec}
+              onChange={(e) => setShowSpec(e.target.checked)}
+            />
+            Show specification rows
+          </label>
+          <div className="ml-auto flex items-center gap-2">
+            {compareSet.size > 0 ? (
+              <>
+                <Button
+                  size="sm"
+                  variant={compareMode ? "primary" : "secondary"}
+                  icon="compare"
+                  onClick={() => setCompareMode((v) => !v)}
+                  aria-pressed={compareMode}
+                >
+                  {compareMode
+                    ? `Comparing ${compareSet.size} selected`
+                    : `Compare ${compareSet.size} selected`}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setCompareSet(new Set());
+                    setCompareMode(false);
+                  }}
+                >
+                  Clear
+                </Button>
+              </>
+            ) : (
+              <span className="text-xs text-(--fbg-text-secondary)">
+                Tick “Compare” on two or more quotes to view them side by side.
+              </span>
+            )}
+          </div>
+        </div>
 
         {/* The argument: why groups */}
         <Panel padded={false}>
@@ -181,7 +266,7 @@ export function QuoteComparison() {
               <h2 className="text-[15px] font-semibold text-ink">
                 Why these quotes are shown in groups
               </h2>
-              <p className="mt-1 text-[13px] text-slate">
+              <p className="mt-1 text-sm text-slate">
                 A trade term says how much of the journey the price includes. An EXW price stops at
                 the factory door; an FOB price already covers inland transport and export clearance
                 to the port. Comparing them on goods price would reward the quote that leaves more
@@ -189,7 +274,7 @@ export function QuoteComparison() {
                 place. Groups are ranked against each other only when every landed-cost line needed
                 to normalise them is present, as sourced or estimated.
               </p>
-              <div className="mt-3 flex flex-wrap gap-2 text-[12px]">
+              <div className="mt-3 flex flex-wrap gap-2 text-xs">
                 <span className="fbg-line-sourced pl-2 text-slate">
                   <span className="text-ink">Sourced</span> · from a quote or confirmed logistics
                   quote
@@ -203,10 +288,8 @@ export function QuoteComparison() {
               </div>
             </div>
             <div className="flex flex-col gap-3 p-4">
-              <p className="text-[13px] font-medium text-ink">
-                Landed-cost inputs for this comparison
-              </p>
-              <label className="flex cursor-pointer items-start gap-3 rounded-md border border-line p-3 hover:border-ink/30">
+              <p className="text-sm font-medium text-ink">Landed-cost inputs for this comparison</p>
+              <label className="flex cursor-pointer items-start gap-3 rounded-(--fbg-radius-control) border border-line p-3 hover:border-ink/30">
                 <input
                   type="checkbox"
                   className="mt-0.5 accent-teal"
@@ -217,15 +300,15 @@ export function QuoteComparison() {
                   <span className="block text-sm text-ink">
                     Apply forwarder estimate as estimated lines
                   </span>
-                  <span className="block text-[12px] text-slate">
+                  <span className="block text-xs text-slate">
                     {DEMO_FREIGHT_ESTIMATE.source}: freight, insurance, brokerage and delivery to NJ
                     07102 for each trade term. Lines stay marked <em>estimated</em>.
                   </span>
                 </span>
               </label>
-              <div className="rounded-md border border-line p-3">
+              <div className="rounded-(--fbg-radius-control) border border-line p-3">
                 <p className="text-sm text-ink">Duty and tax assumption</p>
-                <p className="text-[12px] text-slate">
+                <p className="text-xs text-slate">
                   Enter a rate with its source. Classification and duty advice should come from a
                   licensed customs broker; this field records your assumption, nothing fills it for
                   you.
@@ -243,7 +326,7 @@ export function QuoteComparison() {
                       placeholder="0"
                       className="fbg-num pr-7"
                     />
-                    <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[13px] text-slate">
+                    <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-slate">
                       %
                     </span>
                   </div>
@@ -279,7 +362,12 @@ export function QuoteComparison() {
         </Panel>
 
         {/* Groups */}
-        {result.groups.map((group) => (
+        {visibleGroups.length === 0 ? (
+          <Notice tone="neutral" title="Nothing to show for this view">
+            Change the view or the quantity, or clear the compare selection.
+          </Notice>
+        ) : null}
+        {visibleGroups.map((group) => (
           <section
             key={group.key}
             aria-labelledby={`group-${group.key}`}
@@ -297,7 +385,7 @@ export function QuoteComparison() {
                 ) : (
                   <>
                     <Icon name="truck" size={16} className="text-teal" /> {group.title}
-                    <span className="fbg-num text-[13px] font-normal text-slate">
+                    <span className="fbg-num text-sm font-normal text-slate">
                       · {group.quotes.length} {group.quotes.length === 1 ? "quote" : "quotes"}
                     </span>
                   </>
@@ -312,21 +400,24 @@ export function QuoteComparison() {
                   }
                 </Badge>
               ) : group.kind === "basis" ? (
-                <span className="text-[12px] text-slate">
+                <span className="text-xs text-slate">
                   Single quote in this group — nothing to rank against.
                 </span>
               ) : (
-                <span className="text-[12px] text-slate">
+                <span className="text-xs text-slate">
                   Shown for completeness; excluded from every ranking.
                 </span>
               )}
             </div>
 
             {/* Desktop matrix */}
-            <div className="hidden overflow-x-auto rounded-md border border-line bg-surface lg:block">
+            <div className="hidden overflow-x-auto rounded-(--fbg-radius-card) border border-line bg-surface lg:block">
               <Matrix
                 quotes={group.quotes}
                 qty={qty}
+                showSpec={showSpec}
+                compareSet={compareSet}
+                onToggleCompare={toggleCompare}
                 excluded={group.kind === "excluded"}
                 selectedId={selected?.quote.id}
                 onSelect={setSelectedId}
@@ -342,6 +433,9 @@ export function QuoteComparison() {
                   excluded={group.kind === "excluded"}
                   selected={selected?.quote.id === e.quote.id}
                   onSelect={() => setSelectedId(e.quote.id)}
+                  showSpec={showSpec}
+                  compared={compareSet.has(e.quote.id)}
+                  onToggleCompare={() => toggleCompare(e.quote.id)}
                 />
               ))}
             </div>
@@ -361,6 +455,82 @@ export function QuoteComparison() {
           </div>
         ) : null}
 
+        {exportOpen ? (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Export comparison report"
+            className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+          >
+            <button
+              type="button"
+              className="absolute inset-0 bg-(--fbg-overlay)"
+              aria-label="Close"
+              onClick={() => setExportOpen(false)}
+            />
+            <div className="fbg-raised relative w-full max-w-lg rounded-t-(--fbg-radius-dialog) p-5 sm:rounded-(--fbg-radius-dialog)">
+              <h2 className="text-lg font-semibold text-ink">Export comparison report</h2>
+              <p className="mt-1 text-sm text-slate">
+                The report contains brief v{project.briefVersion}, each quote source reference,
+                confirmed and valid-until dates, price basis, the FX rate row, every landed-cost
+                line with its status, the assumptions list, the exclusions list and the generation
+                time. Supplier contact details are never included unless your organization holds a
+                disclosure grant.
+              </p>
+              <div role="radiogroup" aria-label="Format" className="mt-4 grid grid-cols-2 gap-2">
+                {(
+                  [
+                    { value: "pdf", label: "PDF", hint: "Read-only, for sharing internally" },
+                    {
+                      value: "xlsx",
+                      label: "XLSX",
+                      hint: "Cells with original and converted values",
+                    },
+                  ] as const
+                ).map((f) => (
+                  <label
+                    key={f.value}
+                    className={cx(
+                      "flex cursor-pointer items-start gap-3 rounded-(--fbg-radius-control) border p-3",
+                      exportFormat === f.value
+                        ? "border-(--fbg-action-primary)/60 bg-(--fbg-selected)"
+                        : "border-line hover:border-(--fbg-border-strong)",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="exportFormat"
+                      className="mt-0.5 accent-(--fbg-action-primary)"
+                      checked={exportFormat === f.value}
+                      onChange={() => setExportFormat(f.value)}
+                    />
+                    <span>
+                      <span className="block text-sm font-medium text-ink">{f.label}</span>
+                      <span className="block text-xs text-slate">{f.hint}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <div className="mt-3">
+                <Notice tone="neutral" title="Report generation is not connected in this preview">
+                  File name would be{" "}
+                  <span className="fbg-num">
+                    fbg-comparison-prj_demo_labels-v{project.briefVersion}-{DEMO_AS_OF}.
+                    {exportFormat}
+                  </span>
+                  . Generation runs server-side and arrives with backlog item B-23.
+                </Notice>
+              </div>
+              <div className="mt-4 flex justify-end gap-2">
+                <Button onClick={() => setExportOpen(false)}>Close</Button>
+                <Button variant="primary" icon="download" disabled title="Arrives with B-23">
+                  Generate {exportFormat.toUpperCase()}
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {clarification ? (
           <div
             role="dialog"
@@ -370,20 +540,20 @@ export function QuoteComparison() {
           >
             <button
               type="button"
-              className="absolute inset-0 bg-ink/40"
+              className="absolute inset-0 bg-(--fbg-overlay)"
               aria-label="Close"
               onClick={() => setClarification(null)}
             />
-            <div className="fbg-dp relative w-full max-w-lg rounded-t-xl bg-surface p-5 sm:rounded-md">
+            <div className="fbg-raised relative w-full max-w-lg rounded-t-(--fbg-radius-dialog) p-5 sm:rounded-(--fbg-radius-dialog)">
               <h2 className="text-[15px] font-semibold text-ink">
                 Request clarification from {clarification}
               </h2>
-              <p className="mt-1 text-[13px] text-slate">
+              <p className="mt-1 text-sm text-slate">
                 A bilingual draft is prepared for you. It is sent only after you approve the wording
                 and an operator approves the outbound message. The send record logs channel,
                 approver and time.
               </p>
-              <div className="mt-3 rounded-md border border-line bg-paper p-3 text-[13px]">
+              <div className="mt-3 rounded-(--fbg-radius-control) border border-line bg-paper p-3 text-sm">
                 <p className="text-ink">
                   Is tooling included in the quoted EXW unit price, and does the price hold for
                   10,000 pcs?
@@ -456,7 +626,7 @@ const ROWS: RowDef[] = [
     section: "quote",
     render: (e) =>
       e.quote.validUntil === null ? (
-        <span className="text-[12px] text-warn">
+        <span className="text-xs text-warn">
           Not stated. Treated as unconfirmed, never as perpetual.
         </span>
       ) : (
@@ -477,7 +647,7 @@ const ROWS: RowDef[] = [
     label: "Source",
     section: "quote",
     render: (e) => (
-      <span className="flex items-start gap-1 text-[12px] text-slate">
+      <span className="flex items-start gap-1 text-xs text-slate">
         <Icon name="document" size={12} className="mt-0.5 shrink-0" />
         <span>
           {e.quote.sourceRef}
@@ -534,10 +704,7 @@ const ROWS: RowDef[] = [
           return (
             <span
               key={t.minQty}
-              className={cx(
-                "fbg-num text-[13px]",
-                active ? "font-semibold text-ink" : "text-slate",
-              )}
+              className={cx("fbg-num text-sm", active ? "font-semibold text-ink" : "text-slate")}
             >
               {active ? <Icon name="check" size={12} className="mr-1 inline text-teal" /> : null}
               {tierLabel(t, e.quote.currency)}
@@ -545,7 +712,7 @@ const ROWS: RowDef[] = [
           );
         })}
         {e.quote.moq !== null ? (
-          <span className="fbg-num text-[12px] text-slate">MOQ {formatQty(e.quote.moq)}</span>
+          <span className="fbg-num text-xs text-slate">MOQ {formatQty(e.quote.moq)}</span>
         ) : null}
       </div>
     ),
@@ -559,7 +726,7 @@ const ROWS: RowDef[] = [
         <div className="fbg-num">
           <span className="text-ink">{formatMoney(e.tier.unitPrice, e.quote.currency, 4)}</span>
           {e.quote.currency === "CNY" ? (
-            <span className="block text-[12px] text-slate">
+            <span className="block text-xs text-slate">
               {formatMoney(e.tier.unitPrice * DEMO_FX.rate, "USD", 4)} converted
             </span>
           ) : null}
@@ -577,7 +744,7 @@ const ROWS: RowDef[] = [
         <div className="fbg-num">
           <span className="text-ink">{formatMoney(e.goodsOriginal, e.quote.currency)}</span>
           {e.quote.currency === "CNY" ? (
-            <span className="block text-[12px] text-slate">{formatMoney(e.goodsUsd, "USD")}</span>
+            <span className="block text-xs text-slate">{formatMoney(e.goodsUsd, "USD")}</span>
           ) : null}
         </div>
       ) : (
@@ -595,17 +762,13 @@ const ROWS: RowDef[] = [
             {formatMoney(e.oneTimeFeesOriginal, e.quote.currency)} tooling
           </span>
           {e.quote.currency === "CNY" ? (
-            <span className="block text-[12px] text-slate">
-              {formatMoney(e.oneTimeFeesUsd, "USD")}
-            </span>
+            <span className="block text-xs text-slate">{formatMoney(e.oneTimeFeesUsd, "USD")}</span>
           ) : null}
         </div>
       ) : e.quote.fees.some((f) => f.includedInUnitPrice) ? (
-        <span className="text-[12px] text-slate">
-          Tooling included in unit price (per supplier)
-        </span>
+        <span className="text-xs text-slate">Tooling included in unit price (per supplier)</span>
       ) : (
-        <span className="text-[12px] text-slate">None stated</span>
+        <span className="text-xs text-slate">None stated</span>
       ),
   },
   {
@@ -683,7 +846,7 @@ function LandedCell({ e, type }: { e: EvaluatedQuote; type: LandedLineType }) {
   return (
     <div className={cx("pl-2", cls)}>
       {line.status === "not_applicable" ? (
-        <span className="text-[12px] text-slate">Included in trade term</span>
+        <span className="text-xs text-slate">Included in trade term</span>
       ) : line.status === "missing" ? (
         <StatusChip status="missing" />
       ) : (
@@ -720,8 +883,8 @@ function LandedTotal({ e }: { e: EvaluatedQuote }) {
     );
   return (
     <div>
-      <span className="text-[13px] font-medium text-ink">Partial</span>
-      <span className="block text-[12px] text-danger">
+      <span className="text-sm font-medium text-ink">Partial</span>
+      <span className="block text-xs text-danger">
         Excludes: {e.missingLines.map((m) => LANDED_LINE_LABEL[m].toLowerCase()).join(", ")}
       </span>
     </div>
@@ -742,24 +905,32 @@ function Matrix({
   excluded,
   selectedId,
   onSelect,
+  showSpec,
+  compareSet,
+  onToggleCompare,
 }: {
   quotes: EvaluatedQuote[];
   qty: number;
   excluded: boolean;
   selectedId: string | undefined;
   onSelect: (id: string) => void;
+  showSpec: boolean;
+  compareSet: ReadonlySet<string>;
+  onToggleCompare: (id: string) => void;
 }) {
-  const rows = excluded
-    ? ROWS.filter((r) => r.section === "quote" || r.section === "spec" || r.key === "tier")
-    : ROWS;
+  const rows = (
+    excluded
+      ? ROWS.filter((r) => r.section === "quote" || r.section === "spec" || r.key === "tier")
+      : ROWS
+  ).filter((r) => showSpec || r.section !== "spec");
   const sections = Array.from(new Set(rows.map((r) => r.section)));
   return (
-    <table className="w-full border-collapse text-[13px]">
+    <table className="w-full border-collapse text-sm">
       <thead>
         <tr>
           <th
             scope="col"
-            className="sticky left-0 z-10 w-56 border-b border-line bg-surface px-4 py-3 text-left text-[12px] font-medium text-slate"
+            className="sticky left-0 z-10 w-56 border-b border-line bg-surface px-4 py-3 text-left text-xs font-medium text-slate"
           >
             {excluded ? "Reason" : "Supplier"}
           </th>
@@ -789,17 +960,26 @@ function Matrix({
                   >
                     {e.quote.supplier}
                   </span>
-                  <span className="block text-[12px] text-slate">
+                  <span className="block text-xs text-slate">
                     {e.quote.city} · {e.quote.priceBasis} {e.quote.basisPlace} · {e.quote.currency}
                   </span>
                 </button>
                 {e.exclusion ? (
-                  <span className="mt-1 block text-[12px] text-danger">
+                  <span className="mt-1 block text-xs text-danger">
                     {exclusionText(e.exclusion)}
                   </span>
                 ) : (
                   <span className="mt-1 block text-[11px] text-slate">Click to show evidence</span>
                 )}
+                <label className="mt-2 flex items-center gap-2 text-xs font-normal text-slate">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-(--fbg-action-primary)"
+                    checked={compareSet.has(e.quote.id)}
+                    onChange={() => onToggleCompare(e.quote.id)}
+                  />
+                  Compare
+                </label>
               </th>
             );
           })}
@@ -823,7 +1003,7 @@ function Matrix({
               <th
                 scope="rowgroup"
                 colSpan={quotes.length + 1}
-                className="border-t border-line bg-paper px-4 py-1.5 text-left text-[12px] font-medium text-slate"
+                className="border-t border-line bg-paper px-4 py-1.5 text-left text-xs font-medium text-slate"
               >
                 {SECTION_LABEL.landed}
               </th>
@@ -896,7 +1076,7 @@ function SectionRows({
         <th
           scope="rowgroup"
           colSpan={quotes.length + 1}
-          className="border-t border-line bg-paper px-4 py-1.5 text-left text-[12px] font-medium text-slate"
+          className="border-t border-line bg-paper px-4 py-1.5 text-left text-xs font-medium text-slate"
         >
           {label}
         </th>
@@ -932,20 +1112,31 @@ function QuoteCard({
   excluded,
   selected,
   onSelect,
+  showSpec,
+  compared,
+  onToggleCompare,
 }: {
   evaluated: EvaluatedQuote;
   qty: number;
   excluded: boolean;
   selected: boolean;
   onSelect: () => void;
+  showSpec: boolean;
+  compared: boolean;
+  onToggleCompare: () => void;
 }) {
-  const rows = excluded
-    ? ROWS.filter((r) => r.section === "quote" || r.section === "spec" || r.key === "tier")
-    : ROWS;
+  const rows = (
+    excluded
+      ? ROWS.filter((r) => r.section === "quote" || r.section === "spec" || r.key === "tier")
+      : ROWS
+  ).filter((r) => showSpec || r.section !== "spec");
+  const missing = e.exclusion
+    ? [exclusionText(e.exclusion)]
+    : e.missingLines.map((m) => LANDED_LINE_LABEL[m]);
   return (
     <article
       className={cx(
-        "w-[min(88vw,22rem)] shrink-0 rounded-md border bg-surface",
+        "w-[min(86vw,22rem)] shrink-0 rounded-(--fbg-radius-card) border bg-surface",
         selected ? "border-teal" : "border-line",
       )}
     >
@@ -959,43 +1150,73 @@ function QuoteCard({
           <span className={cx("block text-sm font-semibold", excluded ? "text-slate" : "text-ink")}>
             {e.quote.supplier}
           </span>
-          <span className="block text-[12px] text-slate">
+          <span className="block text-xs text-slate">
             {e.quote.city} · {e.quote.priceBasis} {e.quote.basisPlace} · {e.quote.currency}
           </span>
         </button>
         {e.exclusion ? (
-          <p className="mt-1 text-[12px] text-danger">{exclusionText(e.exclusion)}</p>
+          <p className="mt-1 text-xs text-danger">{exclusionText(e.exclusion)}</p>
         ) : null}
         {!excluded && e.comparableGoodsUsd !== null ? (
           <p className="fbg-num mt-2 text-[15px] font-semibold text-ink">
             {formatMoney(e.comparableGoodsUsd, "USD")}{" "}
-            <span className="text-[12px] font-normal text-slate">comparable goods cost</span>
+            <span className="text-xs font-normal text-slate">comparable goods cost</span>
           </p>
         ) : null}
+        <div className="mt-2 flex items-start justify-between gap-2">
+          <p className="text-xs">
+            <span className="font-medium text-ink">What is missing: </span>
+            {missing.length === 0 ? (
+              <span className="text-(--fbg-status-success)">nothing, all inputs present</span>
+            ) : (
+              <span className="text-danger">{missing.join(", ")}</span>
+            )}
+          </p>
+          <label className="flex shrink-0 items-center gap-1.5 text-xs text-slate">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-(--fbg-action-primary)"
+              checked={compared}
+              onChange={onToggleCompare}
+            />
+            Compare
+          </label>
+        </div>
       </header>
-      <dl className="divide-y divide-line/70">
-        {rows
-          .filter((r) => r.key !== "comparable")
-          .map((row) => (
-            <div key={row.key} className="grid grid-cols-[7.5rem_1fr] gap-2 px-3 py-2">
-              <dt className="text-[12px] text-slate">{row.label}</dt>
-              <dd className="min-w-0 text-[13px]">{row.render(e, qty)}</dd>
-            </div>
-          ))}
-        {!excluded
-          ? LANDED_ROWS.map((type) => (
-              <div key={type} className="grid grid-cols-[7.5rem_1fr] gap-2 px-3 py-2">
-                <dt className="text-[12px] text-slate">{LANDED_LINE_LABEL[type]}</dt>
-                <dd className="min-w-0 text-[13px]">
-                  <LandedCell e={e} type={type} />
-                </dd>
+      <details className="group" open={selected}>
+        <summary className="flex min-h-11 cursor-pointer items-center justify-between px-3 text-sm font-medium text-(--fbg-link) [&::-webkit-details-marker]:hidden">
+          <span className="group-open:hidden">Show details</span>
+          <span className="hidden group-open:inline">Hide details</span>
+          <Icon
+            name="chevron-down"
+            size={16}
+            className="transition-transform group-open:rotate-180"
+          />
+        </summary>
+        <dl className="divide-y divide-line/70 border-t border-line/70">
+          {rows
+            .filter((r) => r.key !== "comparable")
+            .map((row) => (
+              <div key={row.key} className="grid grid-cols-[7.5rem_1fr] gap-2 px-3 py-2">
+                <dt className="text-xs text-slate">{row.label}</dt>
+                <dd className="min-w-0 text-sm">{row.render(e, qty)}</dd>
               </div>
-            ))
-          : null}
-      </dl>
+            ))}
+          {!excluded
+            ? LANDED_ROWS.map((type) => (
+                <div key={type} className="grid grid-cols-[7.5rem_1fr] gap-2 px-3 py-2">
+                  <dt className="text-xs text-slate">{LANDED_LINE_LABEL[type]}</dt>
+                  <dd className="min-w-0 text-sm">
+                    <LandedCell e={e} type={type} />
+                  </dd>
+                </div>
+              ))
+            : null}
+        </dl>
+      </details>
       {!excluded ? (
         <footer className="border-t-2 border-ink/20 p-3">
-          <p className="text-[12px] text-slate">Estimated landed total</p>
+          <p className="text-xs text-slate">Estimated landed total</p>
           <LandedTotal e={e} />
         </footer>
       ) : null}
@@ -1016,26 +1237,29 @@ function EvidenceDrawer({
     <div className="flex flex-col gap-4">
       {!embedded ? (
         <div>
-          <p className="text-[12px] text-slate">Evidence drawer</p>
+          <p className="text-xs text-slate">Evidence drawer</p>
           <h2 className="text-[15px] font-semibold text-ink">{e.quote.supplier}</h2>
-          <p className="text-[12px] text-slate">
+          <p className="text-xs text-slate">
             {e.quote.city} · {e.quote.priceBasis} {e.quote.basisPlace}
           </p>
         </div>
       ) : null}
       <div>
-        <p className="text-[12px] font-medium text-ink">Verification checks</p>
+        <p className="text-xs font-medium text-ink">Verification checks</p>
         {e.quote.evidence.length === 0 ? (
-          <p className="mt-1 text-[13px] text-slate">
+          <p className="mt-1 text-sm text-slate">
             No check record exists for this supplier. No badge is shown until one does.
           </p>
         ) : (
           <ul className="mt-1 flex flex-col gap-2">
             {e.quote.evidence.map((ev) => (
-              <li key={ev.label} className="rounded-md border border-line p-2.5 text-[13px]">
+              <li
+                key={ev.label}
+                className="rounded-(--fbg-radius-control) border border-line p-2.5 text-sm"
+              >
                 <p className="font-medium text-ink">{ev.label}</p>
                 <p className="mt-0.5 text-slate">{ev.what}</p>
-                <p className="fbg-num mt-1 text-[12px] text-slate">
+                <p className="fbg-num mt-1 text-xs text-slate">
                   {ev.who} · {ev.when}
                   {ev.until ? ` · valid until ${ev.until}` : ""}
                 </p>
@@ -1045,24 +1269,24 @@ function EvidenceDrawer({
         )}
       </div>
       <div>
-        <p className="text-[12px] font-medium text-ink">Not verified</p>
-        <p className="mt-1 text-[13px] text-slate">
+        <p className="text-xs font-medium text-ink">Not verified</p>
+        <p className="mt-1 text-sm text-slate">
           Product tested: no record. Batch inspected: no record. Contacted ≠ identity reviewed ≠
           product tested ≠ batch inspected.
         </p>
       </div>
       <div>
-        <p className="text-[12px] font-medium text-ink">Source document</p>
-        <p className="mt-1 flex items-center gap-1 text-[13px] text-ink">
+        <p className="text-xs font-medium text-ink">Source document</p>
+        <p className="mt-1 flex items-center gap-1 text-sm text-ink">
           <Icon name="document" size={14} className="text-slate" /> {e.quote.sourceRef}
         </p>
-        <p className="fbg-num text-[12px] text-slate">
+        <p className="fbg-num text-xs text-slate">
           Observed {e.quote.observedAt} · confirmed {e.quote.confirmedAt}
         </p>
       </div>
       <div>
-        <p className="text-[12px] font-medium text-ink">Contact details</p>
-        <p className="mt-1 flex items-start gap-1 text-[13px] text-slate">
+        <p className="text-xs font-medium text-ink">Contact details</p>
+        <p className="mt-1 flex items-start gap-1 text-sm text-slate">
           <Icon name="lock" size={14} className="mt-0.5 shrink-0" /> Hidden. Your organization holds
           no disclosure grant for this supplier; operators handle outreach.
         </p>

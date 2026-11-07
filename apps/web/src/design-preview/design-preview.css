@@ -1,10 +1,86 @@
 /*
- * Design-preview scope (track UX-01). Loaded only by apps/web/src/app/design-preview/layout.tsx.
- * Color tokens come from the shared Tailwind theme in app/globals.css (UX_INFORMATION_ARCHITECTURE.md §4);
- * this file adds typography, focus, motion and a few layout helpers that the prototypes need.
+ * Atlas × Obsidian token layer (design track UX-01 / DESIGN-02).
+ * Loaded only by apps/web/src/app/design-preview/layout.tsx. Scoped to `.fbg-dp`, so nothing here affects the
+ * production shell. The shared Tailwind theme in app/globals.css is untouched: its legacy variables
+ * (--color-ink, --color-paper, …) are REMAPPED inside this scope onto the semantic tokens below, which is what
+ * lets every existing utility class (text-ink, bg-paper, border-line, bg-teal/10 …) follow the active theme.
+ *
+ * Themes: Atlas (light, default) and Obsidian (dark). `data-theme="obsidian"` forces dark; `data-theme="system"`
+ * follows prefers-color-scheme. Contrast values are recorded in docs/design/atlas-obsidian/DESIGN_TOKENS_V1.md.
  */
 
 .fbg-dp {
+  /* ---- Atlas (light) semantic tokens ---------------------------------------------------------- */
+  --fbg-bg-canvas: #faf8f4;
+  --fbg-bg-surface: #ffffff;
+  --fbg-bg-raised: #ffffff;
+  --fbg-bg-sunken: #f3f0ea;
+  --fbg-bg-inverse: #0f1b2d;
+  --fbg-text-primary: #0f1b2d;
+  --fbg-text-secondary: #3a4a5e;
+  --fbg-text-muted: #6b7684;
+  --fbg-text-inverse: #f3f7f5;
+  --fbg-border-subtle: #e4e1da;
+  --fbg-border-divider: #ece9e3;
+  --fbg-border-strong: #7d8894;
+  --fbg-accent-subtle: #e7f2f0;
+  --fbg-action-primary: #1f6f78;
+  --fbg-action-primary-hover: #1a5f67;
+  --fbg-action-primary-pressed: #164f56;
+  --fbg-action-on-primary: #ffffff;
+  --fbg-link: #1f6f78;
+  --fbg-brand-accent: #b3613a;
+  --fbg-brand-accent-subtle: #f5e9e2;
+  --fbg-status-success: #2e7d4f;
+  --fbg-status-success-fill: #e4f2ea;
+  --fbg-status-warning: #83520a;
+  --fbg-status-warning-fill: #f7ecd9;
+  --fbg-status-danger: #a33a2e;
+  --fbg-status-danger-fill: #f6e3e0;
+  --fbg-status-info: #1f6f78;
+  --fbg-status-info-fill: #e7f2f0;
+  --fbg-focus-ring: #1f6f78;
+  --fbg-selected: #e7f2f0;
+  --fbg-hover: rgba(15, 27, 45, 0.05);
+  --fbg-pressed: rgba(15, 27, 45, 0.1);
+  --fbg-disabled-fg: #9aa3ae;
+  --fbg-disabled-bg: #f3f0ea;
+  --fbg-skeleton: #ece9e3;
+  --fbg-skeleton-shine: #f7f4ee;
+  --fbg-overlay: rgba(15, 27, 45, 0.45);
+  --fbg-rail-bg: #0f1b2d;
+  --fbg-rail-fg: #f3f7f5;
+  --fbg-chart-1: #1f6f78;
+  --fbg-chart-2: #b3613a;
+  --fbg-chart-3: #3a4a5e;
+  --fbg-chart-4: #83520a;
+  --fbg-chart-5: #2e7d4f;
+  --fbg-shadow-raised: 0 1px 2px rgba(15, 27, 45, 0.06), 0 4px 16px rgba(15, 27, 45, 0.06);
+  --fbg-shadow-dialog: 0 12px 40px rgba(15, 27, 45, 0.18);
+
+  /* ---- Geometry, density, motion -------------------------------------------------------------- */
+  --fbg-radius-chip: 6px;
+  --fbg-radius-control: 10px;
+  --fbg-radius-card: 12px;
+  --fbg-radius-dialog: 20px;
+  --fbg-control-h: 44px;
+  --fbg-control-h-sm: 36px;
+  --fbg-rail-w: 248px;
+  --fbg-drawer-w: 384px;
+  --fbg-motion: 180ms;
+
+  /* ---- Legacy token mapping (shared Tailwind theme → semantic) ------------------------------- */
+  --color-ink: var(--fbg-text-primary);
+  --color-slate: var(--fbg-text-secondary);
+  --color-paper: var(--fbg-bg-canvas);
+  --color-surface: var(--fbg-bg-surface);
+  --color-line: var(--fbg-border-subtle);
+  --color-accent: var(--fbg-brand-accent);
+  --color-teal: var(--fbg-action-primary);
+  --color-ok: var(--fbg-status-success);
+  --color-warn: var(--fbg-status-warning);
+  --color-danger: var(--fbg-status-danger);
+
   font-family:
     "Inter",
     "Noto Sans SC",
@@ -13,39 +89,157 @@
     -apple-system,
     "Segoe UI",
     sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
   font-feature-settings:
     "tnum" 1,
     "cv11" 1,
     "ss01" 1;
-  color: var(--color-ink);
+  color: var(--fbg-text-primary);
+  background: var(--fbg-bg-canvas);
+  color-scheme: light;
   -webkit-font-smoothing: antialiased;
 }
 
+/* ---- Obsidian (dark) ----------------------------------------------------------------------------- */
+.fbg-dp[data-theme="obsidian"],
+.fbg-dp [data-theme="obsidian"],
+.fbg-dp .fbg-obsidian {
+  --fbg-bg-canvas: #0d1118;
+  --fbg-bg-surface: #161e29;
+  --fbg-bg-raised: #1c2530;
+  --fbg-bg-sunken: #0a0e14;
+  --fbg-bg-inverse: #f3f7f5;
+  --fbg-text-primary: #f3f7f5;
+  --fbg-text-secondary: #a9b9c8;
+  --fbg-text-muted: #7f8f9e;
+  --fbg-text-inverse: #0d1118;
+  --fbg-border-subtle: #36414b;
+  --fbg-border-divider: #273039;
+  --fbg-border-strong: #5b6873;
+  --fbg-accent-subtle: #1b2f33;
+  --fbg-action-primary: #72d0c3;
+  --fbg-action-primary-hover: #86dbd0;
+  --fbg-action-primary-pressed: #5fbfb2;
+  --fbg-action-on-primary: #0d1118;
+  --fbg-link: #8fdcd1;
+  --fbg-brand-accent: #c7ad78;
+  --fbg-brand-accent-subtle: #2a2619;
+  --fbg-status-success: #7fd3a0;
+  --fbg-status-success-fill: #17322a;
+  --fbg-status-warning: #e6b45c;
+  --fbg-status-warning-fill: #3a2d14;
+  --fbg-status-danger: #f29a8e;
+  --fbg-status-danger-fill: #3d1f1c;
+  --fbg-status-info: #72d0c3;
+  --fbg-status-info-fill: #1b2f33;
+  --fbg-focus-ring: #72d0c3;
+  --fbg-selected: #1b2f33;
+  --fbg-hover: rgba(243, 247, 245, 0.06);
+  --fbg-pressed: rgba(243, 247, 245, 0.12);
+  --fbg-disabled-fg: #5b6873;
+  --fbg-disabled-bg: #121923;
+  --fbg-skeleton: #1c2530;
+  --fbg-skeleton-shine: #273039;
+  --fbg-overlay: rgba(5, 8, 12, 0.65);
+  --fbg-rail-bg: #0a0e14;
+  --fbg-rail-fg: #f3f7f5;
+  --fbg-chart-1: #72d0c3;
+  --fbg-chart-2: #c7ad78;
+  --fbg-chart-3: #a9b9c8;
+  --fbg-chart-4: #e6b45c;
+  --fbg-chart-5: #7fd3a0;
+  --fbg-shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.35);
+  --fbg-shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+  color: var(--fbg-text-primary);
+  background: var(--fbg-bg-canvas);
+}
+
+@media (prefers-color-scheme: dark) {
+  .fbg-dp[data-theme="system"] {
+    --fbg-bg-canvas: #0d1118;
+    --fbg-bg-surface: #161e29;
+    --fbg-bg-raised: #1c2530;
+    --fbg-bg-sunken: #0a0e14;
+    --fbg-bg-inverse: #f3f7f5;
+    --fbg-text-primary: #f3f7f5;
+    --fbg-text-secondary: #a9b9c8;
+    --fbg-text-muted: #7f8f9e;
+    --fbg-text-inverse: #0d1118;
+    --fbg-border-subtle: #36414b;
+    --fbg-border-divider: #273039;
+    --fbg-border-strong: #5b6873;
+    --fbg-accent-subtle: #1b2f33;
+    --fbg-action-primary: #72d0c3;
+    --fbg-action-primary-hover: #86dbd0;
+    --fbg-action-primary-pressed: #5fbfb2;
+    --fbg-action-on-primary: #0d1118;
+    --fbg-link: #8fdcd1;
+    --fbg-brand-accent: #c7ad78;
+    --fbg-brand-accent-subtle: #2a2619;
+    --fbg-status-success: #7fd3a0;
+    --fbg-status-success-fill: #17322a;
+    --fbg-status-warning: #e6b45c;
+    --fbg-status-warning-fill: #3a2d14;
+    --fbg-status-danger: #f29a8e;
+    --fbg-status-danger-fill: #3d1f1c;
+    --fbg-status-info: #72d0c3;
+    --fbg-status-info-fill: #1b2f33;
+    --fbg-focus-ring: #72d0c3;
+    --fbg-selected: #1b2f33;
+    --fbg-hover: rgba(243, 247, 245, 0.06);
+    --fbg-pressed: rgba(243, 247, 245, 0.12);
+    --fbg-disabled-fg: #5b6873;
+    --fbg-disabled-bg: #121923;
+    --fbg-skeleton: #1c2530;
+    --fbg-skeleton-shine: #273039;
+    --fbg-overlay: rgba(5, 8, 12, 0.65);
+    --fbg-rail-bg: #0a0e14;
+    --fbg-rail-fg: #f3f7f5;
+    --fbg-chart-1: #72d0c3;
+    --fbg-chart-2: #c7ad78;
+    --fbg-chart-3: #a9b9c8;
+    --fbg-chart-4: #e6b45c;
+    --fbg-chart-5: #7fd3a0;
+    --fbg-shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.35);
+    --fbg-shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+    color: var(--fbg-text-primary);
+    background: var(--fbg-bg-canvas);
+  }
+}
+
+/* ---- Typography helpers ---------------------------------------------------------------------- */
 .fbg-dp :lang(zh-CN),
 .fbg-dp .fbg-zh {
   font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Inter", sans-serif;
+}
+
+.fbg-dp .fbg-display {
+  font-family: "Geist", "Inter", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 600;
 }
 
 .fbg-dp .fbg-num {
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* Visible focus for keyboard users; the ring uses the single action accent. */
-.fbg-dp :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--color-accent);
+/* ---- Focus, motion ----------------------------------------------------------------------------- */
+.fbg-dp :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--fbg-focus-ring);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
-/* State transitions only (IA §4: 150 ms, no decorative motion). */
 .fbg-dp :where(button, a, input, select, textarea, summary) {
   transition:
-    background-color 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease,
-    box-shadow 150ms ease;
+    background-color var(--fbg-motion) ease,
+    border-color var(--fbg-motion) ease,
+    color var(--fbg-motion) ease,
+    box-shadow var(--fbg-motion) ease,
+    opacity var(--fbg-motion) ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -58,32 +252,58 @@
   }
 }
 
-/* Demo watermark stripe: must stay readable, never decorative. */
+/* ---- Surfaces ---------------------------------------------------------------------------------- */
+.fbg-dp .fbg-raised {
+  background: var(--fbg-bg-raised);
+  box-shadow: var(--fbg-shadow-raised);
+}
+
 .fbg-dp .fbg-demo-stripe {
   background: repeating-linear-gradient(
     -45deg,
-    color-mix(in oklab, var(--color-warn) 14%, var(--color-paper)),
-    color-mix(in oklab, var(--color-warn) 14%, var(--color-paper)) 12px,
-    var(--color-paper) 12px,
-    var(--color-paper) 24px
+    color-mix(in oklab, var(--fbg-status-warning) 16%, var(--fbg-bg-canvas)),
+    color-mix(in oklab, var(--fbg-status-warning) 16%, var(--fbg-bg-canvas)) 12px,
+    var(--fbg-bg-canvas) 12px,
+    var(--fbg-bg-canvas) 24px
   );
 }
 
-/* Cost-line status markers (IA §3 StatusLine): solid / dashed / hollow. */
+/* Cost-line status markers (IA §3 StatusLine): solid / dashed / double / thin. */
 .fbg-dp .fbg-line-sourced {
-  border-left: 3px solid var(--color-teal);
+  border-left: 3px solid var(--fbg-status-info);
 }
 .fbg-dp .fbg-line-estimated {
-  border-left: 3px dashed var(--color-warn);
+  border-left: 3px dashed var(--fbg-status-warning);
 }
 .fbg-dp .fbg-line-missing {
-  border-left: 3px double var(--color-danger);
+  border-left: 3px double var(--fbg-status-danger);
 }
 .fbg-dp .fbg-line-na {
-  border-left: 3px solid var(--color-line);
+  border-left: 3px solid var(--fbg-border-subtle);
 }
 
-/* Horizontal scroll with snap for the mobile comparison carousel. */
+/* Skeleton shimmer (static under reduced motion). */
+.fbg-dp .fbg-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--fbg-skeleton) 0%,
+    var(--fbg-skeleton-shine) 50%,
+    var(--fbg-skeleton) 100%
+  );
+  background-size: 200% 100%;
+  animation: fbg-shimmer 1.6s linear infinite;
+  border-radius: 6px;
+}
+@keyframes fbg-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Bounded horizontal overflow helpers. */
 .fbg-dp .fbg-snap-x {
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
@@ -91,16 +311,20 @@
 .fbg-dp .fbg-snap-x > * {
   scroll-snap-align: start;
 }
-
 .fbg-dp .fbg-scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-line) transparent;
+  scrollbar-color: var(--fbg-border-subtle) transparent;
 }
-
-/* Hide scrollbars on the nav rail without removing scroll. */
 .fbg-dp .fbg-no-scrollbar {
   scrollbar-width: none;
 }
 .fbg-dp .fbg-no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Obsidian marketing hero: CSS-only geometry, no images. */
+.fbg-dp .fbg-hero-obsidian {
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(114, 208, 195, 0.14), transparent 60%),
+    radial-gradient(800px 400px at 10% 110%, rgba(199, 173, 120, 0.1), transparent 60%), #0d1118;
 }

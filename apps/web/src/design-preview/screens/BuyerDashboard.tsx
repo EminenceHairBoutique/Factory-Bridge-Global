@@ -80,7 +80,7 @@ function StageProgress({ stage }: { stage: DemoProject["stage"] }) {
           />
         ))}
       </div>
-      <p className="mt-1 truncate text-[12px] text-slate">
+      <p className="mt-1 truncate text-xs text-slate">
         <span className="text-ink">{STAGE_LABEL[stage]}</span>
         <span className="fbg-num">
           {" "}
@@ -144,7 +144,7 @@ export function BuyerDashboard() {
               <Button icon="upload">Upload a quote</Button>
               <Link
                 href="/design-preview/buyer/new-request"
-                className="inline-flex h-10 items-center gap-2 rounded-md bg-accent px-4 text-sm font-medium text-white hover:bg-accent/90"
+                className="inline-flex h-(--fbg-control-h) items-center gap-2 rounded-(--fbg-radius-control) bg-(--fbg-action-primary) px-5 text-[15px] font-medium text-(--fbg-action-on-primary) hover:bg-(--fbg-action-primary-hover)"
               >
                 <Icon name="plus" size={16} />
                 New sourcing request
@@ -174,14 +174,14 @@ export function BuyerDashboard() {
                   const project = DEMO_PROJECTS.find((p) => p.id === a.projectId);
                   return (
                     <li key={a.id} className="flex gap-3 px-4 py-3">
-                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-ink/5 text-ink">
+                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-(--fbg-radius-control) bg-ink/5 text-ink">
                         <Icon name={ACTION_ICON[a.kind]} size={16} />
                       </span>
                       <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-start">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-ink">{a.title}</p>
-                          <p className="mt-0.5 text-[13px] text-slate">{a.detail}</p>
-                          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-slate">
+                          <p className="mt-0.5 text-sm text-slate">{a.detail}</p>
+                          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate">
                             <span className="truncate">{project?.name}</span>
                             {a.due ? <span className="fbg-num text-ink">{a.due}</span> : null}
                           </p>
@@ -190,7 +190,7 @@ export function BuyerDashboard() {
                           {a.href ? (
                             <Link
                               href={a.href}
-                              className="inline-flex h-8 items-center rounded-md border border-line bg-surface px-3 text-[13px] font-medium text-ink hover:border-ink/30"
+                              className="inline-flex h-(--fbg-control-h-sm) items-center rounded-(--fbg-radius-control) border border-(--fbg-border-strong)/60 bg-(--fbg-bg-surface) px-3.5 text-sm font-medium text-(--fbg-text-primary) hover:bg-(--fbg-hover)"
                             >
                               {ACTION_VERB[a.kind]}
                             </Link>
@@ -247,7 +247,7 @@ export function BuyerDashboard() {
                   key={row.label}
                   className="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0"
                 >
-                  <dt className="text-[13px] text-slate">{row.label}</dt>
+                  <dt className="text-sm text-slate">{row.label}</dt>
                   <dd>
                     <Badge tone={row.tone} icon={null} className="fbg-num min-w-8 justify-center">
                       {row.value}
@@ -258,7 +258,7 @@ export function BuyerDashboard() {
             </dl>
             <Link
               href="/design-preview/buyer/compare"
-              className="mt-4 inline-flex items-center gap-1 text-[13px] font-medium text-accent hover:underline"
+              className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-(--fbg-link) hover:underline"
             >
               Open the labels comparison
               <Icon name="chevron-right" size={14} />
@@ -289,7 +289,7 @@ export function BuyerDashboard() {
                 action={
                   <Link
                     href="/design-preview/buyer/new-request"
-                    className="text-[13px] font-medium text-accent hover:underline"
+                    className="text-sm font-medium text-(--fbg-link) hover:underline"
                   >
                     New sourcing request
                   </Link>
@@ -300,8 +300,8 @@ export function BuyerDashboard() {
             <>
               {/* Desktop table */}
               <div className="hidden overflow-x-auto md:block">
-                <table className="w-full text-left text-[13px]">
-                  <thead className="bg-paper text-[12px] text-slate">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-paper text-xs text-slate">
                     <tr className="[&>th]:px-4 [&>th]:py-2 [&>th]:font-medium">
                       <th scope="col">Project</th>
                       <th scope="col" className="w-56">
@@ -327,7 +327,7 @@ export function BuyerDashboard() {
                       >
                         <td>
                           <p className="font-medium text-ink">{p.name}</p>
-                          <p className="mt-0.5 text-[12px] text-slate">
+                          <p className="mt-0.5 text-xs text-slate">
                             {p.family} · brief v{p.briefVersion} · {p.destination}
                           </p>
                         </td>
@@ -344,12 +344,12 @@ export function BuyerDashboard() {
                         <td className="fbg-num text-right whitespace-nowrap">
                           <span className="text-ink">{p.quotes.confirmed} confirmed</span>
                           {p.quotes.inReview > 0 ? (
-                            <span className="block text-[12px] text-slate">
+                            <span className="block text-xs text-slate">
                               {p.quotes.inReview} in review
                             </span>
                           ) : null}
                           {p.quotes.expiringSoon > 0 ? (
-                            <span className="block text-[12px] text-warn">
+                            <span className="block text-xs text-warn">
                               {p.quotes.expiringSoon} expiring
                             </span>
                           ) : null}
@@ -358,14 +358,14 @@ export function BuyerDashboard() {
                           {p.id === "prj_demo_labels" ? (
                             <Link
                               href="/design-preview/buyer/compare"
-                              className="font-medium text-accent hover:underline"
+                              className="font-medium text-(--fbg-link) hover:underline"
                             >
                               {p.nextAction}
                             </Link>
                           ) : (
                             <span className="text-ink">{p.nextAction}</span>
                           )}
-                          <span className="mt-0.5 block text-[12px] text-slate">
+                          <span className="mt-0.5 block text-xs text-slate">
                             Operator: {p.operator}
                           </span>
                         </td>
@@ -383,7 +383,7 @@ export function BuyerDashboard() {
                   <li key={p.id} className="flex flex-col gap-2 px-4 py-3">
                     <p className="text-sm font-medium text-ink">{p.name}</p>
                     <StageProgress stage={p.stage} />
-                    <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-[12px]">
+                    <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                       <dt className="text-slate">Quantity</dt>
                       <dd className="fbg-num text-right text-ink">
                         {p.quantity > 0 ? `${formatQty(p.quantity)} ${p.unit}` : "—"}
@@ -421,7 +421,7 @@ export function BuyerDashboard() {
                     <p className="text-sm font-medium text-ink">
                       {q.supplier} <span className="font-normal text-slate">· {q.city}</span>
                     </p>
-                    <p className="mt-0.5 text-[12px] text-slate">
+                    <p className="mt-0.5 text-xs text-slate">
                       {q.priceBasis} {q.basisPlace} · {q.currency} ·{" "}
                       {q.validUntil === null ? (
                         <span className="text-warn">Validity unconfirmed</span>
@@ -451,7 +451,7 @@ export function BuyerDashboard() {
                 </li>
               ))}
             </ul>
-            <p className="border-t border-line px-4 py-2 text-[12px] text-slate">
+            <p className="border-t border-line px-4 py-2 text-xs text-slate">
               {supplierEvidence.withIdentity.length} of {DEMO_QUOTES.length} suppliers have an
               identity review on file; {supplierEvidence.withSample.length} has an approved sample
               for this variant; {supplierEvidence.none.length} has no check record. Contact details
@@ -486,7 +486,7 @@ export function BuyerDashboard() {
                 { when: "2026-10-31", what: "Supplier D quote expired", chip: "expired" as const },
               ].map((e) => (
                 <li key={e.what} className="flex items-start justify-between gap-3">
-                  <p className="text-[13px] text-ink">{e.what}</p>
+                  <p className="text-sm text-ink">{e.what}</p>
                   <FreshnessChip kind={e.chip} date={e.when} className="shrink-0" />
                 </li>
               ))}

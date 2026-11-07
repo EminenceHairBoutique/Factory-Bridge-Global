@@ -1,0 +1,64 @@
+# DESIGN-02 Execution Report — Atlas × Obsidian V1
+
+**Date:** 2026-11-07 · **Track:** UX-01, continued as DESIGN-02 (same session, same worktree, same branch by founder instruction) · **Branch:** `design/ux-mobile-foundation` in worktree `C:\dev\wt-ux01` · **PR:** https://github.com/EminenceHairBoutique/Factory-Bridge-Global/pull/10 (open, updated by this commit)
+
+## 1. Designed
+
+- Atlas (light) and Obsidian (dark) semantic token dictionaries with independently chosen dark status colors, state tokens (focus, hover, pressed, selected, disabled, skeleton, overlay), chart series, shadows, geometry (6/10/12/20 px radii, 44/36 px controls, 248 px rail, 384 px drawer), 180 ms motion, and a contrast matrix computed by script (`DESIGN_TOKENS_V1.md`, `tokens.json`).
+- Brand direction: positioning, principles, three emblem concepts (A chosen), tone, proposed copy with approval caveat (`BRAND_DIRECTION_V1.md`).
+- Public-site sitemap and nine marketing pages, revised buyer sidebar, four-tab mobile IA, role journeys and device matrix (`INFORMATION_ARCHITECTURE.md`, `PAGE_BY_PAGE_BLUEPRINT.md`).
+- Component inventory and interaction rules in both themes (`COMPONENTS_AND_INTERACTIONS.md`).
+- PWA/native split, theme on mobile, touch and Dynamic Type rules, offline policy, backend dependencies (`MOBILE_PWA_NATIVE_HANDOFF.md`).
+- Cross-track proposals H-14…H-23 (`INTEGRATION_HANDOFF.md`).
+
+## 2. Implemented in preview (local state, synthetic data, no services)
+
+| Route | What changed |
+|---|---|
+| `/design-preview` | index wrapped in the theme scope with an appearance switch; links to all six previews |
+| `/design-preview/marketing` | **new** — Obsidian hero with CSS-only bridge figure, Atlas value pillars, process timeline with "who acts", pilot categories with Chinese gloss, evidence explanation, Obsidian closing CTA, responsive top bar with drawer |
+| `/design-preview/buyer/dashboard` | token migration; sidebar order Overview · Projects · Quotes · Messages · Documents; four phone tabs |
+| `/design-preview/buyer/new-request` | token migration; 44 px controls; wrapping action bar at 320 px |
+| `/design-preview/buyer/compare` | view filter (All · Eligible only · Not ranked), specification-row toggle, compare-selected mode (per-column and per-card "Compare"), "What is missing" line and "Show details" disclosure on phone cards, export dialog with PDF/XLSX choice and the not-connected state, basis-not-stated demo quote (Supplier F) shown as Not ranked, Escape closes dialogs |
+| `/design-preview/ops/quote-review` | token migration; sidebar Work queue · Projects · Research · Suppliers · Reviews · Cases · Admin |
+| `/design-preview/gallery` | **new** — every primitive in Atlas and Obsidian side by side (or current theme), tokens swatches, buttons incl. disabled/loading, quote status tags, freshness and cost-line chips, evidence badge with scope, tabs, segmented control, form controls incl. error and Chinese text, stepper, notices, empty / loading / error states, ruled vs raised panels |
+
+Shared components: `ThemeScope`/`useTheme`/`AppearanceSwitch` (per-device persistence with guarded storage), `BrandMark`, `Tabs`, `Skeleton`, `SkeletonRows`, `ErrorState`, `QuoteStatusTag`, `buttonClasses`, `useEscapeKey`.
+
+## 3. Tests actually run (observed outcomes)
+
+| Check | Command | Result |
+|---|---|---|
+| Format, typecheck, lint, unit tests (all packages) | `pnpm check` | exit 0 — Prettier clean; `tsc` 0 errors; ESLint 0 problems; Vitest 210 passed (web 11: gate ×4, comparison helper ×7 incl. new `basis_unknown` case) |
+| Production build | `next build` | exit 0 |
+| Production isolation | `next start` + `curl` | `/design-preview`, `/design-preview/gallery`, `/design-preview/marketing`, `/design-preview/buyer/compare` → 404; `/` → 200; marketing body contains no "DEMO DATA" string |
+| Theme switch | browser | `data-theme` toggles atlas ↔ obsidian via the rail control; stored value persists across reload; computed canvas `#0D1118` / `#FAF8F4` |
+| Widths | browser, `scrollWidth === clientWidth` | 320: marketing, dashboard, wizard, compare, ops, gallery ✓ (after fixing three overflows); 390: wizard, marketing ✓; 768: dashboard, gallery, compare ✓; 1024: compare ✓; 1440: all ✓ |
+| Console | browser | no errors on any preview page in either theme |
+| Interactions | browser | compare-selected mode shows exactly the two ticked quotes across their groups; export dialog opens, Generate disabled, file name rendered; dialogs close on Close and on Escape; appearance switch clickable via keyboard focus order |
+| Contrast | script (WCAG relative luminance) | all text pairs ≥ 4.5:1 in both themes; dark `border-strong` 2.9:1 (target 3:1) recorded as a gap; disabled text exempt |
+
+Screenshots were produced in the browser pane during the session (desktop Atlas/Obsidian comparison, Obsidian marketing hero, gallery, 320 px comparison, 390 px marketing); they are not committed.
+
+## 4. Not integrated
+
+- Production shell, `globals.css`, root layout, `/` home page, fonts self-hosting, user-level theme persistence (H-14…H-17).
+- Global Quotes and Documents views (need RLS-filtered cross-project queries).
+- Supplier zh-CN screens (specified only). Marketing pages other than Home (specified only).
+- Export generation, FX service, quote engine (B-23, B-21, B-14).
+
+## 5. Future native scope
+
+Per `MOBILE_PWA_NATIVE_HANDOFF.md`: Expo app after B-05/B-10/B-11/B-14 and a founder decision on store accounts; `tokens.json` is the theme exchange format; PWA manifest and shell-only service worker proposed as D-04.
+
+## 6. Cross-track dependencies
+
+H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO and export contract), H-20 (i18n keys), H-22/H-23 (backlog and CI). None applied by this track.
+
+## 7. Unresolved items
+
+- Dark `border-strong` contrast (H-21).
+- Tabs roving-focus keyboard behaviour (noted in components doc).
+- No automated accessibility audit; manual checks only.
+- Copy approval for every marketing string (OQ-02, OQ-04, PRD §7).
+- `apps/web/AGENTS.md` generated by `next dev` remains untracked (scaffold owner's call).

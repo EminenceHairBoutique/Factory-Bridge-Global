@@ -1,7 +1,14 @@
 import Link from "next/link";
-import { DemoStripe } from "@/design-preview/ui/AppShell";
+import { ThemeScope } from "@/design-preview/theme";
+import { AppearanceSwitch, DemoStripe } from "@/design-preview/ui/AppShell";
 
 const SCREENS = [
+  {
+    href: "/design-preview/marketing",
+    title: "Marketing home (Obsidian hero)",
+    body: "Proposed public home page: Obsidian hero with the bridge mark, then Atlas value, process, categories and evidence sections. Copy subject to approval.",
+    workspace: "Public site",
+  },
   {
     href: "/design-preview/buyer/dashboard",
     title: "Buyer dashboard",
@@ -26,29 +33,38 @@ const SCREENS = [
     body: "Review queue and split view with source anchors, confidence bands and the accept gate.",
     workspace: "Internal operations",
   },
+  {
+    href: "/design-preview/gallery",
+    title: "Component gallery",
+    body: "Every primitive in Atlas and Obsidian side by side: buttons, inputs, badges with evidence, stepper, quote status tags, tabs, notices, empty / loading / error states.",
+    workspace: "Design system",
+  },
 ];
 
 export default function DesignPreviewIndex() {
   return (
-    <div className="fbg-dp min-h-dvh bg-paper text-ink">
+    <ThemeScope className="min-h-dvh">
       <DemoStripe />
       <main className="mx-auto max-w-3xl px-6 py-14">
-        <p className="text-[13px] text-slate">Track UX-01 · design preview</p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-slate">Track UX-01 · Atlas × Obsidian design preview</p>
+          <AppearanceSwitch />
+        </div>
         <h1 className="mt-1 text-3xl font-semibold tracking-[-0.01em]">
           Factory Bridge Global prototypes
         </h1>
-        <p className="mt-3 max-w-xl text-[15px] text-slate">
+        <p className="mt-3 max-w-xl text-base text-slate">
           Interactive, local-state prototypes of the buyer workspace and one operations concept.
           Nothing here reads from a database, calls an API or uploads a file. Every record is
           synthetic and labelled as demo data. These routes return 404 in production builds.
         </p>
-        <ul className="mt-8 divide-y divide-line rounded-md border border-line bg-surface">
+        <ul className="mt-8 divide-y divide-line rounded-(--fbg-radius-card) border border-line bg-surface">
           {SCREENS.map((s) => (
             <li key={s.href}>
               <Link href={s.href} className="flex items-start gap-4 px-5 py-4 hover:bg-paper">
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[15px] font-semibold text-ink">{s.title}</span>
-                  <span className="mt-0.5 block text-[13px] text-slate">{s.body}</span>
+                  <span className="block text-base font-semibold text-ink">{s.title}</span>
+                  <span className="mt-0.5 block text-sm text-slate">{s.body}</span>
                 </span>
                 <span className="shrink-0 rounded border border-line px-1.5 py-0.5 text-[11px] text-slate">
                   {s.workspace}
@@ -57,11 +73,11 @@ export default function DesignPreviewIndex() {
             </li>
           ))}
         </ul>
-        <p className="mt-6 text-[13px] text-slate">
+        <p className="mt-6 text-sm text-slate">
           Design documentation lives in <code className="rounded bg-ink/5 px-1">docs/design/</code>.
           Open the screens at phone width to see the bottom tab bar and stacked layouts.
         </p>
       </main>
-    </div>
+    </ThemeScope>
   );
 }

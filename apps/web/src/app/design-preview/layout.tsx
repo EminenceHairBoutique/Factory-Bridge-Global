@@ -20,13 +20,13 @@ export default function DesignPreviewLayout({ children }: { children: ReactNode 
   if (!isDesignPreviewEnabled(process.env)) notFound();
   return (
     <>
-      {/* Inter + Noto Sans SC (IA §4). Loaded at runtime so builds stay offline-safe. */}
+      {/* Geist (display), Inter (app), Noto Sans SC (zh-CN). Loaded at runtime so builds stay offline-safe. */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link
         rel="stylesheet"
         precedence="default"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
       />
       {children}
     </>

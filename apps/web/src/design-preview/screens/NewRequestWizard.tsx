@@ -467,7 +467,7 @@ export function NewRequestWizard() {
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link
                     href="/design-preview/buyer/dashboard"
-                    className="inline-flex h-10 items-center rounded-md bg-accent px-4 text-sm font-medium text-white hover:bg-accent/90"
+                    className="inline-flex h-(--fbg-control-h) items-center rounded-(--fbg-radius-control) bg-(--fbg-action-primary) px-5 text-[15px] font-medium text-(--fbg-action-on-primary) hover:bg-(--fbg-action-primary-hover)"
                   >
                     Back to overview
                   </Link>
@@ -499,7 +499,7 @@ export function NewRequestWizard() {
           title="New sourcing request"
           lead="Describe what you need in your own words. Required fields unlock supplier options; everything else helps us match more precisely."
           meta={
-            <span className="flex items-center gap-1 text-[12px] text-slate">
+            <span className="flex items-center gap-1 text-xs text-slate">
               <Icon name={savedAt ? "check" : "clock"} size={12} />
               {savedAt
                 ? `Draft saved locally at ${savedAt}`
@@ -522,7 +522,7 @@ export function NewRequestWizard() {
               >
                 <div className="flex flex-col gap-5">
                   <fieldset>
-                    <legend className="text-[13px] font-medium text-ink">
+                    <legend className="text-sm font-medium text-ink">
                       Category <span className="text-danger">*</span>
                     </legend>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -532,7 +532,7 @@ export function NewRequestWizard() {
                           <label
                             key={c.id}
                             className={cx(
-                              "flex cursor-pointer items-start gap-3 rounded-md border p-3",
+                              "flex cursor-pointer items-start gap-3 rounded-(--fbg-radius-control) border p-3",
                               selected
                                 ? "border-ink bg-surface"
                                 : "border-line bg-surface hover:border-ink/30",
@@ -558,12 +558,12 @@ export function NewRequestWizard() {
                                 {c.label}
                               </span>
                               {c.blocked ? (
-                                <span className="mt-1 inline-flex items-center gap-1 text-[12px] text-warn">
+                                <span className="mt-1 inline-flex items-center gap-1 text-xs text-warn">
                                   <Icon name="flag" size={12} /> Compliance review required — not
                                   self-service
                                 </span>
                               ) : c.family === "other" ? (
-                                <span className="block text-[12px] text-slate">
+                                <span className="block text-xs text-slate">
                                   An operator reviews new categories first.
                                 </span>
                               ) : null}
@@ -573,7 +573,7 @@ export function NewRequestWizard() {
                       })}
                     </div>
                     {errors.categoryId ? (
-                      <p className="mt-2 flex items-center gap-1 text-[12px] text-danger">
+                      <p className="mt-2 flex items-center gap-1 text-xs text-danger">
                         <Icon name="alert" size={12} /> {errors.categoryId}
                       </p>
                     ) : null}
@@ -626,10 +626,10 @@ export function NewRequestWizard() {
                   </Field>
 
                   <div>
-                    <p className="text-[13px] font-medium text-ink">
+                    <p className="text-sm font-medium text-ink">
                       Variants or SKUs <span className="text-slate">(optional)</span>
                     </p>
-                    <p className="text-[12px] text-slate">
+                    <p className="text-xs text-slate">
                       One line per size, colour or artwork version you want quoted together.
                     </p>
                     <ul className="mt-2 flex flex-col gap-2">
@@ -886,7 +886,7 @@ export function NewRequestWizard() {
                 >
                   <div className="flex flex-col gap-5">
                     <div>
-                      <p className="text-[13px] font-medium text-ink">Compliance requirements</p>
+                      <p className="text-sm font-medium text-ink">Compliance requirements</p>
                       <div className="mt-2 grid gap-2 sm:grid-cols-2">
                         {COMPLIANCE.map((c) => (
                           <Checkbox
@@ -913,7 +913,7 @@ export function NewRequestWizard() {
                       onChange={(on) => update("sampleRequired", on)}
                     />
                     <fieldset>
-                      <legend className="text-[13px] font-medium text-ink">Inspection</legend>
+                      <legend className="text-sm font-medium text-ink">Inspection</legend>
                       <div className="mt-2 grid gap-2 sm:grid-cols-3">
                         {INSPECTION.map((opt) => {
                           const selected = brief.inspection === opt.value;
@@ -921,7 +921,7 @@ export function NewRequestWizard() {
                             <label
                               key={opt.value}
                               className={cx(
-                                "flex cursor-pointer items-start gap-3 rounded-md border p-3",
+                                "flex cursor-pointer items-start gap-3 rounded-(--fbg-radius-control) border p-3",
                                 selected
                                   ? "border-teal/50 bg-teal/5"
                                   : "border-line bg-surface hover:border-ink/30",
@@ -939,9 +939,7 @@ export function NewRequestWizard() {
                                 <span className="block text-sm font-medium text-ink">
                                   {opt.label}
                                 </span>
-                                <span className="block text-[12px] text-slate">
-                                  {opt.description}
-                                </span>
+                                <span className="block text-xs text-slate">{opt.description}</span>
                               </span>
                             </label>
                           );
@@ -977,7 +975,7 @@ export function NewRequestWizard() {
                   </Notice>
                   <label
                     htmlFor="files"
-                    className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed border-line bg-paper px-6 py-10 text-center hover:border-ink/40"
+                    className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-(--fbg-radius-control) border border-dashed border-line bg-paper px-6 py-10 text-center hover:border-ink/40"
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => {
                       e.preventDefault();
@@ -988,7 +986,7 @@ export function NewRequestWizard() {
                     <span className="text-sm font-medium text-ink">
                       Drop files here or choose from your device
                     </span>
-                    <span className="text-[12px] text-slate">
+                    <span className="text-xs text-slate">
                       PDF, XLSX, CSV, PNG or JPG · up to 25 MB each
                     </span>
                     <input
@@ -1009,7 +1007,7 @@ export function NewRequestWizard() {
                     </Notice>
                   ) : null}
                   {brief.attachments.length > 0 ? (
-                    <ul className="divide-y divide-line rounded-md border border-line">
+                    <ul className="divide-y divide-line rounded-(--fbg-radius-control) border border-line">
                       {brief.attachments.map((a) => (
                         <li key={a.id} className="flex items-center gap-3 px-3 py-2">
                           <Icon
@@ -1018,9 +1016,7 @@ export function NewRequestWizard() {
                             className="shrink-0 text-slate"
                           />
                           <span className="min-w-0 flex-1 truncate text-sm text-ink">{a.name}</span>
-                          <span className="fbg-num text-[12px] text-slate">
-                            {formatBytes(a.size)}
-                          </span>
+                          <span className="fbg-num text-xs text-slate">{formatBytes(a.size)}</span>
                           <Badge tone="neutral" icon="clock">
                             Will be scanned
                           </Badge>
@@ -1042,10 +1038,10 @@ export function NewRequestWizard() {
                   ) : null}
 
                   <div>
-                    <p className="text-[13px] font-medium text-ink">
+                    <p className="text-sm font-medium text-ink">
                       Reference links <span className="text-slate">(optional)</span>
                     </p>
-                    <p className="text-[12px] text-slate">
+                    <p className="text-xs text-slate">
                       A product page or a listing you want matched. Links are references for
                       operators, never a source of prices.
                     </p>
@@ -1071,7 +1067,7 @@ export function NewRequestWizard() {
                     {brief.links.length > 0 ? (
                       <ul className="mt-2 flex flex-col gap-1">
                         {brief.links.map((l) => (
-                          <li key={l} className="flex items-center gap-2 text-[13px]">
+                          <li key={l} className="flex items-center gap-2 text-sm">
                             <Icon name="external" size={14} className="text-slate" />
                             <span className="min-w-0 flex-1 truncate text-ink">{l}</span>
                             <Button
@@ -1206,7 +1202,7 @@ export function NewRequestWizard() {
                 </Panel>
 
                 <Panel title="What happens after you submit">
-                  <ol className="flex flex-col gap-2 text-[13px] text-slate">
+                  <ol className="flex flex-col gap-2 text-sm text-slate">
                     {[
                       "Your raw input is stored as brief version 1 with a timestamp.",
                       "A structured specification is proposed in English and Chinese. Each value is marked from input, inferred or missing. You confirm it; inferred values are not used for matching until then.",
@@ -1226,7 +1222,7 @@ export function NewRequestWizard() {
             )}
 
             {/* Action bar */}
-            <div className="sticky bottom-16 z-20 mt-4 flex items-center justify-between gap-2 rounded-md border border-line bg-surface/95 p-3 backdrop-blur md:bottom-4">
+            <div className="sticky bottom-16 z-20 mt-4 flex flex-wrap items-center justify-between gap-2 rounded-(--fbg-radius-card) border border-line bg-(--fbg-bg-surface)/95 p-3 backdrop-blur md:bottom-4">
               <Button
                 variant="ghost"
                 icon="chevron-left"
@@ -1235,7 +1231,7 @@ export function NewRequestWizard() {
               >
                 Back
               </Button>
-              <div className="flex items-center gap-2">
+              <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
                 <Button
                   onClick={() =>
                     setSavedAt(
@@ -1289,7 +1285,7 @@ function ReviewItem({
   const present = value !== undefined && value !== "";
   return (
     <div className={cx("min-w-0", wide && "sm:col-span-2")}>
-      <dt className="flex items-center gap-2 text-[12px] text-slate">
+      <dt className="flex items-center gap-2 text-xs text-slate">
         {label}
         {present ? (
           <Badge tone="neutral" icon={null}>

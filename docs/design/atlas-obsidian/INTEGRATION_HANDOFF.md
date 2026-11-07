@@ -1,0 +1,47 @@
+# Integration Handoff — Atlas × Obsidian (extends UX-01 handoff)
+
+**Crosswalk:** `docs/design/INTEGRATION_HANDOFF.md` lists H-1…H-13 and the AGENTS.md note. This document adds the items the Atlas × Obsidian refinement introduces. Nothing here has been applied to shared files; every item is a proposal for its owner.
+
+## 1. Files touched by this refinement (all inside the design track's existing paths)
+
+```
+apps/web/src/design-preview/design-preview.css      # semantic token layer (Atlas + Obsidian), legacy mapping
+apps/web/src/design-preview/theme.tsx               # ThemeScope / useTheme / AppearanceSwitch state
+apps/web/src/design-preview/ui/primitives.tsx       # Atlas geometry and type; Tabs, Skeleton, ErrorState, QuoteStatusTag, buttonClasses
+apps/web/src/design-preview/ui/AppShell.tsx         # sidebar order, 4-tab mobile IA, appearance switch, BrandMark
+apps/web/src/design-preview/screens/*.tsx           # token migration; comparison filters, compare mode, export dialog; gallery; marketing home
+apps/web/src/design-preview/demo-data/index.ts      # added basis-not-stated quote (q_demo_f)
+apps/web/src/design-preview/compare-demo.test.ts    # added basis_unknown test
+apps/web/src/app/design-preview/{gallery,marketing}/page.tsx, layout.tsx (Geist font link), page.tsx (index)
+docs/design/atlas-obsidian/*                        # this set
+```
+
+Shared files untouched: `apps/web/src/app/globals.css`, root `layout.tsx`, `/` home page, package manifests, lockfile, `.github`, `supabase`, `packages/*`, `CLAUDE.md`, `docs/{DECISIONS,STATUS,BACKLOG}.md`.
+
+## 2. Proposed cross-track changes
+
+| # | Proposal | Owner | Rationale |
+|---|---|---|---|
+| H-14 | Promote the semantic token layer to `apps/web/src/app/globals.css` as `@theme` variables with a `[data-theme]` override block, replacing the legacy ten tokens. Keep legacy names as aliases for one release. | B-05 (shell) | Lets the production shell render Atlas and Obsidian without the preview scope. Supersedes H-3: light warning text is now `#83520A`. |
+| H-15 | Persist the appearance choice per user (profile setting) in addition to the device, so it follows sign-in across devices. | B-05 | The preview stores it per device only. |
+| H-16 | Self-host Geist (display), Inter and Noto Sans SC via `next/font/local`; Geist only on marketing routes. | B-05 | Replaces the runtime Google Fonts link (also H-2). Licensing: Geist is SIL OFL; Inter SIL OFL; Noto SIL OFL. |
+| H-17 | `/` public home: adopt the marketing preview layout once copy is approved (OQ-02, OQ-04 and PRD §7 constraints). Until then the existing informational page stays. | Founder + B-31 | Copy approval is a business decision. |
+| H-18 | Buyer navigation: sidebar order Overview · Projects · Quotes · Messages · Documents, bottom Organization · Team and account · Appearance; phone tabs Home · Projects · Inbox · Account. Global Quotes and Documents views need RLS-filtered cross-project queries (future). | B-05, B-15 | |
+| H-19 | Comparison DTO: add `exclusion.code = "basis_unknown"` handling and the per-quote `missingLines` list the mobile card needs; export endpoint contract: format `pdf \| xlsx`, file name `fbg-comparison-<project_id>-v<brief_version>-<as_of>.<ext>`. | B-14 / B-22 / B-23 | Mirrors the prototype's export dialog. |
+| H-20 | `@fbg/i18n`: add `nav.*` for the revised sidebar and tabs, `theme.atlas/obsidian/system`, `compare.view.*`, `compare.compare_selected`, `compare.what_is_missing`, `export.*` strings, with zh-CN equivalents. | i18n owner | |
+| H-21 | Dark `border-strong` to `#67747F` (3.5:1) in V1.1 of the tokens. | design track | Contrast gap recorded in the tokens doc. |
+| H-22 | Backlog: `D-03` notification events + `device_tokens` migration design; `D-04` PWA manifest and shell service worker (no data caching). | BACKLOG owner | From the mobile handoff. |
+| H-23 | CI smoke: assert `/design-preview/gallery` and `/design-preview/marketing` 404 in the production build job alongside the existing routes (H-13). | B-02 | |
+
+## 3. Contracts the new UI assumes
+
+- Theme: a `data-theme` attribute on the app root with values `atlas \| obsidian \| system`; `System` resolves via `prefers-color-scheme`.
+- Comparison view state (filters, compare selection, specification-row toggle) is client state; it is never persisted server-side.
+- Export dialog expects a server job that returns a signed URL; the UI shows "Generating" then "Ready" states (not prototyped beyond the disabled Generate button).
+
+## 4. Running
+
+```
+pnpm --filter @fbg/web dev        # http://localhost:3000/design-preview
+pnpm --filter @fbg/web test       # 11 tests: gate ×4, comparison helper ×7
+```

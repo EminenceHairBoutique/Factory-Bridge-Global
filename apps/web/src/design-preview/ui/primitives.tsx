@@ -1,8 +1,10 @@
 /**
- * Design-system primitives for the UX-01 prototypes.
+ * Design-system primitives — Atlas × Obsidian V1.
  *
- * Every component maps to a row of docs/UX_INFORMATION_ARCHITECTURE.md §3 (BadgeWithEvidence, FreshnessChip,
- * StatusLine, Wizard stepper …) and uses only the shared theme tokens. Nothing here fetches data.
+ * Every component maps to docs/UX_INFORMATION_ARCHITECTURE.md §3 (BadgeWithEvidence, FreshnessChip, StatusLine,
+ * Wizard stepper …) and docs/design/atlas-obsidian/COMPONENTS_AND_INTERACTIONS.md. Colors come only from the
+ * semantic token layer in ../design-preview.css (legacy utility names such as `text-ink` are mapped onto it),
+ * so every component renders correctly in both themes. Nothing here fetches data.
  */
 import type {
   ButtonHTMLAttributes,
@@ -21,53 +23,74 @@ export function cx(...parts: Array<string | number | boolean | null | undefined>
 /* Buttons                                                                                            */
 /* ------------------------------------------------------------------------------------------------ */
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
-type ButtonSize = "sm" | "md";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "brand";
+export type ButtonSize = "sm" | "md" | "lg";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  icon?: IconName;
-  iconRight?: IconName;
+  variant?: ButtonVariant | undefined;
+  size?: ButtonSize | undefined;
+  icon?: IconName | undefined;
+  iconRight?: IconName | undefined;
+  loading?: boolean | undefined;
 }
 
 const BUTTON_VARIANT: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-white hover:bg-accent/90 disabled:bg-accent/40",
+  primary:
+    "bg-(--fbg-action-primary) text-(--fbg-action-on-primary) hover:bg-(--fbg-action-primary-hover) active:bg-(--fbg-action-primary-pressed) disabled:bg-(--fbg-disabled-bg) disabled:text-(--fbg-disabled-fg)",
   secondary:
-    "border border-line bg-surface text-ink hover:border-ink/30 hover:bg-paper disabled:text-slate/50",
-  ghost: "text-ink hover:bg-ink/5 disabled:text-slate/50",
-  danger: "border border-danger/40 bg-surface text-danger hover:bg-danger/5",
+    "border border-(--fbg-border-strong)/60 bg-(--fbg-bg-surface) text-(--fbg-text-primary) hover:bg-(--fbg-hover) active:bg-(--fbg-pressed) disabled:border-(--fbg-border-subtle) disabled:text-(--fbg-disabled-fg)",
+  ghost:
+    "text-(--fbg-text-primary) hover:bg-(--fbg-hover) active:bg-(--fbg-pressed) disabled:text-(--fbg-disabled-fg)",
+  danger:
+    "border border-(--fbg-status-danger)/50 bg-(--fbg-bg-surface) text-(--fbg-status-danger) hover:bg-(--fbg-status-danger-fill) disabled:text-(--fbg-disabled-fg)",
+  brand:
+    "bg-(--fbg-brand-accent) text-(--fbg-text-inverse) hover:opacity-90 disabled:bg-(--fbg-disabled-bg) disabled:text-(--fbg-disabled-fg)",
 };
 
 const BUTTON_SIZE: Record<ButtonSize, string> = {
-  sm: "h-8 px-3 text-[13px] gap-1.5",
-  md: "h-10 px-4 text-sm gap-2",
+  sm: "h-(--fbg-control-h-sm) px-3.5 text-sm gap-1.5",
+  md: "h-(--fbg-control-h) px-5 text-[15px] gap-2",
+  lg: "h-12 px-6 text-base gap-2",
 };
+
+export function buttonClasses(variant: ButtonVariant = "secondary", size: ButtonSize = "md") {
+  return cx(
+    "inline-flex shrink-0 items-center justify-center rounded-(--fbg-radius-control) font-medium whitespace-nowrap disabled:cursor-not-allowed",
+    BUTTON_VARIANT[variant],
+    BUTTON_SIZE[size],
+  );
+}
 
 export function Button({
   variant = "secondary",
   size = "md",
   icon,
   iconRight,
+  loading,
   className,
   children,
   type = "button",
+  disabled,
   ...rest
 }: ButtonProps) {
   return (
     <button
       type={type}
-      className={cx(
-        "inline-flex shrink-0 items-center justify-center rounded-md font-medium whitespace-nowrap disabled:cursor-not-allowed",
-        BUTTON_VARIANT[variant],
-        BUTTON_SIZE[size],
-        className,
-      )}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      className={cx(buttonClasses(variant, size), className)}
       {...rest}
     >
-      {icon ? <Icon name={icon} size={size === "sm" ? 14 : 16} /> : null}
+      {loading ? (
+        <span
+          aria-hidden
+          className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+        />
+      ) : icon ? (
+        <Icon name={icon} size={size === "sm" ? 14 : 16} />
+      ) : null}
       {children}
-      {iconRight ? <Icon name={iconRight} size={size === "sm" ? 14 : 16} /> : null}
+      {iconRight && !loading ? <Icon name={iconRight} size={size === "sm" ? 14 : 16} /> : null}
     </button>
   );
 }
@@ -76,15 +99,17 @@ export function Button({
 /* Badges, chips, status                                                                               */
 /* ------------------------------------------------------------------------------------------------ */
 
-export type Tone = "neutral" | "teal" | "ok" | "warn" | "danger" | "ink";
+export type Tone = "neutral" | "teal" | "ok" | "warn" | "danger" | "ink" | "brand";
 
 const TONE_SOFT: Record<Tone, string> = {
-  neutral: "border-line bg-paper text-slate",
-  teal: "border-teal/30 bg-teal/10 text-teal",
-  ok: "border-ok/30 bg-ok/10 text-ok",
-  warn: "border-warn/40 bg-warn/10 text-warn",
-  danger: "border-danger/30 bg-danger/10 text-danger",
-  ink: "border-ink/20 bg-ink/5 text-ink",
+  neutral: "border-(--fbg-border-subtle) bg-(--fbg-bg-sunken) text-(--fbg-text-secondary)",
+  teal: "border-(--fbg-status-info)/35 bg-(--fbg-status-info-fill) text-(--fbg-status-info)",
+  ok: "border-(--fbg-status-success)/35 bg-(--fbg-status-success-fill) text-(--fbg-status-success)",
+  warn: "border-(--fbg-status-warning)/40 bg-(--fbg-status-warning-fill) text-(--fbg-status-warning)",
+  danger:
+    "border-(--fbg-status-danger)/35 bg-(--fbg-status-danger-fill) text-(--fbg-status-danger)",
+  ink: "border-(--fbg-text-primary)/20 bg-(--fbg-hover) text-(--fbg-text-primary)",
+  brand: "border-(--fbg-brand-accent)/40 bg-(--fbg-brand-accent-subtle) text-(--fbg-brand-accent)",
 };
 
 const TONE_ICON: Record<Tone, IconName | null> = {
@@ -94,6 +119,7 @@ const TONE_ICON: Record<Tone, IconName | null> = {
   warn: "alert",
   danger: "alert",
   ink: null,
+  brand: null,
 };
 
 export interface BadgeProps {
@@ -104,14 +130,14 @@ export interface BadgeProps {
   title?: string | undefined;
 }
 
-/** Status is always conveyed by text + icon, never color alone (IA §4). */
+/** Status is always conveyed by text + icon, never color alone. */
 export function Badge({ tone = "neutral", icon, children, className, title }: BadgeProps) {
   const resolvedIcon = icon === undefined ? TONE_ICON[tone] : icon;
   return (
     <span
       title={title}
       className={cx(
-        "inline-flex max-w-full items-center gap-1 rounded border px-1.5 py-0.5 text-[12px] leading-4 font-medium",
+        "inline-flex max-w-full items-center gap-1 rounded-(--fbg-radius-chip) border px-2 py-0.5 text-xs leading-4 font-medium",
         TONE_SOFT[tone],
         className,
       )}
@@ -140,7 +166,6 @@ const FRESHNESS_TONE: Record<Freshness, Tone> = {
   expired: "danger",
 };
 
-/** `observed` / `updated` / `confirmed` / `valid until` / `expired` with a date (IA §3 FreshnessChip). */
 export function FreshnessChip({
   kind,
   date,
@@ -148,7 +173,7 @@ export function FreshnessChip({
 }: {
   kind: Freshness;
   date: string;
-  className?: string;
+  className?: string | undefined;
 }) {
   return (
     <Badge tone={FRESHNESS_TONE[kind]} icon="clock" className={cx("fbg-num", className)}>
@@ -165,14 +190,12 @@ const LINE_LABEL: Record<CostLineStatus, string> = {
   missing: "Missing — request",
   not_applicable: "Included in trade term",
 };
-
 const LINE_TONE: Record<CostLineStatus, Tone> = {
   sourced: "teal",
   estimated: "warn",
   missing: "danger",
   not_applicable: "neutral",
 };
-
 const LINE_ICON: Record<CostLineStatus, IconName> = {
   sourced: "check",
   estimated: "info",
@@ -180,11 +203,47 @@ const LINE_ICON: Record<CostLineStatus, IconName> = {
   not_applicable: "check",
 };
 
-/** Cost-line status chip. Labels are the fixed strings from `@fbg/i18n` (`status.*`). */
-export function StatusChip({ status, className }: { status: CostLineStatus; className?: string }) {
+export function StatusChip({
+  status,
+  className,
+}: {
+  status: CostLineStatus;
+  className?: string | undefined;
+}) {
   return (
     <Badge tone={LINE_TONE[status]} icon={LINE_ICON[status]} className={className}>
       {LINE_LABEL[status]}
+    </Badge>
+  );
+}
+
+/** Quote status tags: the fixed terminology from docs/UX_INFORMATION_ARCHITECTURE.md §4. */
+export type QuoteTag =
+  | "indicative_listing"
+  | "supplier_catalog_price"
+  | "factory_confirmed_quote"
+  | "quote_expired"
+  | "validity_unconfirmed"
+  | "internal_observation";
+
+const QUOTE_TAG: Record<QuoteTag, { label: string; tone: Tone; icon: IconName | null }> = {
+  indicative_listing: { label: "Indicative listing", tone: "neutral", icon: "eye" },
+  supplier_catalog_price: { label: "Supplier catalog price", tone: "ink", icon: "list" },
+  factory_confirmed_quote: { label: "Factory-confirmed quote", tone: "teal", icon: "check" },
+  quote_expired: { label: "Quote expired", tone: "danger", icon: "clock" },
+  validity_unconfirmed: { label: "Validity unconfirmed", tone: "warn", icon: "alert" },
+  internal_observation: {
+    label: "Internal research reference — not a supplier offer",
+    tone: "brand",
+    icon: "lock",
+  },
+};
+
+export function QuoteStatusTag({ kind }: { kind: QuoteTag }) {
+  const t = QUOTE_TAG[kind];
+  return (
+    <Badge tone={t.tone} icon={t.icon}>
+      {t.label}
     </Badge>
   );
 }
@@ -193,12 +252,13 @@ export interface EvidenceRecord {
   what: string;
   who: string;
   when: string;
-  until?: string;
-  note?: string;
+  until?: string | undefined;
+  scope?: string | undefined;
+  note?: string | undefined;
 }
 
 /**
- * BadgeWithEvidence: the badge text is derived from check rows; the popover shows what / who / when / until.
+ * BadgeWithEvidence: badge text is derived from check rows; the popover shows what / who / when / until / scope.
  * Rendered with <details> so it works without JavaScript and with the keyboard.
  */
 export function EvidenceBadge({
@@ -207,35 +267,45 @@ export function EvidenceBadge({
   evidence,
 }: {
   label: string;
-  tone?: Tone;
+  tone?: Tone | undefined;
   evidence: EvidenceRecord;
 }) {
   return (
     <details className="group relative inline-block">
-      <summary className="list-none cursor-pointer rounded [&::-webkit-details-marker]:hidden">
-        <Badge tone={tone} icon="shield" className="group-open:ring-2 group-open:ring-accent/40">
+      <summary className="list-none cursor-pointer rounded-(--fbg-radius-chip) [&::-webkit-details-marker]:hidden">
+        <Badge
+          tone={tone}
+          icon="shield"
+          className="group-open:ring-2 group-open:ring-(--fbg-focus-ring)/40"
+        >
           {label}
         </Badge>
       </summary>
       <div
         role="note"
-        className="absolute left-0 z-20 mt-1 w-72 rounded-md border border-line bg-surface p-3 text-[13px] shadow-sm"
+        className="fbg-raised absolute left-0 z-20 mt-1.5 w-80 rounded-(--fbg-radius-card) border border-(--fbg-border-subtle) p-3.5 text-sm"
       >
-        <dl className="grid grid-cols-[64px_1fr] gap-x-2 gap-y-1">
-          <dt className="text-slate">Checked</dt>
-          <dd className="text-ink">{evidence.what}</dd>
-          <dt className="text-slate">By</dt>
-          <dd className="text-ink">{evidence.who}</dd>
-          <dt className="text-slate">On</dt>
-          <dd className="fbg-num text-ink">{evidence.when}</dd>
+        <dl className="grid grid-cols-[72px_1fr] gap-x-2 gap-y-1">
+          <dt className="text-(--fbg-text-secondary)">Checked</dt>
+          <dd className="text-(--fbg-text-primary)">{evidence.what}</dd>
+          <dt className="text-(--fbg-text-secondary)">By</dt>
+          <dd className="text-(--fbg-text-primary)">{evidence.who}</dd>
+          <dt className="text-(--fbg-text-secondary)">On</dt>
+          <dd className="fbg-num text-(--fbg-text-primary)">{evidence.when}</dd>
           {evidence.until ? (
             <>
-              <dt className="text-slate">Until</dt>
-              <dd className="fbg-num text-ink">{evidence.until}</dd>
+              <dt className="text-(--fbg-text-secondary)">Until</dt>
+              <dd className="fbg-num text-(--fbg-text-primary)">{evidence.until}</dd>
+            </>
+          ) : null}
+          {evidence.scope ? (
+            <>
+              <dt className="text-(--fbg-text-secondary)">Scope</dt>
+              <dd className="text-(--fbg-text-primary)">{evidence.scope}</dd>
             </>
           ) : null}
         </dl>
-        {evidence.note ? <p className="mt-2 text-slate">{evidence.note}</p> : null}
+        {evidence.note ? <p className="mt-2 text-(--fbg-text-secondary)">{evidence.note}</p> : null}
       </div>
     </details>
   );
@@ -252,28 +322,40 @@ export function Panel({
   children,
   className,
   padded = true,
+  raised = false,
 }: {
   title?: ReactNode;
   description?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
-  className?: string;
+  className?: string | undefined;
   padded?: boolean;
+  raised?: boolean;
 }) {
   return (
-    <section className={cx("min-w-0 rounded-md border border-line bg-surface", className)}>
+    <section
+      className={cx(
+        "min-w-0 rounded-(--fbg-radius-card) border border-(--fbg-border-subtle) bg-(--fbg-bg-surface)",
+        raised && "fbg-raised",
+        className,
+      )}
+    >
       {title || actions ? (
-        <header className="flex flex-wrap items-start justify-between gap-2 border-b border-line px-4 py-3">
+        <header className="flex flex-wrap items-start justify-between gap-2 border-b border-(--fbg-border-subtle) px-5 py-3.5">
           <div className="min-w-0">
-            {title ? <h2 className="text-[15px] font-semibold text-ink">{title}</h2> : null}
-            {description ? <p className="mt-0.5 text-[13px] text-slate">{description}</p> : null}
+            {title ? (
+              <h2 className="text-lg font-semibold text-(--fbg-text-primary)">{title}</h2>
+            ) : null}
+            {description ? (
+              <p className="mt-0.5 text-sm text-(--fbg-text-secondary)">{description}</p>
+            ) : null}
           </div>
           {actions ? (
             <div className="flex min-w-0 max-w-full items-center gap-2">{actions}</div>
           ) : null}
         </header>
       ) : null}
-      <div className={padded ? "p-4" : undefined}>{children}</div>
+      <div className={padded ? "p-5" : undefined}>{children}</div>
     </section>
   );
 }
@@ -290,13 +372,28 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-[-0.01em] text-ink">{title}</h1>
-        {lead ? <p className="mt-1 max-w-2xl text-[15px] text-slate">{lead}</p> : null}
-        {meta ? <div className="mt-2 flex flex-wrap items-center gap-2">{meta}</div> : null}
+        <h1 className="text-[28px] leading-tight font-semibold tracking-[-0.015em] text-(--fbg-text-primary) md:text-4xl">
+          {title}
+        </h1>
+        {lead ? (
+          <p className="mt-2 max-w-2xl text-base text-(--fbg-text-secondary)">{lead}</p>
+        ) : null}
+        {meta ? <div className="mt-3 flex flex-wrap items-center gap-2">{meta}</div> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+    </div>
+  );
+}
+
+export function SectionTitle({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
+  return (
+    <div>
+      <h2 className="text-[22px] leading-snug font-semibold tracking-[-0.01em] text-(--fbg-text-primary) md:text-[26px]">
+        {children}
+      </h2>
+      {sub ? <p className="mt-1 max-w-2xl text-base text-(--fbg-text-secondary)">{sub}</p> : null}
     </div>
   );
 }
@@ -319,8 +416,8 @@ export function KeyValue({
     >
       {items.map((item) => (
         <div key={item.label} className="min-w-0">
-          <dt className="text-[12px] text-slate">{item.label}</dt>
-          <dd className="mt-0.5 text-sm text-ink">{item.value}</dd>
+          <dt className="text-xs text-(--fbg-text-secondary)">{item.label}</dt>
+          <dd className="mt-0.5 text-sm text-(--fbg-text-primary)">{item.value}</dd>
         </div>
       ))}
     </dl>
@@ -331,16 +428,117 @@ export function EmptyState({
   title,
   body,
   action,
+  icon = "folder",
+}: {
+  title: string;
+  body: string;
+  action?: ReactNode;
+  icon?: IconName;
+}) {
+  return (
+    <div className="rounded-(--fbg-radius-card) border border-dashed border-(--fbg-border-subtle) bg-(--fbg-bg-canvas) px-6 py-10 text-center">
+      <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-(--fbg-accent-subtle) text-(--fbg-action-primary)">
+        <Icon name={icon} size={18} />
+      </span>
+      <p className="mt-3 text-base font-medium text-(--fbg-text-primary)">{title}</p>
+      <p className="mx-auto mt-1 max-w-sm text-sm text-(--fbg-text-secondary)">{body}</p>
+      {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
+    </div>
+  );
+}
+
+export function ErrorState({
+  title,
+  body,
+  action,
 }: {
   title: string;
   body: string;
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-md border border-dashed border-line bg-paper px-6 py-10 text-center">
-      <p className="text-sm font-medium text-ink">{title}</p>
-      <p className="mx-auto mt-1 max-w-sm text-[13px] text-slate">{body}</p>
+    <div
+      role="alert"
+      className="rounded-(--fbg-radius-card) border border-(--fbg-status-danger)/40 bg-(--fbg-status-danger-fill) px-6 py-8 text-center"
+    >
+      <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-(--fbg-bg-surface) text-(--fbg-status-danger)">
+        <Icon name="alert" size={18} />
+      </span>
+      <p className="mt-3 text-base font-medium text-(--fbg-text-primary)">{title}</p>
+      <p className="mx-auto mt-1 max-w-sm text-sm text-(--fbg-text-secondary)">{body}</p>
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
+    </div>
+  );
+}
+
+export function Skeleton({ className }: { className?: string | undefined }) {
+  return <div aria-hidden className={cx("fbg-skeleton", className)} />;
+}
+
+/** Loading placeholder for a list or table region. */
+export function SkeletonRows({ rows = 4 }: { rows?: number }) {
+  return (
+    <div role="status" aria-label="Loading" className="flex flex-col gap-3">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3">
+          <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <Skeleton className="h-3.5 w-2/3" />
+            <Skeleton className="h-3 w-1/3" />
+          </div>
+          <Skeleton className="h-6 w-20" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Tabs                                                                                               */
+/* ------------------------------------------------------------------------------------------------ */
+
+export function Tabs<T extends string>({
+  tabs,
+  value,
+  onChange,
+  label,
+}: {
+  tabs: ReadonlyArray<{ value: T; label: ReactNode; count?: number | undefined }>;
+  value: T;
+  onChange: (v: T) => void;
+  label: string;
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label={label}
+      className="fbg-no-scrollbar flex gap-1 overflow-x-auto border-b border-(--fbg-border-subtle)"
+    >
+      {tabs.map((t) => {
+        const active = t.value === value;
+        return (
+          <button
+            key={t.value}
+            role="tab"
+            type="button"
+            aria-selected={active}
+            onClick={() => onChange(t.value)}
+            className={cx(
+              "-mb-px inline-flex h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-medium",
+              active
+                ? "border-(--fbg-action-primary) text-(--fbg-text-primary)"
+                : "border-transparent text-(--fbg-text-secondary) hover:text-(--fbg-text-primary)",
+            )}
+          >
+            {t.label}
+            {t.count !== undefined ? (
+              <span className="fbg-num rounded-full bg-(--fbg-hover) px-1.5 text-xs text-(--fbg-text-secondary)">
+                {t.count}
+              </span>
+            ) : null}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -367,25 +565,28 @@ export function Field({
   className?: string | undefined;
 }) {
   return (
-    <div className={cx("flex flex-col gap-1", className)}>
-      <label htmlFor={htmlFor} className="text-[13px] font-medium text-ink">
+    <div className={cx("flex flex-col gap-1.5", className)}>
+      <label htmlFor={htmlFor} className="text-sm font-medium text-(--fbg-text-primary)">
         {label}
         {required ? (
-          <span className="text-danger" aria-hidden>
+          <span className="text-(--fbg-status-danger)" aria-hidden>
             {" "}
             *
           </span>
         ) : (
-          <span className="text-slate"> (optional)</span>
+          <span className="font-normal text-(--fbg-text-secondary)"> (optional)</span>
         )}
       </label>
       {children}
       {error ? (
-        <p id={`${htmlFor}-error`} className="flex items-center gap-1 text-[12px] text-danger">
+        <p
+          id={`${htmlFor}-error`}
+          className="flex items-center gap-1 text-xs text-(--fbg-status-danger)"
+        >
           <Icon name="alert" size={12} /> {error}
         </p>
       ) : hint ? (
-        <p id={`${htmlFor}-hint`} className="text-[12px] text-slate">
+        <p id={`${htmlFor}-hint`} className="text-xs text-(--fbg-text-secondary)">
           {hint}
         </p>
       ) : null}
@@ -394,29 +595,32 @@ export function Field({
 }
 
 const CONTROL =
-  "w-full rounded-md border border-line bg-surface px-3 text-sm text-ink placeholder:text-slate/60 hover:border-ink/30 disabled:bg-paper disabled:text-slate aria-[invalid=true]:border-danger";
+  "w-full rounded-(--fbg-radius-control) border border-(--fbg-border-strong)/60 bg-(--fbg-bg-surface) px-3.5 text-[15px] text-(--fbg-text-primary) placeholder:text-(--fbg-text-muted) hover:border-(--fbg-border-strong) disabled:bg-(--fbg-disabled-bg) disabled:text-(--fbg-disabled-fg) aria-[invalid=true]:border-(--fbg-status-danger)";
 
 export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
   const { className, ...rest } = props;
-  return <input className={cx(CONTROL, "h-10", className)} {...rest} />;
+  return <input className={cx(CONTROL, "h-(--fbg-control-h)", className)} {...rest} />;
 }
 
 export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const { className, ...rest } = props;
-  return <textarea className={cx(CONTROL, "min-h-24 py-2", className)} {...rest} />;
+  return <textarea className={cx(CONTROL, "min-h-28 py-2.5", className)} {...rest} />;
 }
 
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   const { className, children, ...rest } = props;
   return (
     <div className="relative">
-      <select className={cx(CONTROL, "h-10 appearance-none pr-9", className)} {...rest}>
+      <select
+        className={cx(CONTROL, "h-(--fbg-control-h) appearance-none pr-10", className)}
+        {...rest}
+      >
         {children}
       </select>
       <Icon
         name="chevron-down"
         size={16}
-        className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-slate"
+        className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-(--fbg-text-secondary)"
       />
     </div>
   );
@@ -435,28 +639,30 @@ export function Checkbox({
   description?: ReactNode;
   checked: boolean;
   onChange: (next: boolean) => void;
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 }) {
   return (
     <label
       htmlFor={id}
       className={cx(
-        "flex cursor-pointer items-start gap-3 rounded-md border border-line bg-surface p-3 hover:border-ink/30",
-        checked && "border-teal/50 bg-teal/5",
+        "flex min-h-(--fbg-control-h) cursor-pointer items-start gap-3 rounded-(--fbg-radius-control) border border-(--fbg-border-subtle) bg-(--fbg-bg-surface) p-3 hover:border-(--fbg-border-strong)",
+        checked && "border-(--fbg-action-primary)/60 bg-(--fbg-selected)",
         disabled && "cursor-not-allowed opacity-60",
       )}
     >
       <input
         id={id}
         type="checkbox"
-        className="mt-0.5 h-4 w-4 shrink-0 accent-teal"
+        className="mt-0.5 h-4.5 w-4.5 shrink-0 accent-(--fbg-action-primary)"
         checked={checked}
         disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
       />
       <span className="min-w-0">
-        <span className="block text-sm font-medium text-ink">{label}</span>
-        {description ? <span className="block text-[12px] text-slate">{description}</span> : null}
+        <span className="block text-[15px] font-medium text-(--fbg-text-primary)">{label}</span>
+        {description ? (
+          <span className="block text-sm text-(--fbg-text-secondary)">{description}</span>
+        ) : null}
       </span>
     </label>
   );
@@ -479,7 +685,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="inline-flex max-w-full overflow-x-auto rounded-md border border-line bg-paper p-0.5"
+      className="fbg-no-scrollbar inline-flex max-w-full overflow-x-auto rounded-(--fbg-radius-control) border border-(--fbg-border-subtle) bg-(--fbg-bg-sunken) p-0.5"
     >
       {options.map((opt) => {
         const active = opt.value === value;
@@ -491,9 +697,11 @@ export function SegmentedControl<T extends string>({
             aria-checked={active}
             onClick={() => onChange(opt.value)}
             className={cx(
-              "rounded px-3 font-medium whitespace-nowrap",
-              size === "sm" ? "h-7 text-[12px]" : "h-8 text-[13px]",
-              active ? "bg-ink text-white" : "text-slate hover:text-ink",
+              "rounded-[7px] px-3 font-medium whitespace-nowrap",
+              size === "sm" ? "h-8 text-xs" : "h-9 text-sm",
+              active
+                ? "bg-(--fbg-bg-inverse) text-(--fbg-text-inverse)"
+                : "text-(--fbg-text-secondary) hover:text-(--fbg-text-primary)",
             )}
           >
             {opt.label}
@@ -527,7 +735,7 @@ export function Stepper({
 }) {
   return (
     <ol
-      className="flex gap-1 overflow-x-auto fbg-no-scrollbar lg:flex-col lg:gap-0"
+      className="fbg-no-scrollbar flex gap-1 overflow-x-auto lg:flex-col lg:gap-0"
       aria-label="Steps"
     >
       {steps.map((step, i) => {
@@ -535,25 +743,27 @@ export function Stepper({
         const isDone = completed.has(i);
         const reachable = isDone || i <= current || completed.has(i - 1);
         return (
-          <li key={step.id} className="min-w-[9rem] shrink-0 lg:min-w-0">
+          <li key={step.id} className="min-w-[10rem] shrink-0 lg:min-w-0">
             <button
               type="button"
               onClick={() => reachable && onSelect(i)}
               disabled={!reachable}
               aria-current={isCurrent ? "step" : undefined}
               className={cx(
-                "flex w-full items-start gap-3 rounded-md px-3 py-2 text-left disabled:cursor-not-allowed",
-                isCurrent ? "bg-surface border border-line" : "hover:bg-ink/5",
+                "flex w-full items-start gap-3 rounded-(--fbg-radius-control) px-3 py-2.5 text-left disabled:cursor-not-allowed",
+                isCurrent
+                  ? "border border-(--fbg-border-subtle) bg-(--fbg-bg-surface)"
+                  : "hover:bg-(--fbg-hover)",
               )}
             >
               <span
                 className={cx(
-                  "fbg-num mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[12px] font-semibold",
+                  "fbg-num mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-semibold",
                   isDone
-                    ? "border-teal bg-teal text-white"
+                    ? "border-(--fbg-action-primary) bg-(--fbg-action-primary) text-(--fbg-action-on-primary)"
                     : isCurrent
-                      ? "border-ink bg-ink text-white"
-                      : "border-line text-slate",
+                      ? "border-(--fbg-bg-inverse) bg-(--fbg-bg-inverse) text-(--fbg-text-inverse)"
+                      : "border-(--fbg-border-strong)/60 text-(--fbg-text-secondary)",
                 )}
               >
                 {isDone ? <Icon name="check" size={12} /> : i + 1}
@@ -561,14 +771,16 @@ export function Stepper({
               <span className="min-w-0">
                 <span
                   className={cx(
-                    "block text-[13px] font-medium",
-                    isCurrent ? "text-ink" : "text-slate",
+                    "block text-sm font-medium",
+                    isCurrent ? "text-(--fbg-text-primary)" : "text-(--fbg-text-secondary)",
                   )}
                 >
                   {step.title}
                 </span>
                 {step.summary ? (
-                  <span className="hidden text-[12px] text-slate lg:block">{step.summary}</span>
+                  <span className="hidden text-xs text-(--fbg-text-secondary) lg:block">
+                    {step.summary}
+                  </span>
                 ) : null}
               </span>
             </button>
@@ -588,21 +800,29 @@ export function Notice({
   title,
   children,
   icon,
+  action,
 }: {
-  tone?: Tone;
+  tone?: Tone | undefined;
   title?: ReactNode;
   children?: ReactNode;
-  icon?: IconName;
+  icon?: IconName | undefined;
+  action?: ReactNode;
 }) {
   const resolvedIcon = icon ?? (tone === "warn" || tone === "danger" ? "alert" : "info");
   return (
-    <div className={cx("flex gap-3 rounded-md border p-3 text-[13px]", TONE_SOFT[tone])}>
+    <div
+      role={tone === "danger" ? "alert" : undefined}
+      className={cx("flex gap-3 rounded-(--fbg-radius-card) border p-3.5 text-sm", TONE_SOFT[tone])}
+    >
       <Icon name={resolvedIcon} size={16} className="mt-0.5 shrink-0" />
-      <div className="min-w-0 text-ink">
+      <div className="min-w-0 flex-1 text-(--fbg-text-primary)">
         {title ? <p className="font-medium">{title}</p> : null}
         {children ? (
-          <div className={cx(title ? "mt-0.5" : null, "text-slate")}>{children}</div>
+          <div className={cx(title ? "mt-0.5" : null, "text-(--fbg-text-secondary)")}>
+            {children}
+          </div>
         ) : null}
+        {action ? <div className="mt-2">{action}</div> : null}
       </div>
     </div>
   );
