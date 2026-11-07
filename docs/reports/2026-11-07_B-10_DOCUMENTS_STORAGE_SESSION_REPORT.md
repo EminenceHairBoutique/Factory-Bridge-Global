@@ -1,0 +1,30 @@
+# Session report — 2026-11-07 (Phase 1, B-10)
+
+**Phase:** 1 | **Slice:** migration 0006 `documents_storage` (schema half of B-10) | **Branch:** `b-10-documents` (stacked on `b-08-suppliers`)
+
+| | |
+|---|---|
+| **Implemented** | `documents` — tenant-owned file records with a trigger-enforced path convention `<org_id>/<document_id>/<file>`, MIME allow-list (no SVG/HTML/archives), 25 MB cap, `sha256` required once parsed, bucket↔status CHECK, and the ADR-033 status machine (`uploaded → scanning → parsed|rejected → extracted → in_review → accepted`, `discarded` from any non-terminal state). Members can only *register* an upload and *discard*; the worker (`service_role`) owns scanning, promotion (only on `scanning → parsed`, only with a hash) and parse output. `document_pages` (≤ 500) and `document_cells` (cached values only) are worker-only writes, readable with their document. `document_access_log` gained its FK (restrict) and its sole writer `app.log_document_access()`, which re-runs the read predicate and records `auth.uid()`. `app.document_readable()` is the one read rule (owning org, submitting supplier for its own files, platform admin). Storage: four private bucket rows with limits + MIME lists; `storage.objects` policies derive everything from the document row — upload only into `quarantine` for an `uploaded` document the caller's org owns at the registered path; read only in served buckets when the document is at exactly that bucket+path; quarantine never readable; no update/delete. |
+| **Tested** | `pnpm check` → **231 tests** (domain 50, ai 48, i18n 4, worker 12, eval 12, supabase 105). New `supabase/tests/documents.test.ts`: **13 tests** — viewer cannot register; wrong-path / pre-promoted / other-org inserts rejected; SVG/HTML/ZIP/oversize rejected; A↔B isolation, unassigned operator 0 rows, admin both; members cannot edit or advance, can discard, discarded rows leave the read set; worker transition table incl. illegal jumps, promotion needs sha256 and leaves quarantine, path stays `<org>/<id>/`, parsed cannot return to quarantine; rejected needs a reason and is terminal for worker and member; pages/cells worker-only, org denormalized, readable only with the document; access log records the actor, denies unreadable docs, direct insert impossible, FK holds; storage: happy-path upload, wrong bucket, other org's folder, unregistered path, already-processed document, garbage path (no cast error), viewer; served read only through the document, stale object in `documents/` unreadable, quarantine unreadable even for admin, B/operator/supplier 0 rows; supplier reads its own served submission and nothing of the buyers'; no DELETE for authenticated. **Engine caveat:** PGlite uses a shim of `storage.buckets` / `storage.objects` / `storage.foldername` added to `tests/db.ts`; the real storage schema is only exercised by CI, which now starts `storage-api`. |
+| **Deployed** | Nothing. |
+| **Partial** | The signed-URL issuance endpoint (policy check → signed URL → `app.log_document_access`) needs the web app's auth and a Supabase project: deferred to B-05. Assigned-operator reads and `app.document_project()` arrive with 0008. The 50k-cell cap is a worker-side limit (not a DB constraint). |
+| **Blocked** | — |
+| **Planned** | B-08b (0007 supplier evidence) is now unblocked; B-11 (upload client + worker consumer) builds on this schema. |
+
+**Changes:** `supabase/migrations/20261107000600_documents_storage.sql` (new), `supabase/tests/documents.test.ts` (new), `supabase/tests/db.ts` (PGlite storage shim), `supabase/tests/rls-coverage.ts` (3 tables + allow-list), `.github/workflows/ci.yml` (`storage-api` no longer excluded), docs: `DECISIONS.md` (ADR-033), `MIGRATION_DEPENDENCY_MAP.md` (row 0006, 5 helpers), `SCHEMA_PLAN.md` (§2.4 as built), `SECURITY_PERMISSION_MATRIX.md` (§5 note), `BACKLOG.md` (B-10 ✅◐), `STATUS.md`.
+
+**Security review:**
+- *Serving before scanning is impossible by construction:* the bucket is tied to the status by CHECK, the bucket can only change on `scanning → parsed`, and the served-bucket read policy requires the document row to be at that bucket+path — a file copied early, or planted, is unreadable.
+- *Tenant isolation:* both the table and the storage policies resolve the org from the **document row**, not from the path string alone; a path under another org's folder is denied at upload and at read; garbage paths return `null` from the parsers and deny without raising.
+- *Least privilege:* `authenticated` holds SELECT/INSERT/UPDATE on `documents` only (and the trigger narrows UPDATE to "discard"), SELECT only on pages/cells and the access log; no DELETE anywhere; no `storage.objects` UPDATE/DELETE policies.
+- *Untrusted input:* `scan_result`, `sha256`, `page_count`, `rejected_reason` are cleared on member inserts so a client cannot pre-declare a clean scan; cells store cached values only.
+- *Audit:* document rows are audited (paths/hashes, never contents); access is logged with the actor and org through a SECURITY DEFINER writer.
+- *CI change:* starting `storage-api` adds a service to the stack; if its migrations fail to populate `storage.buckets` columns in CI, migration 0006 fails loudly rather than silently skipping the bucket rows — that is the intended behaviour.
+
+**Assumptions:** `supabase db reset` re-runs storage-api's migrations after recreating the database (the CLI restarts dependent services) — to be confirmed by the first CI run of this PR. Supplier-submitted files are readable by the submitting supplier's org in addition to the owning org.
+
+**Budget implications:** none (CI runs a few seconds longer).
+
+**Founder actions required:** after the B-08 PR merges, `git push -u origin b-10-documents` and open its PR against `main`; watch the `db` job — it is the first run with `storage-api` in the stack.
+
+**Next task:** B-08b (0007 `supplier_evidence`: verification checks, supplier documents, evidence FKs) — small and now unblocked; or B-11 if the worker consumer should come first.

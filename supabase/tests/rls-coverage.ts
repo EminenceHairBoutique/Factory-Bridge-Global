@@ -29,6 +29,10 @@ export const TENANT_TABLES: ReadonlyArray<{ table: string; coveredBy: string }> 
   { table: "source_systems", coveredBy: "suppliers.test.ts" },
   { table: "source_permissions", coveredBy: "suppliers.test.ts" },
   { table: "research_leads", coveredBy: "suppliers.test.ts" },
+  // 0006 documents_storage
+  { table: "documents", coveredBy: "documents.test.ts" },
+  { table: "document_pages", coveredBy: "documents.test.ts" },
+  { table: "document_cells", coveredBy: "documents.test.ts" },
 ];
 
 /** Reference tables readable by every signed-in user; still RLS-enabled with an explicit select policy. */
@@ -77,4 +81,9 @@ export const AUTHENTICATED_MAX_PRIVILEGES: Readonly<Record<string, ReadonlyArray
     source_systems: ["SELECT", "UPDATE"],
     source_permissions: ["SELECT", "INSERT", "UPDATE"],
     research_leads: ["SELECT", "INSERT", "UPDATE"],
+    // 0006 documents_storage — members register an upload and may discard; the worker (service_role) owns scanning,
+    // promotion and parse output; document_access_log stays SELECT-only (written via app.log_document_access)
+    documents: ["SELECT", "INSERT", "UPDATE"],
+    document_pages: ["SELECT"],
+    document_cells: ["SELECT"],
   };

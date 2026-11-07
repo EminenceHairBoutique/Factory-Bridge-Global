@@ -168,6 +168,17 @@ Living document. Append new ADRs; never edit an accepted ADR's substance — sup
 4. `research_leads.rights_class` is CHECK-pinned to `internal_market_observation` and the table is internal-only. Observed prices never reach a buyer as a price.
 5. No 0005 table grants DELETE to `authenticated`; rows are deactivated, archived or revoked.
 
+## ADR-033 — Document status machine; promotion out of quarantine is a transition; storage policies key on the document row
+**Status:** accepted 2026-11-07 (B-10)
+**Decision:**
+1. `documents.status` follows one transition table enforced by trigger: `uploaded → scanning → parsed | rejected`, `parsed → extracted → in_review → accepted`; `discarded` is reachable from every non-terminal state; `rejected`, `accepted`, `discarded` are terminal. A CHECK ties bucket to status (`uploaded/scanning/rejected` ⇒ `quarantine`; `parsed…accepted` ⇒ a served bucket), and `storage_bucket` may change only on `scanning → parsed`, which also requires `sha256`. A file therefore cannot be served before the scan passed, by construction.
+2. Signed-in members may only *register* an upload (`uploaded`, `quarantine`, path `<org_id>/<document_id>/<file>`) and later *discard*; every other column and transition belongs to the processing worker (`service_role`, detected with `app.is_trusted_writer()`). `in_review → accepted` will be performed by the 0010 review functions as trusted writers. `document_pages` / `document_cells` are worker-only writes (no INSERT grant to `authenticated`).
+3. Readability is one predicate, `app.document_readable()`: members of the owning org, the submitting supplier for its own submissions, platform admins; 0008 adds assigned operators. `rights_class` decides what a file may be *used for*, never who may *read* it.
+4. `storage.objects` policies derive everything from the document row: upload only into `quarantine`, only for a document the caller's org owns that is still `uploaded`, at the registered path; read only in served buckets and only when the document is at that bucket+path and readable. A stale or planted object in a served bucket is unreadable. Quarantine is never readable by signed-in users. No UPDATE/DELETE policies for `authenticated`.
+5. `document_access_log` is written only by `app.log_document_access()`, which re-runs the read predicate and records `auth.uid()`; the FK to `documents` is `on delete restrict`.
+6. CI starts `storage-api` with the local stack: its migrations define the `storage.buckets` columns (`public`, `file_size_limit`, `allowed_mime_types`) the bucket rows depend on. PGlite carries a documented shim of that subset; it proves the SQL, not Supabase Storage.
+**Deferred:** the signed-URL issuance endpoint (needs the web app's auth, B-05); `app.document_project()` (needs 0008).
+
 ## ADR-016 — No marketplace or messaging automation; connectors gated by the data-rights matrix
 **Status:** accepted
 **Decision:** S2 and S6 in `INTEGRATIONS_AND_PERMISSIONS.md` are permanently blocked. API connectors (S8–S11) require recorded license/scopes and founder approval before design is turned into code.
