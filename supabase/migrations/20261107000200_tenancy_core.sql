@@ -106,9 +106,14 @@ end;
 $$;
 
 -- Role must fit the organization type (internal roles vs buyer/supplier roles).
+-- SECURITY DEFINER: the org lookup must see the row regardless of the caller's RLS, so a denied insert is
+-- reported by the grant/RLS layer ("permission denied" / "violates row-level security"), never as a
+-- misleading "organization does not exist". The function reads only org_type and has no caller input
+-- beyond NEW.
 create or replace function app.enforce_membership_role()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $$
 declare
