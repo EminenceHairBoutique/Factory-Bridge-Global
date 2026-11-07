@@ -146,8 +146,14 @@ describe("organizations — tenant isolation", () => {
   });
 
   it("internal operator (unassigned) can see org profile rows; platform admin sees all", async () => {
-    expect(await countOrgs(U.opUnassigned)).toEqual([INTERNAL_ORG, ORG.a, ORG.b, ORG.s].sort());
-    expect(await countOrgs(U.admin)).toEqual([INTERNAL_ORG, ORG.a, ORG.b, ORG.s].sort());
+    // On real Postgres every suite shares one database (the CLI applied the migrations once), so other suites'
+    // fixture orgs are present too. "All" therefore means: exactly what the superuser sees, which must include ours.
+    const all = (await db.query<{ id: string }>("select id from public.organizations"))
+      .map((r) => r.id)
+      .sort();
+    expect(all).toEqual(expect.arrayContaining([INTERNAL_ORG, ORG.a, ORG.b, ORG.s]));
+    expect(await countOrgs(U.opUnassigned)).toEqual(all);
+    expect(await countOrgs(U.admin)).toEqual(all);
   });
 
   it("exactly one internal organization can exist (unique partial index)", async () => {

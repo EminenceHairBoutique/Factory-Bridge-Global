@@ -21,6 +21,14 @@ export const TENANT_TABLES: ReadonlyArray<{ table: string; coveredBy: string }> 
   { table: "products", coveredBy: "taxonomy.test.ts" },
   { table: "product_variants", coveredBy: "taxonomy.test.ts" },
   { table: "product_specifications", coveredBy: "taxonomy.test.ts" },
+  // 0005 suppliers_core
+  { table: "supplier_profiles", coveredBy: "suppliers.test.ts" },
+  { table: "supplier_facilities", coveredBy: "suppliers.test.ts" },
+  { table: "supplier_contacts", coveredBy: "suppliers.test.ts" },
+  { table: "contact_disclosure_grants", coveredBy: "suppliers.test.ts" },
+  { table: "source_systems", coveredBy: "suppliers.test.ts" },
+  { table: "source_permissions", coveredBy: "suppliers.test.ts" },
+  { table: "research_leads", coveredBy: "suppliers.test.ts" },
 ];
 
 /** Reference tables readable by every signed-in user; still RLS-enabled with an explicit select policy. */
@@ -60,4 +68,13 @@ export const AUTHENTICATED_MAX_PRIVILEGES: Readonly<Record<string, ReadonlyArray
     products: ["SELECT", "INSERT", "UPDATE"],
     product_variants: ["SELECT", "INSERT", "UPDATE"],
     product_specifications: ["SELECT", "INSERT", "UPDATE"],
+    // 0005 suppliers_core — no DELETE anywhere (deactivate / revoke instead); source_systems rows come from
+    // migrations and only their status/notes change (platform_admin)
+    supplier_profiles: ["SELECT", "INSERT", "UPDATE"],
+    supplier_facilities: ["SELECT", "INSERT", "UPDATE"],
+    supplier_contacts: ["SELECT", "INSERT", "UPDATE"],
+    contact_disclosure_grants: ["SELECT", "INSERT", "UPDATE"],
+    source_systems: ["SELECT", "UPDATE"],
+    source_permissions: ["SELECT", "INSERT", "UPDATE"],
+    research_leads: ["SELECT", "INSERT", "UPDATE"],
   };

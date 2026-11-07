@@ -149,6 +149,25 @@ Living document. Append new ADRs; never edit an accepted ADR's substance — sup
 5. Ledger idempotency: `(org_id, job_id)` is unique; a replayed job returns the existing run id. If the ledger write fails after a paid call, the job fails loudly rather than drop the spend record.
 **Supersedes:** the 0010 placement of `ai_runs` in `MIGRATION_DEPENDENCY_MAP.md` and the `cost_usd numeric(12,6)` base column in `SCHEMA_PLAN.md`.
 
+## ADR-030 — Suppliers at stage `lead_identified` are internal working data, not directory entries
+**Status:** accepted 2026-11-07 (B-08)
+**Context:** Operators create supplier profiles while researching (stage `lead_identified`) long before anyone has confirmed a contact. The matrix gives buyers R on "supplier profile (public fields)" but never says *which* suppliers.
+**Decision:** `supplier_profiles` rows are readable by any signed-in user only once `stage <> 'lead_identified'`; the supplier's own org and internal staff read at every stage. `supplier_public_profile_v` applies the same filter and carries no contact, USCC or `created_by` columns; it is the only buyer-facing read path. `stage` and `entity_kind_verified` are written only by internal staff (trigger-enforced, independent of RLS); a supplier's insert/update of those columns is reset or raises. Changing the claimed `entity_kind` clears `entity_kind_verified`.
+
+## ADR-031 — Restricted contacts: no operator access until project assignments exist (0008)
+**Status:** accepted 2026-11-07 (B-08)
+**Context:** Pattern D (SCHEMA_PLAN §3.2) grants assigned operators access to `supplier_contacts` through `project_assignments`, which arrive in migration 0008. Migration 0005 cannot reference them.
+**Decision:** 0005 ships the strict subset: platform admins, compliance reviewers, the supplier's own org, and buyer orgs with an active `contact_disclosure_grants` row can read; only platform admins insert; platform admins and the supplier's owner/admin update. Operators — assigned or not — have **no** access until 0008 replaces `supplier_contacts_select/insert/update` and `contact_disclosure_grants_insert/update` with the assignment clause. The policies that consult the other table go through `app.contact_disclosed_to_me()` / `app.contact_org_of()` (SECURITY DEFINER) so the two policies never re-enter each other.
+
+## ADR-032 — Grants are immutable except for revocation; the source register is data
+**Status:** accepted 2026-11-07 (B-08)
+**Decision:**
+1. `contact_disclosure_grants` and `source_permissions` rows cannot be edited after creation except to set `revoked_at` / `revoked_by` / `revoke_reason` (trigger `app.grant_before_update`); a revoked row cannot be un-revoked; re-granting creates a new row (one live grant per `(contact, buyer org)`). Expiry and revocation are re-evaluated on every read — nothing is cached in a label.
+2. `source_permissions.scope` is validated by `app.validate_permission_scope()` (allowed keys only; `named_orgs` requires a non-empty uuid list; `platform_buyers` must not carry one). `app.catalog_grant_active()` is the single predicate buyer-facing catalog visibility is evaluated against; `rights_class = internal_market_observation` can never be buyer-visible.
+3. `source_systems` is the integration/permission register as **rows**: `marketplace.1688`, `marketplace.taobao`, `marketplace.weidian`, `messaging.wechat` ship with `status = 'blocked'`; only a platform admin may change a status and the migration's re-runnable reference block deliberately does not overwrite `status`. Connector work is gated on that row, not on a code comment.
+4. `research_leads.rights_class` is CHECK-pinned to `internal_market_observation` and the table is internal-only. Observed prices never reach a buyer as a price.
+5. No 0005 table grants DELETE to `authenticated`; rows are deactivated, archived or revoked.
+
 ## ADR-016 — No marketplace or messaging automation; connectors gated by the data-rights matrix
 **Status:** accepted
 **Decision:** S2 and S6 in `INTEGRATIONS_AND_PERMISSIONS.md` are permanently blocked. API connectors (S8–S11) require recorded license/scopes and founder approval before design is turned into code.

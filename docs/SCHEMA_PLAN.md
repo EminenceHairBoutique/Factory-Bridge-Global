@@ -54,10 +54,10 @@ Grouped by domain. "Owner" = the column RLS keys on.
 
 | Table | Key columns | Owner |
 |---|---|---|
-| `supplier_profiles` | `org_id (supplier org), legal_name_zh, legal_name_en, uscc (统一社会信用代码), entity_kind(manufacturer|trading|unknown — claimed), entity_kind_verified bool, province, city, website, stage supplier_stage, export_ready_claimed bool` | `org_id` (supplier) + internal read |
-| `supplier_facilities` | `supplier_id, address_zh, address_en, facility_type, evidence_document_id` | supplier + internal |
-| `supplier_contacts` **(restricted)** | `supplier_id, name, role, wechat_handle, phone, email, contact_basis, consent_note, created_by` | **internal only** by default; supplier org can see its own; buyers only via `contact_disclosure_grants` |
-| `contact_disclosure_grants` | `supplier_contact_id, buyer_org_id, granted_by, reason, expires_at, revoked_at` | internal writes; buyer reads own |
+| `supplier_profiles` **(0005 ✅)** | `org_id (supplier org, unique), legal_name_zh, legal_name_en, uscc (统一社会信用代码, format-checked only), entity_kind(manufacturer|trading|unknown — claimed), entity_kind_verified bool (internal-only write), province, city, website, stage supplier_stage (internal-only write), export_ready_claimed bool, intro_zh/en` | `org_id` (supplier) + internal; readable by any signed-in user once `stage <> lead_identified` (ADR-030) |
+| `supplier_facilities` **(0005 ✅)** | `supplier_id, org_id (denormalized by trigger), facility_type(factory|warehouse|office|showroom), address_zh, address_en, is_primary (one per supplier), evidence_document_id (added in 0007)` | supplier + internal; visibility follows the profile |
+| `supplier_contacts` **(restricted; 0005 ✅)** | `supplier_id, org_id (denormalized), name, role_title, wechat_handle, phone, email (≥1 channel), contact_basis(supplier_provided|operator_sourced|public_listing|referral), consent_note, is_active, created_by` | platform admin / compliance / supplier's own org; buyers only via `contact_disclosure_grants`; assigned operators from 0008 (ADR-031); audit redacted |
+| `contact_disclosure_grants` **(0005 ✅)** | `supplier_contact_id, buyer_org_id, granted_by, reason (≥10 chars), granted_at, expires_at, revoked_at, revoked_by, revoke_reason` — immutable except revocation; one live row per (contact, buyer) | internal writes; buyer reads own; supplier reads grants on its contacts |
 | `supplier_verification_checks` | `supplier_id, check_type, result(pass|fail|inconclusive), evidence_document_id, reviewed_by, reviewed_at, valid_until, notes` | internal; supplier reads own; buyer reads summarized view |
 | `supplier_documents` | `supplier_id, document_id, doc_kind(license|test_report|certificate|photo|drawing), claimed_by_supplier bool, verified_by, verified_at` | supplier + internal |
 
@@ -77,9 +77,9 @@ Attribute values are canonical: dimensions in mm, mass in g, volume in ml, with 
 
 | Table | Key columns | Owner |
 |---|---|---|
-| `source_systems` | `code, provider, source_type, capabilities jsonb, status(blocked|manual|active), terms_url, notes` | internal |
-| `source_permissions` | `id, supplier_id nullable, source_system_id nullable, rights_class, scope(fields[], images bool, redistribute bool, benchmark bool), evidence_document_id, granted_at, expires_at, revoked_at, recorded_by` | internal; supplier reads own |
-| `research_leads` | `taxonomy_id, platform, reference_url, search_term_zh, observed_min_price, observed_max_price, currency, observed_moq, observed_at, notes, rights_class = internal_market_observation (CHECK)` | **internal only** |
+| `source_systems` **(0005 ✅)** | `code, provider, source_type, capabilities jsonb, status(blocked|manual|active), terms_url, notes` — rows shipped by the migration (`marketplace.1688/taobao/weidian`, `messaging.wechat` = `blocked`); `status` survives re-runs | internal read; platform admin updates |
+| `source_permissions` **(0005 ✅)** | `id, supplier_id nullable, org_id (denormalized), source_system_id nullable (≥1 of the two), rights_class, scope(fields[], images, redistribute, benchmark, buyer_visibility, named_org_ids[]) validated by `app.validate_permission_scope`, evidence_document_id (0007), granted_at, expires_at, revoked_at, revoked_by, revoke_reason, recorded_by` — immutable except revocation | internal; supplier reads own and self-grants catalog rights (owner/admin); buyers read catalog grants naming their org or open to platform buyers |
+| `research_leads` **(0005 ✅)** | `taxonomy_id, source_system_id → source_systems, reference_url, search_term_zh, title_zh, observed_min_price ≤ observed_max_price, currency, observed_moq, observed_unit, observed_at, notes, recorded_by, rights_class = internal_market_observation (CHECK)` | **internal only** |
 | `documents` | `id, org_id (owning tenant), uploaded_by, source_type, rights_class, source_permission_id, storage_bucket, storage_path, original_filename, mime, bytes, sha256, status document_status, scan_result jsonb, page_count, retention_class` | `org_id` + assigned internal |
 | `document_pages` | `document_id, page_no, text, layout jsonb, ocr_run_id` | follows document |
 | `document_cells` | `document_id, sheet, row, col, raw, parsed` | follows document |
@@ -238,7 +238,7 @@ create policy sc_select on public.supplier_contacts for select to authenticated
                    and app.is_member(g.buyer_org_id) and g.revoked_at is null
                    and (g.expires_at is null or g.expires_at > now())));
 ```
-Buyer-facing reads use `supplier_public_profile_v` (no contact columns). An unassigned internal operator (`I.op−`) has **no** access — tested.
+Buyer-facing reads use `supplier_public_profile_v` (no contact columns). An unassigned internal operator (`I.op−`) has **no** access — tested. **As implemented in 0005** the `project_assignments` clause is absent (those tables arrive in 0008, which replaces these policies — ADR-031), and the grant lookup goes through `app.contact_disclosed_to_me()` so the contacts and grants policies do not recurse into each other.
 
 **Pattern E — internal-only** (`research_leads`, `source_systems`, `ai_eval_cases`): `using (app.is_internal())`.
 
