@@ -355,9 +355,13 @@ export function BuyerDashboard() {
                           ) : null}
                         </td>
                         <td>
-                          {p.id === "prj_demo_labels" ? (
+                          {p.id === "prj_demo_labels" || p.id === "prj_demo_hair" ? (
                             <Link
-                              href="/design-preview/buyer/compare"
+                              href={
+                                p.id === "prj_demo_labels"
+                                  ? "/design-preview/buyer/compare"
+                                  : "/design-preview/buyer/brief"
+                              }
                               className="font-medium text-(--fbg-link) hover:underline"
                             >
                               {p.nextAction}

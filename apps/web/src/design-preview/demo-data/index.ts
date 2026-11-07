@@ -106,15 +106,15 @@ export const DEMO_PROJECTS: DemoProject[] = [
     id: "prj_demo_hair",
     name: "Raw hair bundles, 18–22 in, natural black",
     family: "Hair bundles",
-    stage: "brief_confirmed",
+    stage: "brief_draft",
     quantity: 300,
     unit: "bundles",
     destination: "Atlanta, GA 30303",
     operator: "Unassigned",
     updatedAt: "2026-11-03",
     quotes: { confirmed: 0, inReview: 0, expiringSoon: 0 },
-    nextAction: "Waiting for supplier options",
-    briefVersion: 1,
+    nextAction: "Confirm 3 inferred specification values",
+    briefVersion: 2,
   },
   {
     id: "prj_demo_sleeves",
@@ -179,6 +179,7 @@ export const DEMO_ACTIONS: DemoAction[] = [
     title: "Confirm 3 inferred specification values",
     detail:
       "Inferred values (cuticle alignment, weft type, weight per bundle) are not used for matching until confirmed.",
+    href: "/design-preview/buyer/brief",
   },
   {
     id: "act_5",

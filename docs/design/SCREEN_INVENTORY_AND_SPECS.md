@@ -12,7 +12,7 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 | Projects list | `/app/projects` | Partially prototyped (table on dashboard) | B-15 |
 | New sourcing request | `/app/projects/new` | Prototyped | B-15, B-17, B-27 |
 | Project overview | `/app/projects/[id]` | Specified §3.1 | B-15 |
-| Brief & spec builder (AI proposal confirm) | `/app/projects/[id]/brief` | Specified §3.2 | B-17 |
+| Brief & spec builder (AI proposal confirm) | `/app/projects/[id]/brief` | Prototyped (`/design-preview/buyer/brief`; see `atlas-obsidian/BRIEF_CONFIRMATION_SCREEN.md`) | B-17 |
 | Documents | `/app/projects/[id]/uploads` | Planned | B-10, B-11 |
 | Extraction review (buyer) | `/app/projects/[id]/review/[taskId]` | Same component as ops concept | B-20 |
 | Supplier options | `/app/projects/[id]/options` | Specified §3.3 | B-09 |

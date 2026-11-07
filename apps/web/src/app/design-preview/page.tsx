@@ -22,6 +22,12 @@ const SCREENS = [
     workspace: "Buyer (English)",
   },
   {
+    href: "/design-preview/buyer/brief",
+    title: "Brief confirmation (AI proposal → your version)",
+    body: "Raw input with highlighted sources, the AI proposal with from input / inferred / missing provenance and Chinese translation, your decisions per field, and a versioned confirm.",
+    workspace: "Buyer (English)",
+  },
+  {
     href: "/design-preview/buyer/compare",
     title: "Supplier quotation comparison",
     body: "Price-basis groups, tiers and MOQ, FX provenance, landed-cost line status, freshness and verification evidence.",

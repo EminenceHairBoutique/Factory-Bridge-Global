@@ -65,6 +65,14 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-24 (zh-CN catalog keys), H-25 (supplier DTOs and quote submission contract), H-26 (validation parity with B-14 / B-18).
 
+## 6b. Session 4 — Brief confirmation (2026-11-07, same branch)
+
+**Implemented in preview:** `/design-preview/buyer/brief` (`BriefConfirmation.tsx`, `demo-data/brief.ts`): raw input with highlighted source snippets, AI proposal with per-field provenance and Chinese translation, per-field Accept / Edit / Provide / Not sure / Skip, progress notice, versioned confirm (v1 raw, v2 proposal, v3 confirmed; editing after confirmation opens a draft v4), "Request supplier options" blocked while a required attribute is "Not sure". Dashboard action and project row now link to it; index entry added. Details in `BRIEF_CONFIRMATION_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 222); `next build` exit 0; production `next start`: `/design-preview/buyer/brief` → 404. Browser: 9 snippet marks; "9 of 15 values decided" with confirm disabled on load; accept / not sure / skip / provide → 15 of 15 and confirm enabled; confirm adds "Confirmed by you" v3 and the v3 notice; request button disabled with tooltip naming "Weight per bundle"; "Provide a value" after confirmation reopens a draft; no console errors; no horizontal overflow at 320 and 375 px.
+
+**Cross-track:** H-27 (`brief_spec_v1` output and brief-version write contract).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).
