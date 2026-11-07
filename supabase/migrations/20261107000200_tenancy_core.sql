@@ -106,9 +106,14 @@ end;
 $$;
 
 -- Role must fit the organization type (internal roles vs buyer/supplier roles).
+-- SECURITY DEFINER: the org lookup must see the row regardless of the caller's RLS, so a denied insert is
+-- reported by the grant/RLS layer ("permission denied" / "violates row-level security"), never as a
+-- misleading "organization does not exist". The function reads only org_type and has no caller input
+-- beyond NEW.
 create or replace function app.enforce_membership_role()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $$
 declare
@@ -252,7 +257,7 @@ alter table public.invites        enable row level security;
 alter table public.invites        force row level security;
 
 -- Table privileges: `authenticated` gets only what a policy can allow; no INSERT/DELETE on tenancy tables.
-revoke all on public.organizations, public.user_profiles, public.memberships, public.invites from public, anon;
+revoke all on public.organizations, public.user_profiles, public.memberships, public.invites from public, anon, authenticated, service_role;
 grant select, update on public.organizations to authenticated;
 grant select, insert, update on public.user_profiles to authenticated;
 grant select, update on public.memberships to authenticated;

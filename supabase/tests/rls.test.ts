@@ -140,7 +140,9 @@ describe("organizations — tenant isolation", () => {
         `insert into public.organizations (org_type, legal_name, display_name) values ('buyer', 'X', 'X')`,
       ),
     );
-    expect(err).toMatch(/permission denied/);
+    // No INSERT grant → "permission denied" on real Postgres (the PGlite shim mirrors it); a policy denial is
+    // the same correct answer. The grant guard in migrations.test.ts pins which layer is in force.
+    expect(err).toMatch(/permission denied|row-level security/);
   });
 
   it("internal operator (unassigned) can see org profile rows; platform admin sees all", async () => {
@@ -187,7 +189,9 @@ describe("memberships — who can see teams", () => {
         `insert into public.memberships (org_id, user_id, role) values ('${ORG.a}', '${U.bOwner}', 'owner')`,
       ),
     );
-    expect(err).toMatch(/permission denied/);
+    expect(err).toMatch(/permission denied|row-level security/);
+    // The denial must come from the grant/RLS layer, never from the role-fit trigger failing to see org A.
+    expect(err).not.toMatch(/does not exist/);
     await asUser(db, U.bOwner, () =>
       db.exec(`update public.memberships set role = 'viewer' where org_id = '${ORG.a}'`),
     );

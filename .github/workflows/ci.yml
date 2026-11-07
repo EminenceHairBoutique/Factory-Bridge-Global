@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read # gitleaks-action lists the PR commits; required once the repo is private
 
 jobs:
   check:
@@ -64,6 +65,7 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+          github-token: ${{ secrets.GITHUB_TOKEN }} # resolving "latest" unauthenticated hits the API rate limit
 
       # Real PostgreSQL + Supabase auth schema/roles. Heavy services that the DB tests do not need are excluded.
       - name: Start local Supabase stack

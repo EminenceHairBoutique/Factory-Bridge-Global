@@ -40,6 +40,8 @@ Actions: **R** read, **C** create, **U** update (non-ownership fields), **X** ex
 | FX rates, taxonomy, attribute definitions | R | R | R | R | R | R | R | R | R U | write FX |
 | `audit_events` | AU (own org, owner/admin only) | — | — | AU (own org, owner/admin) | — | AU (assigned projects) | — | AU | AU | write only via fn |
 | `security_events` | — | — | — | — | — | — | — | R | R | write |
+| `ai_runs` (AI call ledger, append-only) | R (own org) | — | — | R (own org) | — | — | — | R | R | write only via `app.record_ai_run` |
+| `ai_budgets` (monthly AI cap) | R (own org) | — | — | R (own org) | — | — | — | — | R U (via `app.set_ai_budget`, audited) | read + set |
 | Compliance holds | — | — | — | — | — | R | R | R C U | R C U | — |
 
 Everything not listed is denied. "—" means no access, including through joins, RPCs, exports, search indexes, embeddings, AI prompts and cached snapshots: every such path is built from a query that is itself RLS-filtered for the acting user.

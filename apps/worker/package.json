@@ -15,12 +15,15 @@
     "@fbg/ai": "workspace:*",
     "@fbg/db": "workspace:*",
     "@fbg/domain": "workspace:*",
-    "pino": "^10.4.0"
+    "pino": "^10.4.0",
+    "pg": "^8.16.3",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.0",
+    "@types/pg": "^8.15.5"
   }
 }
