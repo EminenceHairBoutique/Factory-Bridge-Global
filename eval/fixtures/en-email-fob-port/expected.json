@@ -1,0 +1,195 @@
+{
+  "schema": "quote_extraction_v1",
+  "supplierNameHint": {
+    "value": "Example Houseware Co., Ltd.",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Example Houseware Co., Ltd."
+    }
+  },
+  "currency": {
+    "value": "USD",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Price basis: FOB Shenzhen, USD"
+    }
+  },
+  "quantityUnit": {
+    "value": "set",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "USD 2.45 / set"
+    }
+  },
+  "priceBasis": {
+    "value": "FOB",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Price basis: FOB Shenzhen"
+    }
+  },
+  "incotermPlace": {
+    "value": "Shenzhen",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "FOB Shenzhen"
+    }
+  },
+  "moq": {
+    "value": "1000",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "MOQ: 1,000 sets"
+    }
+  },
+  "tiers": [
+    {
+      "minQty": "1000",
+      "maxQty": "2999",
+      "unitPrice": "2.45",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "1,000 - 2,999 sets: USD 2.45 / set"
+      },
+      "confidence": "high"
+    },
+    {
+      "minQty": "3000",
+      "maxQty": "9999",
+      "unitPrice": "2.20",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "3,000 - 9,999 sets: USD 2.20 / set"
+      },
+      "confidence": "high"
+    },
+    {
+      "minQty": "10000",
+      "maxQty": null,
+      "unitPrice": "2.05",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "10,000+ sets: USD 2.05 / set"
+      },
+      "confidence": "high"
+    }
+  ],
+  "fees": [
+    {
+      "type": "tooling",
+      "amount": "1800",
+      "currency": "USD",
+      "oneTime": true,
+      "includedInUnitPrice": false,
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "Tooling (one-time, for custom handle mold): USD 1,800"
+      },
+      "confidence": "high"
+    }
+  ],
+  "productionLeadDays": {
+    "value": 35,
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Lead time: 35 days after deposit and artwork approval"
+    }
+  },
+  "paymentTerms": {
+    "value": "30% T/T deposit, 70% against copy of B/L",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Payment: 30% T/T deposit, 70% against copy of B/L"
+    }
+  },
+  "quoteDate": {
+    "value": null,
+    "confidence": "low",
+    "anchor": null
+  },
+  "validUntil": {
+    "value": "2026-12-15",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Quotation valid until 2026-12-15"
+    }
+  },
+  "specAttributes": {
+    "material": {
+      "value": "food-grade silicone",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "food-grade silicone"
+      }
+    },
+    "core": {
+      "value": "stainless core",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "stainless core"
+      }
+    }
+  },
+  "missingFields": ["quote_date"],
+  "flags": [],
+  "notes": null
+}

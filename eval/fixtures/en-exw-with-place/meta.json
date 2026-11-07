@@ -1,0 +1,13 @@
+{
+  "id": "en-exw-with-place",
+  "slice": "en_trading_pdf",
+  "locale": "en-US",
+  "layout": "quote_table",
+  "family": "metal_parts",
+  "difficulty": "easy",
+  "synthetic": true,
+  "injection": false,
+  "colloquialBasis": false,
+  "forbiddenOutputStrings": [],
+  "tags": ["exw_with_place", "two_fees"]
+}

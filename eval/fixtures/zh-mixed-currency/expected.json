@@ -1,0 +1,175 @@
+{
+  "schema": "quote_extraction_v1",
+  "supplierNameHint": {
+    "value": "示例电子（深圳）有限公司",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "供应商：示例电子（深圳）有限公司"
+    }
+  },
+  "currency": {
+    "value": null,
+    "confidence": "low",
+    "anchor": null
+  },
+  "quantityUnit": {
+    "value": "条",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "RMB 4.20/条"
+    }
+  },
+  "priceBasis": {
+    "value": "FOB",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "价格条款：FOB 深圳"
+    }
+  },
+  "incotermPlace": {
+    "value": "深圳",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "FOB 深圳"
+    }
+  },
+  "moq": {
+    "value": "2000",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "起订量 2000条"
+    }
+  },
+  "tiers": [
+    {
+      "minQty": "2000",
+      "maxQty": "9999",
+      "unitPrice": "4.20",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "单价：RMB 4.20/条（2000-9999条）"
+      },
+      "confidence": "high"
+    },
+    {
+      "minQty": "10000",
+      "maxQty": null,
+      "unitPrice": "0.55",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "10000条以上：USD 0.55/条"
+      },
+      "confidence": "high"
+    }
+  ],
+  "fees": [
+    {
+      "type": "tooling",
+      "amount": "3000",
+      "currency": "CNY",
+      "oneTime": true,
+      "includedInUnitPrice": false,
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "模具费：RMB 3000（一次性）"
+      },
+      "confidence": "high"
+    }
+  ],
+  "productionLeadDays": {
+    "value": 20,
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "交期：20天"
+    }
+  },
+  "paymentTerms": {
+    "value": null,
+    "confidence": "low",
+    "anchor": null
+  },
+  "quoteDate": {
+    "value": "2026-10-30",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "日期 2026-10-30"
+    }
+  },
+  "validUntil": {
+    "value": "2026-11-20",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "有效期至 2026-11-20"
+    }
+  },
+  "specAttributes": {
+    "length": {
+      "value": "1m",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "USB-C 数据线 1m"
+      }
+    },
+    "type": {
+      "value": "编织线",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "编织线"
+      }
+    }
+  },
+  "missingFields": ["currency", "payment_terms"],
+  "flags": ["mixed_currency"],
+  "notes": "第一档为 RMB，第二档为 USD（混合货币）"
+}

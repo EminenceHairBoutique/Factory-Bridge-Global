@@ -1,0 +1,154 @@
+{
+  "schema": "quote_extraction_v1",
+  "supplierNameHint": {
+    "value": "示例日用品厂",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "示例日用品厂 报价单"
+    }
+  },
+  "currency": {
+    "value": "CNY",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "¥18.50/套"
+    }
+  },
+  "quantityUnit": {
+    "value": "套",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "¥18.50/套"
+    }
+  },
+  "priceBasis": {
+    "value": "FOB",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "FOB 宁波"
+    }
+  },
+  "incotermPlace": {
+    "value": "宁波",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "FOB 宁波"
+    }
+  },
+  "moq": {
+    "value": "800",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "起订量 800套"
+    }
+  },
+  "tiers": [
+    {
+      "minQty": "800",
+      "maxQty": "2999",
+      "unitPrice": "18.50",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "800-2999套：¥18.50/套"
+      },
+      "confidence": "high"
+    },
+    {
+      "minQty": "3000",
+      "maxQty": null,
+      "unitPrice": "16.80",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "3000套以上：¥16.80/套"
+      },
+      "confidence": "high"
+    }
+  ],
+  "fees": [],
+  "productionLeadDays": {
+    "value": 30,
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "交期 30天"
+    }
+  },
+  "paymentTerms": {
+    "value": null,
+    "confidence": "low",
+    "anchor": null
+  },
+  "quoteDate": {
+    "value": "2026-11-03",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "日期 2026-11-03"
+    }
+  },
+  "validUntil": {
+    "value": "2026-11-30",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "有效期至 2026-11-30"
+    }
+  },
+  "specAttributes": {
+    "material": {
+      "value": "竹纤维",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "竹纤维餐具套装"
+      }
+    }
+  },
+  "missingFields": ["fees", "payment_terms"],
+  "flags": ["embedded_instruction_detected"],
+  "notes": null
+}

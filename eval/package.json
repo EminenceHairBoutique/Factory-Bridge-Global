@@ -1,0 +1,21 @@
+{
+  "name": "@fbg/eval",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Golden-set evaluation harness for packages/ai (AI_EVALUATION_PLAN.md §3). Synthetic fixtures only. The live provider runs only with --provider anthropic AND ANTHROPIC_API_KEY set; tests use MockProvider.",
+  "scripts": {
+    "eval": "tsx run.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fbg/ai": "workspace:*",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.0"
+  }
+}

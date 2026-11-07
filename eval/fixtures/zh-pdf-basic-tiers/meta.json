@@ -1,0 +1,13 @@
+{
+  "id": "zh-pdf-basic-tiers",
+  "slice": "zh_quotation_pdf",
+  "locale": "zh-CN",
+  "layout": "letterhead_table",
+  "family": "hardware",
+  "difficulty": "easy",
+  "synthetic": true,
+  "injection": false,
+  "colloquialBasis": true,
+  "forbiddenOutputStrings": [],
+  "tags": ["chuchangjia", "sample_fee_refundable"]
+}

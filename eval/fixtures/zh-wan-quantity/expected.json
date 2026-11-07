@@ -1,0 +1,147 @@
+{
+  "schema": "quote_extraction_v1",
+  "supplierNameHint": {
+    "value": "示例塑胶厂",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "示例塑胶厂 报价"
+    }
+  },
+  "currency": {
+    "value": "CNY",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "0.085元/个"
+    }
+  },
+  "quantityUnit": {
+    "value": "个",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "单位：个"
+    }
+  },
+  "priceBasis": {
+    "value": null,
+    "confidence": "low",
+    "anchor": null
+  },
+  "incotermPlace": {
+    "value": null,
+    "confidence": "low",
+    "anchor": null
+  },
+  "moq": {
+    "value": "10000",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "起订量：1万个"
+    }
+  },
+  "tiers": [
+    {
+      "minQty": "10000",
+      "maxQty": "50000",
+      "unitPrice": "0.085",
+      "includes": ["含13%增值税"],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "1万-5万个：0.085元/个"
+      },
+      "confidence": "high"
+    },
+    {
+      "minQty": "50000",
+      "maxQty": null,
+      "unitPrice": "0.078",
+      "includes": ["含13%增值税"],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "5万个以上：0.078元/个"
+      },
+      "confidence": "high"
+    }
+  ],
+  "fees": [],
+  "productionLeadDays": {
+    "value": 15,
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "货期：15天"
+    }
+  },
+  "paymentTerms": {
+    "value": null,
+    "confidence": "low",
+    "anchor": null
+  },
+  "quoteDate": {
+    "value": "2026-11-05",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "日期：2026-11-05"
+    }
+  },
+  "validUntil": {
+    "value": null,
+    "confidence": "low",
+    "anchor": null
+  },
+  "specAttributes": {
+    "material": {
+      "value": "PP",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "PP 塑料瓶盖"
+      }
+    },
+    "size": {
+      "value": "28mm",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "28mm"
+      }
+    }
+  },
+  "missingFields": ["price_basis", "incoterm_place", "fees", "payment_terms", "valid_until"],
+  "flags": ["basis_term_colloquial"],
+  "notes": "出厂价（口语）；含13%增值税"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "en-contradictory-tiers",
+  "slice": "en_trading_pdf",
+  "locale": "en-US",
+  "layout": "quote_table",
+  "family": "packaging",
+  "difficulty": "medium",
+  "synthetic": true,
+  "injection": false,
+  "colloquialBasis": false,
+  "forbiddenOutputStrings": [],
+  "tags": ["contradictory_tiers", "exw_with_place", "plate_fee"]
+}

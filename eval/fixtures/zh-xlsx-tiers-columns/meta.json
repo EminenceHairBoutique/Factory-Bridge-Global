@@ -1,0 +1,13 @@
+{
+  "id": "zh-xlsx-tiers-columns",
+  "slice": "zh_en_xlsx_tiers",
+  "locale": "zh-CN",
+  "layout": "tsv_tiers_as_columns",
+  "family": "packaging",
+  "difficulty": "hard",
+  "synthetic": true,
+  "injection": false,
+  "colloquialBasis": false,
+  "forbiddenOutputStrings": [],
+  "tags": ["per_thousand", "relative_validity", "business_days"]
+}

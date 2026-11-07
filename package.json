@@ -2,7 +2,7 @@
   "name": "factory-bridge-global",
   "private": true,
   "version": "0.0.1",
-  "description": "Factory Bridge Global \u2014 U.S.-facing B2B sourcing and procurement intelligence platform (monorepo)",
+  "description": "Factory Bridge Global — U.S.-facing B2B sourcing and procurement intelligence platform (monorepo)",
   "packageManager": "pnpm@10.28.0",
   "engines": {
     "node": ">=22.12.0"
@@ -19,7 +19,8 @@
     "test:e2e": "echo 'Playwright suite arrives with B-05 (auth flows)' && exit 0",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "test:db": "pnpm --filter @fbg/supabase test",
-    "db:gen-enums": "pnpm --filter @fbg/supabase gen:enums"
+    "db:gen-enums": "pnpm --filter @fbg/supabase gen:enums",
+    "eval": "pnpm --filter @fbg/eval eval"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

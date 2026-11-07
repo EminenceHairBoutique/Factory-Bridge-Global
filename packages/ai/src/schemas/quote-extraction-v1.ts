@@ -21,7 +21,9 @@ const confidence = z.enum(["high", "medium", "low"]);
 export const extractedField = <T extends z.ZodTypeAny>(value: T) =>
   z.object({ value: value.nullable(), confidence, anchor: anchor.nullable() });
 
-export const quoteExtractionV1 = z.object({
+// strictObject: unknown top-level keys (e.g. an injected "approved": true) are a validation error that
+// triggers the repair attempt, instead of being silently stripped.
+export const quoteExtractionV1 = z.strictObject({
   schema: z.literal("quote_extraction_v1"),
   supplierNameHint: extractedField(z.string().max(200)),
   currency: extractedField(z.enum(["USD", "CNY", "HKD", "EUR"])),

@@ -1,0 +1,13 @@
+{
+  "id": "zh-wan-quantity",
+  "slice": "zh_quotation_pdf",
+  "locale": "zh-CN",
+  "layout": "plain_list",
+  "family": "plastics",
+  "difficulty": "medium",
+  "synthetic": true,
+  "injection": false,
+  "colloquialBasis": true,
+  "forbiddenOutputStrings": [],
+  "tags": ["wan_multiplier", "vat_note"]
+}

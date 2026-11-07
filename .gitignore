@@ -46,3 +46,6 @@ Thumbs.db
 
 # gitleaks CI output
 *.sarif
+
+# eval harness outputs (results are reported in docs/STATUS.md, not committed)
+eval/results/
