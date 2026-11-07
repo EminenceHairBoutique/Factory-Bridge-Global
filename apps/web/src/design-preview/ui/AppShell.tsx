@@ -17,7 +17,77 @@ import { Icon, type IconName } from "./icons";
 import { SegmentedControl, cx } from "./primitives";
 import { useEscapeKey } from "./useEscapeKey";
 
-export type Workspace = "buyer" | "ops";
+export type Workspace = "buyer" | "ops" | "supplier";
+export type ShellLocale = "en-US" | "zh-CN";
+
+/** Shell chrome strings. Supplier workspace is Simplified-Chinese first (IA §2.3). */
+const CHROME: Record<
+  ShellLocale,
+  {
+    planned: string;
+    notInPrototype: string;
+    appearance: string;
+    collapse: string;
+    expandNav: string;
+    collapseNav: string;
+    openNav: string;
+    orgSwitcher: string;
+    notifications: string;
+    signedIn: string;
+    primaryNav: string;
+    mobileNav: string;
+    navigation: string;
+    closeNav: string;
+    close: string;
+    stripe: string;
+    themeLabels: readonly [string, string, string];
+  }
+> = {
+  "en-US": {
+    planned: "Planned",
+    notInPrototype: "not in this prototype",
+    appearance: "Appearance",
+    collapse: "Collapse",
+    expandNav: "Expand navigation",
+    collapseNav: "Collapse navigation",
+    openNav: "Open navigation",
+    orgSwitcher: "Organization switcher (prototype)",
+    notifications: "Notifications, 3 unread",
+    signedIn: "Signed in as Demo Buyer",
+    primaryNav: "Primary",
+    mobileNav: "Primary (mobile)",
+    navigation: "Navigation",
+    closeNav: "Close navigation",
+    close: "Close",
+    stripe: "DEMO DATA — NOT REAL SUPPLIER QUOTATIONS. Synthetic records for design review only.",
+    themeLabels: ["Atlas", "Obsidian", "System"],
+  },
+  "zh-CN": {
+    planned: "规划中",
+    notInPrototype: "原型中暂未提供",
+    appearance: "外观",
+    collapse: "收起",
+    expandNav: "展开导航",
+    collapseNav: "收起导航",
+    openNav: "打开导航",
+    orgSwitcher: "切换企业（原型）",
+    notifications: "通知，3 条未读",
+    signedIn: "当前登录：演示供应商A",
+    primaryNav: "主导航",
+    mobileNav: "主导航（手机）",
+    navigation: "导航",
+    closeNav: "关闭导航",
+    close: "关闭",
+    stripe: "演示数据 — 非真实供应商报价。DEMO DATA — NOT REAL SUPPLIER QUOTATIONS.",
+    themeLabels: ["Atlas", "Obsidian", "跟随系统"],
+  },
+};
+
+const WORKSPACE_LOCALE: Record<Workspace, ShellLocale> = {
+  buyer: "en-US",
+  ops: "en-US",
+  supplier: "zh-CN",
+};
 
 interface NavItem {
   label: string;
@@ -28,6 +98,8 @@ interface NavItem {
   badge?: number;
   /** One of the four phone tabs. */
   mobile?: boolean;
+  /** Order in the phone tab bar when it differs from the sidebar order. */
+  mobileOrder?: number;
 }
 
 const BUYER_NAV: NavItem[] = [
@@ -75,18 +147,52 @@ const OPS_NAV_BOTTOM: NavItem[] = [
   { label: "Account", icon: "user", mobile: true },
 ];
 
-const WORKSPACE_META: Record<Workspace, { name: string; org: string }> = {
-  buyer: { name: "Buyer workspace", org: "Demo Buyer Co." },
-  ops: { name: "Sourcing operations", org: "Factory Bridge Global · internal" },
+const SUPPLIER_NAV: NavItem[] = [
+  { label: "工作台", icon: "home", href: "/design-preview/supplier/dashboard", mobile: true },
+  { label: "企业资料", icon: "building" },
+  { label: "产品目录", icon: "list" },
+  {
+    label: "阶梯报价",
+    short: "报价",
+    icon: "compare",
+    href: "/design-preview/supplier/pricing",
+    mobile: true,
+    mobileOrder: 2,
+  },
+  {
+    label: "询价单",
+    icon: "document",
+    href: "/design-preview/supplier/rfqs",
+    badge: 2,
+    mobile: true,
+    mobileOrder: 1,
+  },
+  { label: "文件与消息", icon: "message", badge: 1 },
+  { label: "数据共享设置", icon: "lock", href: "/design-preview/supplier/sharing" },
+];
+
+const SUPPLIER_NAV_BOTTOM: NavItem[] = [{ label: "账户", icon: "user", mobile: true }];
+
+const WORKSPACE_META: Record<Workspace, { name: string; org: string; avatar: string }> = {
+  buyer: { name: "Buyer workspace", org: "Demo Buyer Co.", avatar: "DB" },
+  ops: { name: "Sourcing operations", org: "Factory Bridge Global · internal", avatar: "DB" },
+  supplier: { name: "供应商工作台", org: "演示供应商A（Supplier A, demo）", avatar: "演" },
 };
 
-export function DemoStripe() {
+const NAV: Record<Workspace, { main: NavItem[]; bottom: NavItem[] }> = {
+  buyer: { main: BUYER_NAV, bottom: BUYER_NAV_BOTTOM },
+  ops: { main: OPS_NAV, bottom: OPS_NAV_BOTTOM },
+  supplier: { main: SUPPLIER_NAV, bottom: SUPPLIER_NAV_BOTTOM },
+};
+
+export function DemoStripe({ locale = "en-US" }: { locale?: ShellLocale }) {
   return (
     <div
       role="status"
+      lang={locale}
       className="fbg-demo-stripe border-b border-(--fbg-status-warning)/40 px-4 py-1.5 text-center text-xs font-semibold tracking-wide text-(--fbg-text-primary)"
     >
-      DEMO DATA — NOT REAL SUPPLIER QUOTATIONS. Synthetic records for design review only.
+      {CHROME[locale].stripe}
     </div>
   );
 }
@@ -113,13 +219,20 @@ export function BrandMark({ size = 28, className }: { size?: number; className?:
   );
 }
 
-export function AppearanceSwitch({ size = "sm" }: { size?: "sm" | "md" }) {
+export function AppearanceSwitch({
+  size = "sm",
+  locale = "en-US",
+}: {
+  size?: "sm" | "md";
+  locale?: ShellLocale;
+}) {
   const { theme, setTheme } = useTheme();
+  const labels = CHROME[locale].themeLabels;
   return (
     <SegmentedControl
-      label="Appearance"
+      label={CHROME[locale].appearance}
       size={size}
-      options={THEME_OPTIONS}
+      options={THEME_OPTIONS.map((o, i) => ({ value: o.value, label: labels[i] ?? o.label }))}
       value={theme}
       onChange={setTheme}
     />
@@ -161,10 +274,17 @@ function ShellInner({
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const nav = workspace === "buyer" ? BUYER_NAV : OPS_NAV;
-  const navBottom = workspace === "buyer" ? BUYER_NAV_BOTTOM : OPS_NAV_BOTTOM;
+  const nav = NAV[workspace].main;
+  const navBottom = NAV[workspace].bottom;
   const meta = WORKSPACE_META[workspace];
-  const mobileTabs = [...nav, ...navBottom].filter((i) => i.mobile).slice(0, 4);
+  const locale = WORKSPACE_LOCALE[workspace];
+  const t = CHROME[locale];
+  const mobileTabs = [...nav, ...navBottom]
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => item.mobile)
+    .sort((a, b) => (a.item.mobileOrder ?? a.index) - (b.item.mobileOrder ?? b.index))
+    .map(({ item }) => item)
+    .slice(0, 4);
 
   useEffect(() => {
     setSheetOpen(false);
@@ -192,7 +312,7 @@ function ShellInner({
           </span>
         ) : null}
         {!collapsed && !item.href ? (
-          <span className="text-[11px] text-white/50">Planned</span>
+          <span className="text-[11px] text-white/50">{t.planned}</span>
         ) : null}
       </>
     );
@@ -210,7 +330,7 @@ function ShellInner({
       <span
         key={item.label}
         className={base}
-        title={`${item.label} — not in this prototype`}
+        title={`${item.label} — ${t.notInPrototype}`}
         aria-disabled
       >
         {inner}
@@ -219,8 +339,8 @@ function ShellInner({
   };
 
   return (
-    <div className="min-h-dvh bg-(--fbg-bg-canvas) text-(--fbg-text-primary)">
-      <DemoStripe />
+    <div lang={locale} className="min-h-dvh bg-(--fbg-bg-canvas) text-(--fbg-text-primary)">
+      <DemoStripe locale={locale} />
       <div className="flex min-h-[calc(100dvh-33px)]">
         {/* Left rail (tablet and up) */}
         <aside
@@ -250,7 +370,7 @@ function ShellInner({
             ) : null}
           </div>
           <nav
-            aria-label="Primary"
+            aria-label={t.primaryNav}
             className="fbg-no-scrollbar flex-1 space-y-0.5 overflow-y-auto p-2"
           >
             {nav.map(railItem)}
@@ -259,8 +379,8 @@ function ShellInner({
             {navBottom.map(railItem)}
             {!collapsed ? (
               <div className="px-3 pt-2 pb-1">
-                <p className="mb-1.5 text-[11px] text-white/50">Appearance</p>
-                <AppearanceSwitch />
+                <p className="mb-1.5 text-[11px] text-white/50">{t.appearance}</p>
+                <AppearanceSwitch locale={locale} />
               </div>
             ) : null}
             <button
@@ -268,10 +388,10 @@ function ShellInner({
               onClick={() => setCollapsed((v) => !v)}
               className="flex w-full items-center justify-center gap-2 rounded-(--fbg-radius-control) px-3 py-2 text-xs text-white/70 hover:bg-white/8 hover:text-white"
               aria-pressed={collapsed}
-              aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
+              aria-label={collapsed ? t.expandNav : t.collapseNav}
             >
               <Icon name={collapsed ? "chevron-right" : "chevron-left"} size={16} />
-              {!collapsed ? "Collapse" : null}
+              {!collapsed ? t.collapse : null}
             </button>
           </div>
         </aside>
@@ -283,7 +403,7 @@ function ShellInner({
               type="button"
               className="rounded-(--fbg-radius-control) p-2.5 text-(--fbg-text-primary) hover:bg-(--fbg-hover) md:hidden"
               onClick={() => setSheetOpen(true)}
-              aria-label="Open navigation"
+              aria-label={t.openNav}
             >
               <Icon name="menu" size={20} />
             </button>
@@ -298,17 +418,17 @@ function ShellInner({
                 type="button"
                 className="hidden h-10 items-center gap-2 rounded-(--fbg-radius-control) border border-(--fbg-border-subtle) bg-(--fbg-bg-surface) px-3 text-sm text-(--fbg-text-primary) hover:border-(--fbg-border-strong) lg:inline-flex"
                 aria-haspopup="listbox"
-                title="Organization switcher (prototype)"
+                title={t.orgSwitcher}
               >
                 <Icon name="building" size={14} className="text-(--fbg-text-secondary)" />
                 <span className="max-w-44 truncate">{meta.org}</span>
                 <Icon name="chevron-down" size={14} className="text-(--fbg-text-secondary)" />
               </button>
-              <LocaleToggle />
+              <LocaleToggle initial={locale} />
               <button
                 type="button"
                 className="relative rounded-(--fbg-radius-control) p-2.5 text-(--fbg-text-primary) hover:bg-(--fbg-hover)"
-                aria-label="Notifications, 3 unread"
+                aria-label={t.notifications}
               >
                 <Icon name="bell" size={18} />
                 <span className="fbg-num absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-(--fbg-brand-accent) px-1 text-[10px] font-semibold text-(--fbg-text-inverse)">
@@ -317,9 +437,9 @@ function ShellInner({
               </button>
               <span
                 className="hidden h-9 w-9 items-center justify-center rounded-full bg-(--fbg-action-primary) text-xs font-semibold text-(--fbg-action-on-primary) sm:flex"
-                aria-label="Signed in as Demo Buyer"
+                aria-label={t.signedIn}
               >
-                DB
+                {meta.avatar}
               </span>
             </div>
           </header>
@@ -339,7 +459,7 @@ function ShellInner({
 
       {/* Phone bottom tab bar: four destinations */}
       <nav
-        aria-label="Primary (mobile)"
+        aria-label={t.mobileNav}
         className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-(--fbg-border-subtle) bg-(--fbg-bg-surface) pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         {mobileTabs.map((item) => {
@@ -376,7 +496,7 @@ function ShellInner({
               key={item.label}
               className={cls}
               aria-disabled
-              title={`${item.label} — not in this prototype`}
+              title={`${item.label} — ${t.notInPrototype}`}
             >
               {inner}
             </span>
@@ -389,13 +509,13 @@ function ShellInner({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Navigation"
+          aria-label={t.navigation}
           className="fixed inset-0 z-50 md:hidden"
         >
           <button
             type="button"
             className="absolute inset-0 bg-(--fbg-overlay)"
-            aria-label="Close navigation"
+            aria-label={t.closeNav}
             onClick={() => setSheetOpen(false)}
           />
           <div className="absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-y-auto rounded-t-(--fbg-radius-dialog) bg-(--fbg-bg-surface) p-3 pb-[max(env(safe-area-inset-bottom),12px)]">
@@ -405,7 +525,7 @@ function ShellInner({
                 type="button"
                 className="rounded-(--fbg-radius-control) p-2.5 text-(--fbg-text-secondary) hover:bg-(--fbg-hover)"
                 onClick={() => setSheetOpen(false)}
-                aria-label="Close"
+                aria-label={t.close}
               >
                 <Icon name="x" size={18} />
               </button>
@@ -435,15 +555,15 @@ function ShellInner({
                     <span className="flex min-h-11 items-center gap-3 rounded-(--fbg-radius-control) px-3 py-2.5 text-[15px] text-(--fbg-text-muted)">
                       <Icon name={item.icon} size={18} />
                       <span className="flex-1">{item.label}</span>
-                      <span className="text-[11px]">Planned</span>
+                      <span className="text-[11px]">{t.planned}</span>
                     </span>
                   )}
                 </li>
               ))}
             </ul>
             <div className="mt-3 border-t border-(--fbg-border-subtle) px-1 pt-3">
-              <p className="mb-1.5 text-xs text-(--fbg-text-secondary)">Appearance</p>
-              <AppearanceSwitch size="md" />
+              <p className="mb-1.5 text-xs text-(--fbg-text-secondary)">{t.appearance}</p>
+              <AppearanceSwitch size="md" locale={locale} />
             </div>
           </div>
         </div>
@@ -452,8 +572,8 @@ function ShellInner({
   );
 }
 
-function LocaleToggle() {
-  const [locale, setLocale] = useState<"en-US" | "zh-CN">("en-US");
+function LocaleToggle({ initial }: { initial: ShellLocale }) {
+  const [locale, setLocale] = useState<ShellLocale>(initial);
   return (
     <div
       role="radiogroup"

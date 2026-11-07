@@ -55,6 +55,16 @@ Per `MOBILE_PWA_NATIVE_HANDOFF.md`: Expo app after B-05/B-10/B-11/B-14 and a fou
 
 H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO and export contract), H-20 (i18n keys), H-22/H-23 (backlog and CI). None applied by this track.
 
+## 6a. Session 3 — Supplier zh-CN screens (2026-11-07, same branch, commit after b8f5ed8)
+
+**Implemented in preview:** `AppShell` supplier workspace (zh-CN chrome, `lang="zh-CN"`, four phone tabs 工作台 · 询价单 · 报价 · 账户); `/design-preview/supplier/dashboard` (工作台), `/pricing` (阶梯报价 editor with shared `TierTable`), `/rfqs` (询价单 inbox + 提交报价 form + clarification and decline flows), `/sharing` (数据共享设置 with grant revocation dialog); `demo-data/supplier.ts`; `supplier-demo.ts` validation and zh-CN formatting with 12 tests; index entries. Details in `SUPPLIER_ZH_CN_SCREENS.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 222 tests: web 23); `next build` exit 0; production `next start`: all four supplier routes → 404, `/` → 200. Browser: Noto Sans SC confirmed loaded (`document.fonts.check`), no console errors on any supplier page in Atlas or Obsidian; no horizontal overflow at 320, 375 and 768 px on all four screens (after bounding the grants table inside its panel); interactions verified — tier overlap blocks 确认有效 and shows the inline message, basis + place + validity enable it; the quote gate lists 2 missing items, completing them enables submit, submission sets 已报价; 撤销授权 opens the effects dialog and marks the grant 已撤销; Escape closes dialogs.
+
+**Not integrated:** 企业资料, 产品目录 / 批量导入, 文件与消息, 账户 (navigation only); EN toggle visual; no upload, scan or audit writes.
+
+**Cross-track:** H-24 (zh-CN catalog keys), H-25 (supplier DTOs and quote submission contract), H-26 (validation parity with B-14 / B-18).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

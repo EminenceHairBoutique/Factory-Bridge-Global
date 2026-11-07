@@ -555,6 +555,7 @@ export function Field({
   htmlFor,
   children,
   className,
+  optionalText = " (optional)",
 }: {
   label: string;
   hint?: ReactNode;
@@ -563,6 +564,8 @@ export function Field({
   htmlFor: string;
   children: ReactNode;
   className?: string | undefined;
+  /** Marker for optional fields; defaults to English. Supplier screens pass "（可选）". */
+  optionalText?: string | undefined;
 }) {
   return (
     <div className={cx("flex flex-col gap-1.5", className)}>
@@ -574,7 +577,7 @@ export function Field({
             *
           </span>
         ) : (
-          <span className="font-normal text-(--fbg-text-secondary)"> (optional)</span>
+          <span className="font-normal text-(--fbg-text-secondary)">{optionalText}</span>
         )}
       </label>
       {children}

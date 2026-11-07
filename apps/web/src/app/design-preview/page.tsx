@@ -34,6 +34,30 @@ const SCREENS = [
     workspace: "Internal operations",
   },
   {
+    href: "/design-preview/supplier/dashboard",
+    title: "供应商工作台 (Supplier dashboard)",
+    body: "待处理询价、待确认价格、即将过期报价、企业认证状态。Simplified-Chinese first; buyers shown as 平台买家 until a grant exists.",
+    workspace: "供应商（zh-CN）",
+  },
+  {
+    href: "/design-preview/supplier/pricing",
+    title: "阶梯报价 (Price tier editor)",
+    body: "Ascending non-overlapping tiers with inline validation, Incoterm code plus 指定地点, colloquial 出厂价 never defaulted to EXW, validity required, visibility intent.",
+    workspace: "供应商（zh-CN）",
+  },
+  {
+    href: "/design-preview/supplier/rfqs",
+    title: "询价单 / 提交报价 (RFQ inbox and quote form)",
+    body: "Buyer-confirmed specification read-only in both languages, clarification thread via the platform, structured quote form with a submission gate, decline flow.",
+    workspace: "供应商（zh-CN）",
+  },
+  {
+    href: "/design-preview/supplier/sharing",
+    title: "数据共享设置 (Data-sharing settings)",
+    body: "Per-field 仅内部 / 平台买家 / 指定买家, contacts locked behind a separate disclosure grant, recorded grants with revocation effects explained.",
+    workspace: "供应商（zh-CN）",
+  },
+  {
     href: "/design-preview/gallery",
     title: "Component gallery",
     body: "Every primitive in Atlas and Obsidian side by side: buttons, inputs, badges with evidence, stepper, quote status tags, tabs, notices, empty / loading / error states.",

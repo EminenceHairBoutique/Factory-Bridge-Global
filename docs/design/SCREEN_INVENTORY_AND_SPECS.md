@@ -26,12 +26,12 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 
 | Screen | Route | Status |
 |---|---|---|
-| 工作台 Dashboard | `/supplier` | Specified §4.1 |
-| 企业认证 Onboarding | `/supplier/onboarding` | Specified §4.2 |
+| 工作台 Dashboard | `/supplier` | Prototyped (`/design-preview/supplier/dashboard`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md`) |
+| 企业认证 Onboarding | `/supplier/onboarding` | Specified §4.2 (status card prototyped on 工作台) |
 | 产品目录 / 批量导入 | `/supplier/catalog`, `/import` | Specified §4.3 |
-| 价格梯度 editor | `/supplier/catalog/[id]/pricing` | Specified §4.4 |
-| 询价单 / 提交报价 | `/supplier/rfqs`, `/[id]` | Specified §4.5 (Phase 2) |
-| 数据共享设置 | `/supplier/settings/data-sharing` | Specified §4.6 |
+| 价格梯度 editor | `/supplier/catalog/[id]/pricing` | Prototyped (`/design-preview/supplier/pricing`) |
+| 询价单 / 提交报价 | `/supplier/rfqs`, `/[id]` | Prototyped (`/design-preview/supplier/rfqs`; Phase 2 feature) |
+| 数据共享设置 | `/supplier/settings/data-sharing` | Prototyped (`/design-preview/supplier/sharing`) |
 
 ### 1.3 Internal operations
 

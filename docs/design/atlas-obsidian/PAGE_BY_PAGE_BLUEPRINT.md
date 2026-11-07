@@ -69,7 +69,7 @@ Chinese-first form: company, representative, families, trade readiness, allowed 
 | Review split | Prototyped (concept) | sidebar renamed Reviews; dialogs use 20 px radius; anchors highlighted with the brand accent |
 | Work queue, Projects, Research, Suppliers, Cases, Admin | Specified | dense tables at 14 px, sortable headers with `aria-sort`, filters in a sticky bar; command palette future |
 
-## 4. Supplier (Phase 2 concept, Chinese-first)
+## 4. Supplier (Chinese-first) — 工作台, 阶梯报价, 询价单 / 提交报价, 数据共享设置 prototyped 2026-11-07 (see `SUPPLIER_ZH_CN_SCREENS.md`); the rest specified
 
 | Screen | Key content |
 |---|---|
