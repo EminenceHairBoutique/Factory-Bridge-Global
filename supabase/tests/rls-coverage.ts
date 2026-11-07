@@ -14,6 +14,14 @@ export const TENANT_TABLES: ReadonlyArray<{ table: string; coveredBy: string }> 
   { table: "audit_events", coveredBy: "rls.test.ts" },
   { table: "security_events", coveredBy: "rls.test.ts" },
   { table: "document_access_log", coveredBy: "rls.test.ts" },
+  // 0004 taxonomy_products
+  { table: "products", coveredBy: "taxonomy.test.ts" },
+  { table: "product_variants", coveredBy: "taxonomy.test.ts" },
+  { table: "product_specifications", coveredBy: "taxonomy.test.ts" },
 ];
 
-export const PUBLIC_READ_TABLES: ReadonlyArray<string> = [];
+/** Reference tables readable by every signed-in user; still RLS-enabled with an explicit select policy. */
+export const PUBLIC_READ_TABLES: ReadonlyArray<string> = [
+  "product_taxonomy",
+  "attribute_definitions",
+];
