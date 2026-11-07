@@ -1,0 +1,171 @@
+{
+  "schema": "quote_extraction_v1",
+  "supplierNameHint": {
+    "value": "Example Leather Goods",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Example Leather Goods - offer"
+    }
+  },
+  "currency": {
+    "value": "USD",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "USD 5.60/pc"
+    }
+  },
+  "quantityUnit": {
+    "value": "pc",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "USD 5.60/pc"
+    }
+  },
+  "priceBasis": {
+    "value": "FOB",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "FOB Guangzhou"
+    }
+  },
+  "incotermPlace": {
+    "value": "Guangzhou",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "FOB Guangzhou"
+    }
+  },
+  "moq": {
+    "value": "300",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "MOQ 300 pcs"
+    }
+  },
+  "tiers": [
+    {
+      "minQty": "300",
+      "maxQty": "999",
+      "unitPrice": "5.60",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "USD 5.60/pc (300-999)"
+      },
+      "confidence": "high"
+    },
+    {
+      "minQty": "1000",
+      "maxQty": null,
+      "unitPrice": "5.10",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "USD 5.10/pc (1,000+)"
+      },
+      "confidence": "high"
+    }
+  ],
+  "fees": [],
+  "productionLeadDays": {
+    "value": 30,
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Lead time 30 days"
+    }
+  },
+  "paymentTerms": {
+    "value": "50% deposit",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "50% deposit"
+    }
+  },
+  "quoteDate": {
+    "value": "2026-11-06",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Example Leather Goods - offer 2026-11-06"
+    }
+  },
+  "validUntil": {
+    "value": "2026-12-06",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Valid until 2026-12-06"
+    }
+  },
+  "specAttributes": {
+    "material": {
+      "value": "Full-grain leather",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "Full-grain leather card holder"
+      }
+    },
+    "slots": {
+      "value": "4 slots",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "4 slots"
+      }
+    }
+  },
+  "missingFields": ["fees"],
+  "flags": ["embedded_instruction_detected"],
+  "notes": null
+}

@@ -1,0 +1,13 @@
+{
+  "id": "zh-wechat-colloquial-fob",
+  "slice": "wechat_text",
+  "locale": "zh-CN",
+  "layout": "chat_transcript",
+  "family": "drinkware",
+  "difficulty": "medium",
+  "synthetic": true,
+  "injection": false,
+  "colloquialBasis": true,
+  "forbiddenOutputStrings": [],
+  "tags": ["lianjia", "emoji", "relative_validity", "approx_lead"]
+}

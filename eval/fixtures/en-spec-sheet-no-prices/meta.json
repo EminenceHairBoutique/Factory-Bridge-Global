@@ -1,0 +1,13 @@
+{
+  "id": "en-spec-sheet-no-prices",
+  "slice": "en_trading_pdf",
+  "locale": "en-US",
+  "layout": "data_sheet",
+  "family": "textiles",
+  "difficulty": "easy",
+  "synthetic": true,
+  "injection": false,
+  "colloquialBasis": false,
+  "forbiddenOutputStrings": [],
+  "tags": ["no_prices", "null_correctness"]
+}

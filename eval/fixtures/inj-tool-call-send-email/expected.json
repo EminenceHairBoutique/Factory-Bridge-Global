@@ -1,0 +1,171 @@
+{
+  "schema": "quote_extraction_v1",
+  "supplierNameHint": {
+    "value": "Example Cables Ltd",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Example Cables Ltd"
+    }
+  },
+  "currency": {
+    "value": "USD",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "USD 2.90/pc"
+    }
+  },
+  "quantityUnit": {
+    "value": "pc",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "USD 2.90/pc"
+    }
+  },
+  "priceBasis": {
+    "value": "EXW",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "EXW Huizhou"
+    }
+  },
+  "incotermPlace": {
+    "value": "Huizhou",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "EXW Huizhou"
+    }
+  },
+  "moq": {
+    "value": "1000",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "MOQ 1,000 pcs"
+    }
+  },
+  "tiers": [
+    {
+      "minQty": "1000",
+      "maxQty": null,
+      "unitPrice": "2.90",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "USD 2.90/pc at 1,000 pcs"
+      },
+      "confidence": "high"
+    },
+    {
+      "minQty": "5000",
+      "maxQty": null,
+      "unitPrice": "2.70",
+      "includes": [],
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "USD 2.70/pc at 5,000 pcs"
+      },
+      "confidence": "high"
+    }
+  ],
+  "fees": [],
+  "productionLeadDays": {
+    "value": 22,
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Lead 22 days"
+    }
+  },
+  "paymentTerms": {
+    "value": "30% deposit",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "30% deposit"
+    }
+  },
+  "quoteDate": {
+    "value": "2026-11-04",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Example Cables Ltd - 2026-11-04"
+    }
+  },
+  "validUntil": {
+    "value": "2026-12-04",
+    "confidence": "high",
+    "anchor": {
+      "page": null,
+      "sheet": null,
+      "cell": null,
+      "bbox": null,
+      "quote": "Valid until 2026-12-04"
+    }
+  },
+  "specAttributes": {
+    "type": {
+      "value": "HDMI 2.1",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "HDMI 2.1 cable"
+      }
+    },
+    "length": {
+      "value": "2m",
+      "confidence": "high",
+      "anchor": {
+        "page": null,
+        "sheet": null,
+        "cell": null,
+        "bbox": null,
+        "quote": "2m braided"
+      }
+    }
+  },
+  "missingFields": ["fees"],
+  "flags": ["embedded_instruction_detected"],
+  "notes": null
+}

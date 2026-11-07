@@ -1,69 +1,85 @@
 /**
- * Provider-agnostic AI adapter contract (ADR-007, docs/AI_EVALUATION_PLAN.md §2).
- * Phase 1 B-16 adds the Anthropic implementation. Extraction/translation/matching calls carry
- * NO tools; outputs are validated against zod schemas before anything is stored.
+ * @fbg/ai — provider-agnostic AI adapter (ADR-007), versioned prompt templates, output schemas.
+ *
+ * Rules enforced here (CLAUDE.md §4, SECURITY.md §5): no tools, untrusted content is delimited data,
+ * outputs are zod-validated with one repair attempt, canary/boundary tokens must never leak, per-call
+ * token caps, usage/cost returned to the caller — never written to the DB by this package.
  */
-import type { z } from "zod";
+export type {
+  AiAdapterFlag,
+  AiErrorCode,
+  AiProvider,
+  AiPurpose,
+  AiRequest,
+  AiResult,
+  AiUsage,
+  PromptTemplateRef,
+  UntrustedContent,
+} from "./contract.js";
+export { UnconfiguredProvider } from "./contract.js";
 
-export type AiPurpose = "extract" | "translate" | "normalize" | "match" | "draft" | "flag";
+export {
+  AiConfigError,
+  AnthropicProvider,
+  DEFAULT_ANTHROPIC_MODEL,
+  type AnthropicProviderOptions,
+  type Effort,
+} from "./providers/anthropic.js";
+export {
+  MockProvider,
+  type MockProviderOptions,
+  type MockReply,
+  type MockResponder,
+  type MockTurn,
+} from "./providers/mock.js";
 
-export interface PromptTemplateRef {
-  readonly id: string;
-  readonly version: string; // semantic version of the template file; hashed into ai_runs.prompt_version
-}
+export {
+  DEFAULT_MAX_INPUT_TOKENS,
+  DEFAULT_MAX_OUTPUT_TOKENS,
+  MAX_OUTPUT_TOKENS_CAP,
+  ProviderCallError,
+  buildSystemPrompt,
+  buildUserPrompt,
+  parseJsonOutput,
+  runStructuredCompletion,
+  type ModelCall,
+  type ModelReply,
+  type ModelTurn,
+  type PipelineOptions,
+  type StopKind,
+  type SystemPrompt,
+} from "./pipeline.js";
 
-export interface AiRequest<TSchema extends z.ZodTypeAny> {
-  readonly purpose: AiPurpose;
-  readonly template: PromptTemplateRef;
-  /** Untrusted content is passed here and wrapped as data by the adapter — never concatenated into instructions. */
-  readonly untrustedContent: readonly { label: string; text: string }[];
-  readonly trustedContext?: Record<string, string | number | boolean>;
-  readonly schema: TSchema;
-  readonly maxOutputTokens?: number;
-}
+export {
+  PROMPTS_DIR,
+  TemplateError,
+  getTemplate,
+  listTemplates,
+  parseTemplateFile,
+  type LoadedTemplate,
+} from "./prompts/registry.js";
 
-export interface AiUsage {
-  readonly inputTokens: number;
-  readonly outputTokens: number;
-  readonly costUsd: number;
-  readonly latencyMs: number;
-}
+export {
+  MODEL_RATES,
+  estimateCostNanoUsd,
+  findRate,
+  nanoToUsd,
+  type ModelRate,
+} from "./pricing.js";
+export { estimateTokens } from "./tokens.js";
+export {
+  CANARY_PREFIX,
+  SECURITY_PREAMBLE,
+  detectLeak,
+  newBoundaryToken,
+  newCanaryToken,
+  sanitizeLabel,
+  wrapUntrusted,
+} from "./untrusted.js";
 
-export type AiResult<T> =
-  | {
-      ok: true;
-      output: T;
-      usage: AiUsage;
-      provider: string;
-      model: string;
-      flags: readonly string[];
-    }
-  | {
-      ok: false;
-      error: "schema_invalid" | "provider_error" | "budget_exceeded" | "canary_leak";
-      detail: string;
-      usage?: AiUsage;
-    };
+export { quoteExtractionV1, type QuoteExtractionV1 } from "./schemas/quote-extraction-v1.js";
 
-export interface AiProvider {
-  readonly name: string;
-  complete<TSchema extends z.ZodTypeAny>(
-    req: AiRequest<TSchema>,
-  ): Promise<AiResult<z.infer<TSchema>>>;
-}
-
-/** Placeholder provider so the package compiles and tests can inject behavior. Never used in production. */
-export class UnconfiguredProvider implements AiProvider {
-  readonly name = "unconfigured";
-  complete<TSchema extends z.ZodTypeAny>(
-    _req: AiRequest<TSchema>,
-  ): Promise<AiResult<z.infer<TSchema>>> {
-    return Promise.resolve({
-      ok: false,
-      error: "provider_error",
-      detail: "No AI provider configured. Implement in BACKLOG B-16.",
-    });
-  }
-}
-
-export { quoteExtractionV1 } from "./schemas/quote-extraction-v1.js";
+/** Template refs for the modules implemented so far. */
+export const TEMPLATES = {
+  quotationExtractorV1: { id: "quotation_extractor", version: "1.0.0" },
+} as const;

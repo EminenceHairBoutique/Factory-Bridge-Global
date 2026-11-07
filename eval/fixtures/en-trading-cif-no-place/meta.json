@@ -1,0 +1,13 @@
+{
+  "id": "en-trading-cif-no-place",
+  "slice": "en_trading_pdf",
+  "locale": "en-US",
+  "layout": "proforma_table",
+  "family": "bags",
+  "difficulty": "medium",
+  "synthetic": true,
+  "injection": false,
+  "colloquialBasis": false,
+  "forbiddenOutputStrings": [],
+  "tags": ["incoterm_without_place", "relative_validity", "lead_range"]
+}

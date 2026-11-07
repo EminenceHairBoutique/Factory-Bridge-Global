@@ -1,0 +1,13 @@
+{
+  "id": "zh-mixed-currency",
+  "slice": "zh_quotation_pdf",
+  "locale": "mixed",
+  "layout": "letterhead_table",
+  "family": "electronics",
+  "difficulty": "hard",
+  "synthetic": true,
+  "injection": false,
+  "colloquialBasis": false,
+  "forbiddenOutputStrings": [],
+  "tags": ["mixed_currency", "fob_with_port", "tooling"]
+}

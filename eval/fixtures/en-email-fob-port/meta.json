@@ -1,0 +1,13 @@
+{
+  "id": "en-email-fob-port",
+  "slice": "email_body",
+  "locale": "en-US",
+  "layout": "email_prose",
+  "family": "houseware",
+  "difficulty": "easy",
+  "synthetic": true,
+  "injection": false,
+  "colloquialBasis": false,
+  "forbiddenOutputStrings": [],
+  "tags": ["fob_with_port", "tooling"]
+}
