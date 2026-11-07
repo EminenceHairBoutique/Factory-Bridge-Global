@@ -24,6 +24,10 @@ test-results/
 supabase/.branches/
 supabase/.temp/
 
+# scanner artifacts (gitleaks SARIF etc.)
+*.sarif
+gitleaks-report.*
+
 # logs
 *.log
 npm-debug.log*

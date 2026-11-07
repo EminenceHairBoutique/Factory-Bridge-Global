@@ -1,6 +1,6 @@
 # SCHEMA PLAN — Factory Bridge Global
 
-**Status:** Phase 0 design. No migration exists yet. SQL below is a *plan*, to be turned into reviewed migrations in `supabase/migrations/` during Phase 1 with RLS negative tests alongside.
+**Status:** Phase 0 design, **revised in Phase 0.5 (2026-11-07)** — see ADR-019…ADR-022 and `MIGRATION_DEPENDENCY_MAP.md` (executable order, every helper defined) and `SECURITY_PERMISSION_MATRIX.md` (who may do what, grant evaluation). Only migration `0001` exists as code; everything else is a plan.
 **Conventions:** UUID v7 primary keys (`gen_random_uuid()` acceptable until pg 18 `uuidv7()` is available on the Supabase image), `created_at/updated_at timestamptz`, `created_by uuid`, soft-delete only where retention requires (`deleted_at`), every tenant table indexed on its ownership column, all enums as Postgres `enum` types owned by `packages/domain` (single source of truth generated to SQL).
 
 ## 1. Tenancy model
@@ -26,7 +26,7 @@ organizations ──< memberships >── auth.users
 | `visibility_scope` | `internal_only`, `owning_org`, `named_orgs`, `platform_buyers` |
 | `quote_type` | `listing`, `supplier_catalog`, `negotiated_private`, `final_offer`, `estimate` |
 | `price_basis` | `EXW`, `FCA`, `FOB`, `CFR`, `CIF`, `DAP`, `DPU`, `DDP`, `unknown` |
-| `quote_status` | `draft`, `needs_review`, `confirmed`, `superseded`, `expired`, `withdrawn` |
+| `quote_status` | `confirmed`, `superseded`, `expired`, `withdrawn` — lifecycle of a *confirmed* quotation only (ADR-021). Pre-confirmation work is tracked by `review_status` on `review_tasks`. |
 | `review_status` | `pending`, `in_review`, `accepted`, `rejected` |
 | `document_status` | `uploaded`, `scanning`, `rejected`, `parsed`, `extracted`, `in_review`, `accepted`, `discarded` |
 | `supplier_stage` | `lead_identified`, `contact_confirmed`, `legal_identity_reviewed`, `capabilities_documented` |
@@ -99,17 +99,19 @@ Storage buckets: `quarantine` (write-only for uploaders, worker read), `document
 | `rfq_recipients` | `rfq_id, supplier_id, channel(portal|email|operator_wechat|operator_phone), sent_at, responded_at, status` | via project + supplier sees own row |
 | `supplier_messages` | `rfq_id nullable, project_id, supplier_id, direction, channel, body_zh, body_en, drafted_by_ai_run_id, approved_by, approved_at, sent_by, sent_at, external_ref` | via project; supplier sees own |
 
-### 2.6 Quotations (versioned, confidential)
+### 2.6 Quotations (immutable payload + separate lifecycle state; ADR-021)
 
 | Table | Key columns | Owner |
 |---|---|---|
-| `quotations` | `id, quote_group_id, version int, supplier_id, buyer_org_id nullable (null only for supplier_catalog/listing), brief_item_id nullable, specification_id, quote_type, rights_class, visibility_scope, source_type, document_id, extraction_id, price_basis, incoterm_place, currency, quantity_unit, moq numeric, production_lead_days, sample_cost numeric, tooling_cost numeric, payment_terms text, quote_date date, confirmed_at timestamptz, valid_until date nullable, status quote_status, reviewed_by, reviewed_at, superseded_by uuid` | `buyer_org_id` (private) **or** permission scope (catalog); supplier sees own |
-| `quote_tiers` | `quotation_id, min_qty numeric, max_qty numeric nullable, unit_price numeric(18,6), price_includes text[], notes` ; CHECK non-overlapping per quotation, `min_qty >= moq` | follows quotation |
-| `quote_fees` | `quotation_id, fee_type(tooling|sample|setup|packaging|inland_freight|export_doc|other), amount numeric(18,6), currency, is_one_time bool, included_in_unit_price bool` | follows quotation |
-| `quote_visibility_grants` | `quotation_id, grantee_org_id, granted_by, expires_at` | internal writes |
-| `quote_status_events` | `quotation_id, from, to, actor, at, reason` | follows quotation |
+| `quote_groups` | `id, supplier_id, buyer_org_id nullable (null only for supplier_catalog), brief_item_id nullable, quote_type, created_at` — one group per (supplier, buyer, brief item) negotiation thread; versions live under it | as quotation |
+| `quotations` **(immutable)** | `id, group_id, version int (unique per group), supplier_id, buyer_org_id, brief_item_id, specification_id, quote_type, rights_class, source_type, document_id, extraction_id, price_basis, incoterm_place, basis_confirmed bool, currency, quantity_unit, moq numeric, production_lead_days, payment_terms, quote_date, confirmed_at, valid_until date nullable (**NULL = validity unconfirmed**), confirmed_by, created_at` ; `BEFORE UPDATE OR DELETE` trigger raises | `buyer_org_id` (private) / grant-evaluated (catalog) / owning supplier |
+| `quote_tiers` | `quotation_id, min_qty, max_qty nullable, unit_price numeric(18,6), price_includes text[]` ; `EXCLUDE USING gist (quotation_id WITH =, numrange(min_qty, coalesce(max_qty,'infinity'),'[)') WITH &&)` (needs `btree_gist`) | follows quotation |
+| `quote_fees` | `quotation_id, fee_type, amount numeric(18,6), currency, is_one_time, included_in_unit_price` | follows quotation |
+| `quotation_states` (1:1, mutable only via functions) | `quotation_id pk, group_id, status quote_status, is_current bool, superseded_by uuid nullable, state_version int, updated_at` ; `unique (group_id) where is_current`; **no UPDATE grant to `authenticated`** | follows quotation |
+| `quote_status_events` (append-only) | `quotation_id, from_status, to_status, actor_user_id, acting_as, reason, idempotency_key unique, at` | follows quotation |
+| `quote_visibility_grants` | `quotation_id, grantee_org_id, granted_by, reason, expires_at, revoked_at, revoked_by` ; attached to an exact quotation **version** | internal writes; grantee reads own |
 
-Rules enforced by constraints + domain code: a quotation is immutable after `status='confirmed'`; corrections create a new version in the same `quote_group_id` and set `superseded_by`. `valid_until NULL` means **validity unconfirmed**, displayed as such.
+Lifecycle, transition authorizations, concurrency and supersession semantics: `MIGRATION_DEPENDENCY_MAP.md` §6. Visibility rule: `SECURITY_PERMISSION_MATRIX.md` §3.1–3.2 (`app.quotation_visible()`).
 
 ### 2.7 AI & review
 
@@ -162,138 +164,109 @@ Rules enforced by constraints + domain code: a quotation is immutable after `sta
 
 ## 3. Row Level Security
 
-### 3.1 Helper functions (SECURITY DEFINER, `search_path` pinned, in schema `app`)
+### 3.1 Helper functions
+
+The complete catalogue — signatures, semantics, `SECURITY DEFINER` usage, `SET search_path = ''`, `EXECUTE` grants, the migration each is defined in, and the recursion/privilege analysis — is `MIGRATION_DEPENDENCY_MAP.md` §3. Rules that every helper obeys:
+
+- Defined **after** every table it reads (SQL-function bodies are validated at `CREATE`).
+- `SET search_path = ''` and fully schema-qualified references (`public.memberships`, `auth.uid()`), so a caller cannot shadow an object.
+- The subject is always `auth.uid()`; no helper takes "which user" as a parameter. The single exception, `app.record_audit_event(... actor_override)`, is gated on the session role being `service_role`.
+- `EXECUTE` revoked from `public` and `anon`; granted to `authenticated` (and `service_role` where listed).
+
+Reference implementation of the two most-used helpers (final form lives in migration 0002):
 
 ```sql
-create schema if not exists app;
-
-create or replace function app.current_user_id() returns uuid
-language sql stable as $$ select auth.uid() $$;
-
 create or replace function app.is_member(p_org uuid) returns boolean
-language sql stable security definer set search_path = public as $$
-  select exists (select 1 from memberships m
-                 where m.org_id = p_org and m.user_id = auth.uid() and m.status = 'active');
+language sql stable security definer set search_path = '' as $$
+  select exists (
+    select 1 from public.memberships m
+    where m.org_id = p_org and m.user_id = auth.uid() and m.status = 'active');
 $$;
+revoke execute on function app.is_member(uuid) from public, anon;
+grant  execute on function app.is_member(uuid) to authenticated, service_role;
 
-create or replace function app.has_role(p_org uuid, p_roles member_role[]) returns boolean
-language sql stable security definer set search_path = public as $$
-  select exists (select 1 from memberships m
-                 where m.org_id = p_org and m.user_id = auth.uid()
-                   and m.status = 'active' and m.role = any(p_roles));
+create or replace function app.has_role(p_org uuid, p_roles public.member_role[]) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (
+    select 1 from public.memberships m
+    where m.org_id = p_org and m.user_id = auth.uid()
+      and m.status = 'active' and m.role = any(p_roles));
 $$;
-
-create or replace function app.internal_org_id() returns uuid
-language sql stable as $$ select id from organizations where org_type = 'internal' limit 1 $$;
-
-create or replace function app.is_internal() returns boolean
-language sql stable security definer set search_path = public as $$
-  select app.is_member(app.internal_org_id());
-$$;
-
-create or replace function app.is_platform_admin() returns boolean
-language sql stable security definer set search_path = public as $$
-  select app.has_role(app.internal_org_id(), array['platform_admin']::member_role[]);
-$$;
-
-create or replace function app.is_assigned_to_project(p_project uuid) returns boolean
-language sql stable security definer set search_path = public as $$
-  select app.is_platform_admin() or exists (
-    select 1 from project_assignments pa
-    where pa.project_id = p_project and pa.operator_user_id = auth.uid());
-$$;
-
-create or replace function app.project_org(p_project uuid) returns uuid
-language sql stable security definer set search_path = public as $$
-  select org_id from sourcing_projects where id = p_project $$;
 ```
 
-Design notes: internal operators do **not** get blanket read of buyer data; they need a `project_assignments` row. `platform_admin` is the only blanket role and every read is logged by the application layer (`document_access_log`, `audit_events`). Supabase `authenticated` role gets `SELECT/INSERT/UPDATE` grants only where a policy exists; `anon` gets nothing on tenant tables.
+### 3.2 Policy patterns (corrected)
 
-### 3.2 Policy patterns
+Every tenant table: `enable row level security` **and** `force row level security`; ownership columns protected by `app.prevent_owner_change` (so no policy needs a self-referential `WITH CHECK`); audit trigger attached. `authenticated` receives table grants only where a policy exists; `anon` receives none. Remember `FORCE` does not bind `BYPASSRLS` roles — see `SECURITY_PERMISSION_MATRIX.md` §4.
 
-**Pattern A — org-owned table (e.g., `sourcing_projects`):**
+**Pattern A — org-owned (e.g., `sourcing_projects`)**
 ```sql
-alter table sourcing_projects enable row level security;
-alter table sourcing_projects force row level security;
-
-create policy sp_select on sourcing_projects for select using (
-  app.is_member(org_id) or app.is_assigned_to_project(id));
-create policy sp_insert on sourcing_projects for insert with check (
-  app.has_role(org_id, array['owner','admin','member']::member_role[]));
-create policy sp_update on sourcing_projects for update using (
-  app.has_role(org_id, array['owner','admin','member']::member_role[]) or app.is_assigned_to_project(id))
-  with check (org_id = (select org_id from sourcing_projects s where s.id = sourcing_projects.id));
--- no delete policy: soft delete via status
+create policy sp_select on public.sourcing_projects for select to authenticated
+  using (app.is_member(org_id) or app.is_assigned_to_project(id));
+create policy sp_insert on public.sourcing_projects for insert to authenticated
+  with check (app.has_role(org_id, array['owner','admin','member']::public.member_role[]));
+create policy sp_update on public.sourcing_projects for update to authenticated
+  using (app.has_role(org_id, array['owner','admin','member']::public.member_role[])
+         or app.is_assigned_to_project(id))
+  with check (true);   -- org_id change is blocked by trigger app.prevent_owner_change('org_id')
+-- no delete policy; soft-delete via status
 ```
 
-**Pattern B — child of project (e.g., `brief_items` via `buyer_briefs`):** policies call `app.is_member(app.project_org(project_id))` through a stable function or a materialized `org_id` column (preferred: denormalize `org_id` onto children and add a trigger that asserts it equals the parent's; simpler policies, faster plans).
+**Pattern B — children with denormalized `org_id`** (`buyer_briefs`, `brief_items`, `documents`): same shape as A on the child's own `org_id`; trigger `app.assert_same_org()` guarantees the child's `org_id` equals the parent's at insert/update, so policies stay flat and fast.
 
-**Pattern C — confidential quotation:**
+**Pattern C — quotations (grant-evaluated)**
 ```sql
-create policy q_select on quotations for select using (
-     (buyer_org_id is not null and app.is_member(buyer_org_id))                    -- owning buyer
-  or (brief_item_id is not null and app.is_assigned_to_project(app.brief_item_project(brief_item_id)))
-  or (app.is_member(supplier_org_of(supplier_id)))                                 -- supplier sees own quotes
-  or (visibility_scope = 'platform_buyers' and quote_type = 'supplier_catalog'
-        and app.current_org_type() = 'buyer')                                      -- permitted catalog
-  or exists (select 1 from quote_visibility_grants g
-             where g.quotation_id = quotations.id and app.is_member(g.grantee_org_id)
-               and (g.expires_at is null or g.expires_at > now()))
-  or app.is_platform_admin());
+create policy q_select on public.quotations for select to authenticated
+  using (app.quotation_visible(id));
+-- no insert/update/delete policies for authenticated: writes happen inside
+-- app.supersede_quotation / app.transition_quotation (SECURITY DEFINER, audited)
 ```
-Buyers never get `INSERT/UPDATE` on `quotations` directly; writes go through server functions that run the domain validators.
+`app.quotation_visible(q)` = owner buyer org member **or** assigned operator for the brief item's project **or** member of `app.supplier_org_of(supplier_id)` **or** active `quote_visibility_grants` row for `(q, my org)` **or** (`quote_type = 'supplier_catalog'` **and** `app.catalog_grant_active(supplier_id, my_org, 'price_tiers')`) **or** `app.is_platform_admin()`. The `visibility_scope` column is never consulted by this predicate.
 
-**Pattern D — restricted table (`supplier_contacts`):**
+**Pattern D — restricted (`supplier_contacts`)**
 ```sql
-create policy sc_select on supplier_contacts for select using (
-     app.is_internal()
-  or app.is_member(supplier_org_of(supplier_id))
-  or exists (select 1 from contact_disclosure_grants g
-             where g.supplier_contact_id = supplier_contacts.id
-               and app.is_member(g.buyer_org_id) and g.revoked_at is null
-               and (g.expires_at is null or g.expires_at > now())));
+create policy sc_select on public.supplier_contacts for select to authenticated
+  using (app.is_platform_admin()
+      or app.has_role(app.internal_org_id(), array['compliance_reviewer']::public.member_role[])
+      or exists (select 1 from public.project_assignments pa                -- assigned operators only
+                 join public.quote_groups g on g.supplier_id = supplier_contacts.supplier_id
+                 join public.brief_items bi on bi.id = g.brief_item_id
+                 where pa.operator_user_id = auth.uid()
+                   and pa.project_id = app.brief_item_project(bi.id))
+      or app.is_member(app.supplier_org_of(supplier_id))
+      or exists (select 1 from public.contact_disclosure_grants g
+                 where g.supplier_contact_id = supplier_contacts.id
+                   and app.is_member(g.buyer_org_id) and g.revoked_at is null
+                   and (g.expires_at is null or g.expires_at > now())));
 ```
-Additionally, the buyer-facing API layer selects from a view `supplier_public_profile_v` that excludes contact columns, so even a policy regression cannot surface them through the standard DTO.
+Buyer-facing reads use `supplier_public_profile_v` (no contact columns). An unassigned internal operator (`I.op−`) has **no** access — tested.
 
-**Pattern E — internal-only (`research_leads`, `source_systems`, `ai_eval_cases`):** `using (app.is_internal())`.
+**Pattern E — internal-only** (`research_leads`, `source_systems`, `ai_eval_cases`): `using (app.is_internal())`.
 
-**Pattern F — append-only (`audit_events`):** `for insert with check (true)` for `authenticated` via a SECURITY DEFINER writer function; `for select using (app.is_member(actor_org_id) and app.has_role(actor_org_id, array['owner','admin']) or app.is_internal())`; no update/delete policies and grants revoked.
+**Pattern F — append-only (`audit_events`)**: no `INSERT` grant to `authenticated`; rows are written by `app.record_audit_event` (SECURITY DEFINER) and by the `app.audit_row_change` trigger; `select` for org owners/admins on their own org's events, for assigned operators on their projects, and for compliance/admin; `UPDATE`/`DELETE` revoked from every role.
 
-**Storage:** bucket policies mirror Pattern A using `(storage.foldername(name))[1]::uuid` = org id and `app.is_member(...)`; `quarantine` bucket: insert-only for members, select for service role.
+**Storage:** `SECURITY_PERMISSION_MATRIX.md` §5.
 
-### 3.3 Mandatory negative tests (CI blocks merge)
+### 3.3 Mandatory negative tests (CI blocks merge; B-07)
 
-For each tenant table: with user of Org A, attempt `select`, `update`, `delete` on a row of Org B by primary key, by join, by storage path and by RPC; expect 0 rows / permission denied. Plus: supplier X cannot read `rfq_recipients` for supplier Y; buyer cannot read `supplier_contacts`; operator without assignment cannot read project; expired grant denies. Implemented in `supabase/tests/rls.test.ts` (Vitest + `pg`, two JWTs) — see `BACKLOG.md` B-07.
+Run as `authenticated` with `request.jwt.claim.sub` set per persona — **never** as `service_role`. For each tenant table: A cannot `select/insert/update/delete` B's row by pk, join, RPC, storage path, export. Supplier X cannot read Y's RFQ rows or quotes. Buyer cannot read `supplier_contacts`. Unassigned operator cannot read a project, its documents, quotes or contacts. Expired and revoked grants deny. Ownership-column UPDATE raises. Role removal takes effect on the next statement. Coverage guard: any `public` table missing from the harness list fails.
 
 ## 4. Indexes & constraints (selected)
 
 - `memberships (user_id, org_id)` unique; `(org_id, role)`.
-- `quotations (buyer_org_id, brief_item_id, status)`, `(supplier_id, status)`, `(valid_until) where status='confirmed'` for expiry sweep.
-- `quote_tiers` exclusion constraint on `(quotation_id with =, numrange(min_qty, coalesce(max_qty,'infinity'), '[)') with &&)` to forbid overlapping tiers.
-- `documents (org_id, status)`, `(sha256)` for dedupe.
+- `organizations`: `create unique index organizations_one_internal on public.organizations ((true)) where org_type = 'internal'`.
+- `quotations (group_id, version)` unique; `(buyer_org_id, brief_item_id)`, `(supplier_id)`.
+- `quotation_states (group_id) where is_current` unique; `(status)`; expiry sweep index on `quotations (valid_until)` joined to current confirmed states.
+- `quote_tiers` exclusion constraint as in `MIGRATION_DEPENDENCY_MAP.md` §5 (`btree_gist`).
+- `quote_status_events (idempotency_key)` unique.
+- `documents (org_id, status)`, `(sha256)`.
 - `audit_events (entity_table, entity_id, at desc)`, `(actor_org_id, at desc)`.
 - `product_variants (product_id, attributes_hash)` unique.
-- CHECK: `research_leads.rights_class = 'internal_market_observation'`; `quotations.price_basis <> null` (use `'unknown'`); `quote_tiers.unit_price >= 0`.
+- CHECK: `research_leads.rights_class = 'internal_market_observation'`; `quotations.price_basis is not null` (use `'unknown'`); `quote_tiers.unit_price >= 0`; `quote_tiers.max_qty is null or max_qty > min_qty`.
 
-## 5. Migration sequencing (Phase 1)
+## 5. Migration sequencing
 
-| # | Migration | Contents |
-|---|---|---|
-| 0001 | `init_enums_and_helpers` | enums, `app` schema, helper functions |
-| 0002 | `tenancy` | organizations, memberships, user_profiles, invites, project_assignments + RLS |
-| 0003 | `taxonomy_products` | taxonomy, attribute_definitions, products, variants, specifications + seed for pilot families |
-| 0004 | `suppliers` | profiles, facilities, contacts (restricted), grants, checks, documents + RLS |
-| 0005 | `sources_documents` | source_systems, source_permissions, research_leads, documents, pages, cells, access_log + storage buckets/policies |
-| 0006 | `projects_briefs` | sourcing_projects, buyer_briefs, brief_items + RLS |
-| 0007 | `quotations` | quotations, tiers, fees, grants, status_events + RLS + constraints |
-| 0008 | `ai_review` | ai_runs, ai_extractions, review_tasks, human_corrections, prompt_templates |
-| 0009 | `fx_landed_cost` | fx_rates, freight_estimates, duty_assumptions, comparison_snapshots, landed_cost_scenarios |
-| 0010 | `audit_security_jobs` | audit_events (append-only), security_events, notifications, queue setup (pgmq), dead letter |
-| 0011 | `quality_skeleton` | Phase 3 tables (created, unused) — optional; may defer |
-
-Each migration ships with its RLS tests. `supabase db reset` must succeed from zero on CI.
+Superseded by `MIGRATION_DEPENDENCY_MAP.md` §2 (ADR-019). Summary of the corrected order: 0001 bootstrap (extensions, enums, `app` schema) → 0002 tenancy core + membership helpers → 0003 **audit foundation** → 0004 taxonomy → 0005 suppliers core (+ `supplier_org_of`, `catalog_grant_active`) → 0006 documents + storage → 0007 supplier evidence (closes the `source_permissions ↔ documents` cycle) → 0008 projects/briefs (+ project helpers) → 0009 quotations (+ lifecycle functions) → 0010 AI/review → 0011 FX/landed cost → 0012 jobs/notifications/expiry cron. Each migration ships with its RLS tests; `supabase db reset` must succeed from zero, twice.
 
 ## 6. Open schema questions
 
-Tracked in `OPEN_QUESTIONS.md`: OQ-05 (anonymize suppliers to buyers at which stage), OQ-07 (retention periods), OQ-10 (whether internal org is one tenant or per-region), OQ-11 (pgvector/zhparser availability on Supabase image).
+Tracked in `OPEN_QUESTIONS.md`: OQ-05 (anonymize suppliers to buyers at which stage), OQ-07 (retention periods, also governs `audit_events`), OQ-10 (region), OQ-11 (pgvector/zhparser availability on the Supabase image).

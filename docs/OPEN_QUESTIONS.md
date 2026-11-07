@@ -5,10 +5,10 @@ Living document. Each item: what is being decided, why it matters, default assum
 | ID | Question | Why it matters | Default assumption if unanswered | Blocks |
 |---|---|---|---|---|
 | ~~OQ-01~~ | **Resolved 2026-11-07:** new repo `EminenceHairBoutique/Factory-Bridge-Global`; "Great Wall Bridge" retired (ADR-014). Remaining: archive the old GitHub repo. | — | — | — |
-| **OQ-01b** | Spec now exists at `docs/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md` **and** `docs/research/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md` (identical). Delete the `docs/research/` copy? | Two copies will drift | `docs/` copy is canonical; agent never edits the research copy | Nothing |
+| ~~OQ-01b~~ | **Resolved 2026-11-07:** founder approved removal of the duplicate under `docs/research/`; removed in the Phase 0.5 branch (`git rm`, history preserved). | — | — | — |
 | **OQ-02** | Legal entity, registered address, DBA/trademark, and whether "U.S.-based" may be claimed | FTC substantiation; public copy; contracts | No "U.S.-based" claim on site; "Operated from New Jersey, USA" only after entity verified | Public site launch |
-| **OQ-03** | Approve the bilingual supplier data-authorization form (after counsel) | Nothing supplier-provided can be shown to buyers without it | Only `internal_only` catalog data until approved | Phase 1 buyer-visible supplier data |
-| **OQ-04** | Business model for pilots: software subscription, per-request fee, managed sourcing %, or hybrid? Who contracts inspectors/forwarders? Is FBG ever buyer of record? | Liability, pricing pages, contract templates, what the "accept quote" button does | Buyer-side adviser only; buyer contracts directly; FBG charges a disclosed fee; no reselling | Pilot agreements, Phase 3 |
+| **OQ-03** | **Partially resolved 2026-11-07:** draft the bilingual form now (B-00b); **external use blocked until counsel review** (OQ-06). | Nothing supplier-provided can be shown to buyers without it | Only `internal_only` catalog data until approved | Phase 1 buyer-visible supplier data |
+| **OQ-04** | **Engineering default resolved 2026-11-07 (ADR-026):** buyer-side adviser/facilitator; FBG is never buyer/importer of record; disclosed service fees. **Still open:** formal commercial terms, fee schedule, who contracts inspectors/forwarders (legal/commercial approval). | Liability, pricing pages, contract templates | as decided | Pilot agreements, Phase 3 |
 | **OQ-05** | Supplier anonymization: do buyers see supplier legal names before engagement, or codes (S-A, S-B) until a fee/contract stage? | Disintermediation risk vs trust | Buyers see supplier display name + city + verification state; contacts never, unless granted | Comparison UI, exports |
 | **OQ-06** | Engage counsel for: PIPL/cross-border supplier contact data, platform-terms review (1688/Alibaba.com/Weidian), pilot agreement, privacy policy | Legal exposure | Minimize personal data; no connectors; pilot agreement drafted by counsel | Phase 1 external pilots |
 | **OQ-07** | Retention periods: source documents, quotes, contacts, audit logs | Storage, deletion workflow, legal holds | Documents: project life + 3 years; accepted quotes tied to orders: 7 years; audit: 7 years; contacts: while relationship active + 2 years | Deletion feature |
@@ -19,12 +19,13 @@ Living document. Each item: what is being decided, why it matters, default assum
 | **OQ-12** | Any quality remedy / guarantee program? Insurance? | Public claims, contracts, cash exposure | None offered; software supports future policy | Public QA copy |
 | **OQ-13** | FX provider; second AI provider for eval | Cost, accuracy | ECB-derived free feed; Anthropic only | Nothing |
 | **OQ-14** | OCR engine (Tesseract chi_sim self-hosted vs hosted) and vision-model use on scans | Cost per doc, accuracy | Tesseract first; vision on low-confidence pages | Phase 1 extraction |
-| **OQ-15** | Approve pilot families (Pilot A labels+cartons, Pilot B hair bundles) and the fixed pilot specs | Seeds, QSR templates, golden fixtures | Proceed with A+B as proposed | Phase 1 seeds |
-| **OQ-16** | Approve paid accounts: Supabase Pro, Vercel Pro, worker host, Resend, Sentry (gate G1) | Cash; environments | Free tiers / local dev only until approved | Phase 1 deployment |
+| ~~OQ-15~~ | **Resolved 2026-11-07 (ADR-013):** Pilot A labels + folding cartons; Pilot B hair bundles (internal design partner). Fixed pilot specs in `PILOT_CATEGORY_SELECTION.md` §6 stand unless the founder edits them. | — | — | — |
+| **OQ-16** | **Decided 2026-11-07 (ADR-028): deferred.** No paid accounts, no production deployment. Local dev + GitHub Actions only. Revisit before the first external pilot. | Cash; environments | as decided | B-29 |
 | **OQ-17** | Who are the first 2–3 external buyer design partners, and is the founder's hair brand an internal tenant? | Pilot data, feedback loop | Hair brand = internal design-partner tenant; externals recruited in validation sprint | Phase 1 pilot |
 | **OQ-18** | Operator staffing: founder only in Phase 1, or one part-time bilingual operator? | SLA promises, support cost | Founder only | Speed metrics |
 | **OQ-19** | Approval rules: who may approve outbound supplier messages, mark quotes confirmed, and authorize sample purchases | Policy matrix | Founder/platform_admin only in Phase 1 | Policy module |
-| **OQ-20** | Repo hygiene: adopt branch protection + PR-only merges to `main` now? | Prevent accidental pushes of secrets/broken migrations | Yes, from first code PR | Phase 1 |
+| **OQ-21** | GitHub repo `Factory-Bridge-Global` is **public** and contains operating/competitive planning docs. Make it private? | Competitive exposure; supplier-relationship details will follow | Agent changes nothing; founder decides in GitHub Settings → General → Danger zone | Nothing technical |
+| ~~OQ-20~~ | **Resolved 2026-11-07 (ADR-027):** PR-only, required CI checks. Founder configures the GitHub ruleset (steps in `STATUS.md`). | — | — | — |
 
 ## Missing legal/commercial decisions summary (for the founder's attorney and accountant)
 

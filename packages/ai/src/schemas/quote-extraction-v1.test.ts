@@ -59,3 +59,14 @@ describe("quote_extraction_v1 schema", () => {
     expect(quoteExtractionV1.safeParse(bad).success).toBe(false);
   });
 });
+
+describe("ADR-025 colloquial price terms", () => {
+  it("accepts null basis with the basis_term_colloquial flag (出厂价 without an Incoterm code)", () => {
+    const ok = {
+      ...base,
+      priceBasis: { value: null, confidence: "low", anchor: null },
+      flags: ["basis_term_colloquial"],
+    };
+    expect(quoteExtractionV1.safeParse(ok).success).toBe(true);
+  });
+});

@@ -8,7 +8,9 @@ Deliverables: this document set (`CLAUDE.md`, `docs/*`), repo audit, pilot recom
 Founder work in parallel: 30-day validation sprint (`PILOT_CATEGORY_SELECTION.md` §5), counsel engagement (OQ-06), decisions OQ-01…OQ-20.
 **Exit gate:** founder approves target buyer, pilot families (OQ-15), data-rights posture (OQ-03/06), transaction role (OQ-04), MVP scope (PRD §3), paid accounts (OQ-16). No public promises exist.
 
-## Phase 1 — Secure internal + buyer quote workspace (≈ 6–8 weeks of focused engineering)
+## Phase 1 — Secure internal + buyer quote workspace
+
+**Effort, stated honestly (ADR-023):** the backlog's own sizes (S = 1, M = 2.5, L = 5.5 engineering-days) sum to **≈ 85 engineering-person-days** for B-01…B-31 plus the Phase 0.5 security items. For one engineer at 5 productive days/week that is **≈ 17 weeks elapsed**, not 6–8. Realistic plans: (a) solo founder + agents, **14–18 weeks** with a 20 % contingency; (b) founder + one contract engineer in parallel on disjoint backlog items, **8–10 weeks**. The week table below is therefore a *sequence*, not a calendar; dates are set only after OQ-18 (staffing) is answered. No percentage-complete figures are reported anywhere unless derived from closed backlog items.
 
 Vertical slice: brief → intake → extraction → review → comparison → report → follow-up, with tenant isolation and audit.
 

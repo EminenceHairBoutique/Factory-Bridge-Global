@@ -9,7 +9,8 @@
     "./enums": "./src/enums.ts",
     "./money": "./src/money.ts",
     "./quote/tiers": "./src/quote/tiers.ts",
-    "./quote/incoterms": "./src/quote/incoterms.ts"
+    "./quote/incoterms": "./src/quote/incoterms.ts",
+    "./sql/enum-sql": "./src/sql/enum-sql.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",

@@ -155,7 +155,8 @@ report
 ### 3.3 State machines (deterministic, in `packages/domain/state`)
 
 - **Document:** `uploaded → scanning → parsed | rejected → extracted → in_review → accepted | discarded`
-- **Quotation:** `draft → needs_review → confirmed → superseded | expired | withdrawn` (expiry via pg_cron sweep comparing `valid_until`; never silent)
+- **Quote intake (review_tasks):** `pending → in_review → accepted | rejected`; acceptance inserts the first **confirmed** quotation version (immutable payload).
+- **Quotation lifecycle (quotation_states, mutable only via `app.transition_quotation` / `app.supersede_quotation`):** `confirmed → superseded | expired | withdrawn`; `expired → superseded` (revalidation = new version). `superseded` and `withdrawn` are terminal. Expiry via pg_cron sweep on `valid_until`; `NULL` validity is flagged, never auto-expired. Full table: `MIGRATION_DEPENDENCY_MAP.md` §6.
 - **RFQ (Phase 2):** `draft → pending_buyer_approval → approved → dispatched → responded | declined | no_response → closed`
 - **Supplier qualification:** `lead_identified → contact_confirmed → legal_identity_reviewed → capabilities_documented` (supplier-level); `sample_passed`, `batch_inspected` are **per product variant / per lot**, never supplier-level flags.
 - **Inspection job (Phase 3):** `requested → scheduled → in_progress → reported → accepted | rework | rejected`

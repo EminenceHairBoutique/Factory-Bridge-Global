@@ -15,9 +15,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "pnpm -r test",
-    "test:rls": "node scripts/rls-placeholder.mjs",
+    "test:rls": "pnpm --filter @fbg/supabase test",
     "test:e2e": "echo 'Playwright suite arrives with B-05 (auth flows)' && exit 0",
-    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test"
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
+    "test:db": "pnpm --filter @fbg/supabase test",
+    "db:gen-enums": "pnpm --filter @fbg/supabase gen:enums"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

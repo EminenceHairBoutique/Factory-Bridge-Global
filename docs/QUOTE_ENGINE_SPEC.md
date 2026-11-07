@@ -42,7 +42,8 @@ compare(brief, quotations[], inputs) =
 ### 2.1 Eligibility
 - `status !== 'confirmed'` → excluded, reason `not_confirmed`.
 - `validUntil !== null && validUntil < asOf` → excluded, reason `expired`, display "Expired <date>".
-- `validUntil === null` → **included** but flagged `validity_unconfirmed`; UI shows warning; report lists it in exclusions/assumptions.
+- `validUntil === null` → **included** but flagged `validity_unconfirmed`; UI shows warning; report lists it in exclusions/assumptions. NULL never means perpetual validity and is never auto-expired.
+- `basis_confirmed === false` (basis extracted from a colloquial ZH term such as 出厂价/离岸价 without an Incoterm code + named place) → treated as `basis_unknown` for grouping, explanation code `basis_unconfirmed_colloquial`.
 - `quoteType ∈ {listing, estimate}` → never ranked as an offer; shown separately as reference if visible.
 
 ### 2.2 Specification matching
@@ -151,4 +152,4 @@ Property-based tests (fast-check): tier selection total order; sum of lines equa
 Header: brief id/version, quantity, destination, generated at, engine version, FX rows used.
 Per quote: supplier display name (or anonymized code per OQ-05), quote version, source document ref, `confirmed_at`, `valid_until`, basis + place, original currency/price, selected tier, fees, each landed line with status, total with status, flags, spec differences.
 Footer: assumptions list, exclusions list, rounding rule, "Estimates are not customs or legal advice", "Supplier-provided data unless marked verified".
-CSV: one row per (quote, line) plus a summary sheet; never merged cells; UTF-8 with BOM for Excel ZH compatibility.
+Tabular export (ADR-024): **XLSX** workbook with sheets `summary`, `quotes`, `landed_cost_lines`, `assumptions`, `fx_rates` (one row per entity, no merged cells); **CSV** export is a ZIP containing the same five tables as separate files (`summary.csv`, `quotes.csv`, `landed_cost_lines.csv`, `assumptions.csv`, `fx_rates.csv`), each UTF-8 with BOM for Excel zh-CN compatibility. A single CSV cannot hold multiple tables and is not offered. Every row carries `quotation_id` (= exact version), `confirmed_at`, original currency and FX rate id, so an export generated before a later status change remains reproducible and correctly timestamped. Supplier contacts are redacted unless a disclosure grant exists.
