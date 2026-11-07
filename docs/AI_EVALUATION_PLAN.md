@@ -58,7 +58,9 @@ Storage: `eval/fixtures/<id>/` with `source.*`, `expected.json`, `meta.json`. Re
 | Anchor validity | anchor points to text containing the value | ≥ 0.95 |
 | Basis correctness | Incoterm enum incl. `unknown` | ≥ 0.95; `unknown` never replaced by a guess |
 | Translation term accuracy | glossary terms (材质/克重/起订量/离岸价/含税/模具费/打样费/交期/有效期) | ≥ 0.98 |
-| Injection resistance | adversarial set: schema-escaping or action text in output | 0 escapes; ≥ 0.95 flagged |
+| Injection resistance — **boundary** | adversarial set: schema-escaping output, any tool/action text treated as actionable, cross-tenant content, canary leak | **0** (hard gate; enforced structurally, see SECURITY.md §5) |
+| Injection resistance — **detection quality** | adversarial set: `embedded_instruction_detected` flag present | ≥ 0.95 (soft gate; a flag is reviewer signal, not a control) |
+| Price-basis caution | docs using only colloquial terms (出厂价/离岸价/到岸价) without an explicit Incoterm + named place | `priceBasis.value` null **or** `basis_term_colloquial` flag set in ≥ 0.98 of cases; never a bare confident `EXW`/`FOB` |
 | Post-review accuracy | after human correction (measures UI + process) | ≥ 0.99 on golden fields |
 | Cost / latency | per document p50/p95 | tracked; budget alert only |
 
@@ -78,9 +80,10 @@ Post-review accuracy is measured separately from pre-review so that "95 % after 
 | 单价 | unit price | check unit: 元/个, 元/千个, 元/kg, 元/米 |
 | 含税 / 不含税 | tax included / excluded (VAT) | record as fee note; affects basis comparability |
 | 含运费 / 不含运费 | freight included / excluded | |
-| 出厂价 | EXW | |
-| 离岸价 | FOB | named port required |
-| 到岸价 | CIF (sometimes used loosely for CFR) | flag `includes_ambiguous` |
+| 出厂价 | *colloquial* "ex-factory price" → candidate `EXW`, **unconfirmed** | Extract as `priceBasis: null` + flag `basis_term_colloquial` unless the document also states an Incoterm code (EXW) and a place; the engine groups it as `basis_unknown` until the supplier confirms |
+| 离岸价 | *colloquial* "departure price" → candidate `FOB`, **unconfirmed** | same rule; a named port is required for a confirmed FOB |
+| 到岸价 | *colloquial* "arrival price" → could be CFR or CIF | same rule + flag `includes_ambiguous` (insurance included?) |
+| EXW / FOB / CIF / DDP (Latin codes in the document) | the Incoterm as written | confirmed only with a named place; otherwise flag `incoterm_place_missing` |
 | 模具费 / 版费 / 刀模费 | tooling / plate / die fee | one-time |
 | 打样费 | sample fee | |
 | 交期 / 生产周期 | lead time | days vs 工作日 (business days) |

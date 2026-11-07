@@ -70,14 +70,11 @@ export const PRICE_BASES = [
 ] as const;
 export type PriceBasis = (typeof PRICE_BASES)[number];
 
-export const QUOTE_STATUSES = [
-  "draft",
-  "needs_review",
-  "confirmed",
-  "superseded",
-  "expired",
-  "withdrawn",
-] as const;
+/**
+ * Lifecycle of a CONFIRMED quotation only (ADR-021). Pre-confirmation state is `review_status`.
+ * `superseded` and `withdrawn` are terminal; `expired → superseded` is allowed (revalidation = new version).
+ */
+export const QUOTE_STATUSES = ["confirmed", "superseded", "expired", "withdrawn"] as const;
 export type QuoteStatus = (typeof QUOTE_STATUSES)[number];
 
 export const REVIEW_STATUSES = ["pending", "in_review", "accepted", "rejected"] as const;

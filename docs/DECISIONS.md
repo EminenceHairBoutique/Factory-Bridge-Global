@@ -63,8 +63,8 @@ Living document. Append new ADRs; never edit an accepted ADR's substance — sup
 **Decision:** In Phase 1 the system drafts; an operator approves and sends via the operator's existing business channel (WeChat/email/phone), then logs channel, time and text. System-dispatched messages (portal/email) arrive in Phase 2 with the same approval gate.
 
 ## ADR-013 — Pilot families
-**Status:** **proposed** (founder decision OQ-15)
-**Decision (proposed):** Pilot A: custom roll labels + printed folding cartons; Pilot B: human-hair bundles (founder's own brand as internal design-partner tenant). See `PILOT_CATEGORY_SELECTION.md`.
+**Status:** **accepted 2026-11-07 (founder, OQ-15)**
+**Decision:** Pilot A: custom roll labels + printed folding cartons; Pilot B: human-hair bundles as a parallel internal design-partner pilot. Other categories stay extensible in the taxonomy but are not built into the MVP. See `PILOT_CATEGORY_SELECTION.md`.
 
 ## ADR-014 — Repository and product naming
 **Status:** accepted 2026-11-07 (founder action)
@@ -86,6 +86,57 @@ Living document. Append new ADRs; never edit an accepted ADR's substance — sup
 **Status:** accepted
 **Context:** The working copy lives in a OneDrive-synced folder; `node_modules` there is a sync hazard, and the agent's shell on that mount cannot delete files (git lock-file problem).
 **Decision:** Agents build and run checks in a scratch environment, then deliver only source files + `pnpm-lock.yaml` into the repo folder. The founder (or Claude Code) performs commits and pushes. Founder is advised to move the repo outside OneDrive before local `pnpm install`.
+
+## ADR-019 — Executable migration order; helpers defined after the tables they read
+**Status:** accepted (Phase 0.5)
+**Context:** The Phase 0 plan put membership-dependent `language sql` helpers in migration 0001 and `project_assignments` in 0002, before `memberships`/`sourcing_projects` existed; Postgres validates SQL-function bodies at `CREATE`, so `supabase db reset` would have failed. Three policy helpers were referenced but never defined; `source_permissions ↔ documents` formed a cycle; the tier exclusion constraint lacked `btree_gist`.
+**Decision:** Adopt `docs/MIGRATION_DEPENDENCY_MAP.md` as the normative order (0001 bootstrap → 0002 tenancy core → 0003 audit → … → 0012 jobs). Every helper is catalogued with its defining migration; `app.current_org_type()` is replaced by `app.is_member_of_type()`; `supplier_org_of`, `brief_item_project`, `catalog_grant_active`, `quotation_visible` are defined. The cycle is closed by adding `source_permissions.evidence_document_id` in 0007. All helpers use `SET search_path = ''` with schema-qualified references and restricted `EXECUTE`.
+**Consequences:** Supersedes `SCHEMA_PLAN.md` §5 (Phase 0 text). B-03/B-04 redefined; audit moved to B-04b.
+
+## ADR-020 — Access is granted by ownership, assignment or an active grant — never by a label
+**Status:** accepted (Phase 0.5)
+**Context:** The Phase 0 quotation policy let any buyer read catalog rows whose `visibility_scope = 'platform_buyers'`, i.e. a column value (which a supplier could set) acted as the grant.
+**Decision:** Read predicates evaluate **active rights only**: org membership, project assignment, `quote_visibility_grants`, `contact_disclosure_grants`, or `source_permissions` (supplier, unexpired, unrevoked, viewer in `buyer_visibility`, field in `scope.fields`). `visibility_scope`/`rights_class` remain as declared intent, validated for consistency at write time and never consulted on read. Ownership columns are immutable via `app.prevent_owner_change`. Revocation semantics are fixed in `SECURITY_PERMISSION_MATRIX.md` §3.4 (catalog disappears immediately; a buyer's received negotiated quotes stay as their transaction record).
+**Consequences:** `SECURITY_PERMISSION_MATRIX.md` is normative for both `packages/domain/policy` and RLS; B-07 tests every "—" cell.
+
+## ADR-021 — Confirmed quotation payload is immutable; lifecycle lives in `quotation_states`
+**Status:** accepted (Phase 0.5); supersedes the `quote_status` enum values of ADR-00x/Phase 0 (`draft`, `needs_review` removed)
+**Context:** "Confirmed quotations are immutable" contradicted the required `expired/withdrawn/superseded` transitions and B-18's "UPDATE rejected by trigger".
+**Decision:** `quotations` = commercial payload, immutable (trigger raises on UPDATE/DELETE). `quotation_states` (1:1) = `status ∈ {confirmed, superseded, expired, withdrawn}`, `is_current`, `superseded_by`; writable only by `app.transition_quotation` / `app.supersede_quotation` (SECURITY DEFINER, audited, idempotent, `FOR UPDATE` on `quote_groups`, unique partial index on `is_current`). Pre-confirmation state is `review_status` on `review_tasks`. `valid_until IS NULL` = validity unconfirmed, flagged, never auto-expired, never perpetual.
+**Consequences:** `packages/domain/src/enums.ts` `QUOTE_STATUSES` updated; `ARCHITECTURE.md` §3.3 and `SCHEMA_PLAN.md` §2.6 rewritten; B-18 acceptance criteria rewritten.
+
+## ADR-022 — Audit foundation lands in migration 0003, before any business table
+**Status:** accepted (Phase 0.5)
+**Context:** B-26 scheduled audit tables after uploads, quotes and exports — the actions most needing traceability.
+**Decision:** `audit_events`, `security_events`, `document_access_log`, `app.record_audit_event` (actor from `auth.uid()`; `actor_override` only for `service_role`) and the row-change trigger are migration 0003 (B-04b). `authenticated` has no INSERT on `audit_events`. DB event log is the legal record; app request logs (pino/Sentry) are operational and redacted. Retention follows OQ-07.
+**Consequences:** B-26 shrinks to the explorer UI; B-07 depends on B-04b.
+
+## ADR-023 — Effort is stated in engineering-person-days; calendar claims require a staffing decision
+**Status:** accepted (Phase 0.5)
+**Context:** Phase 1 was labelled "≈ 6–8 weeks" while the backlog's own sizes sum to ≈ 85 person-days.
+**Decision:** Roadmap states person-days and two staffing scenarios (solo 14–18 weeks; two engineers 8–10 weeks) with 20 % contingency; no calendar dates until OQ-18 is answered; no percent-complete figures except from closed backlog items.
+
+## ADR-024 — Tabular exports: XLSX workbook, or ZIP of per-table CSVs
+**Status:** accepted (Phase 0.5)
+**Context:** The spec said "CSV … plus a summary sheet"; a CSV has no sheets.
+**Decision:** XLSX with sheets `summary/quotes/landed_cost_lines/assumptions/fx_rates`; CSV export is a ZIP of the same five tables. Every row carries quotation version id, `confirmed_at`, original currency, FX rate id; contacts redacted unless granted.
+
+## ADR-025 — Colloquial Chinese price terms never map to a confirmed Incoterm
+**Status:** accepted (Phase 0.5)
+**Context:** The glossary mapped 出厂价→EXW and 离岸价→FOB directly; in practice these are informal price descriptions, not contractual trade terms with named places.
+**Decision:** Extraction returns `priceBasis: null` plus flag `basis_term_colloquial` (added to `quote_extraction_v1`) unless the document states an Incoterm code and a place; `quotations.basis_confirmed = false` groups as `basis_unknown` in the engine until the supplier confirms. Glossary rows rewritten in `AI_EVALUATION_PLAN.md` §4.
+
+## ADR-026 — Transaction role for development: buyer-side adviser/facilitator (engineering default)
+**Status:** accepted as an **engineering default** 2026-11-07 (founder, OQ-04); **commercial/legal terms remain pending**
+**Decision:** The software assumes Factory Bridge Global advises and facilitates; it is never buyer, importer of record, or reseller. "Accept quote" produces a purchase handoff/checklist, never an order. Fees are modelled as disclosed service fees separate from supplier prices. Any contract, fee schedule, guarantee or remedy language still requires founder + counsel approval before use (OQ-09, OQ-12).
+
+## ADR-027 — PR-only development with required CI checks on `main`
+**Status:** accepted 2026-11-07 (founder, OQ-20)
+**Decision:** No direct pushes to `main`. Every change arrives by pull request with the `check` and `rls` CI jobs required. Agents cannot change GitHub settings; the founder configures the ruleset (steps in `STATUS.md` → "Founder actions"). Parallel agent sessions use separate git worktrees and disjoint backlog items.
+
+## ADR-028 — No paid infrastructure or production deployment yet; supplier form is draft-only
+**Status:** accepted 2026-11-07 (founder, OQ-16 and OQ-03)
+**Decision:** Local development and GitHub Actions are the only environments. No Supabase/Vercel/worker-host paid accounts, no production deploy, no real supplier or buyer data. The bilingual supplier data-authorization form (B-00b) is drafted but **must not be used externally** before legal review (OQ-06).
 
 ## ADR-016 — No marketplace or messaging automation; connectors gated by the data-rights matrix
 **Status:** accepted

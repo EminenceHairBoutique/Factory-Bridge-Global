@@ -26,6 +26,10 @@ export const quoteExtractionV1 = z.object({
   supplierNameHint: extractedField(z.string().max(200)),
   currency: extractedField(z.enum(["USD", "CNY", "HKD", "EUR"])),
   quantityUnit: extractedField(z.string().max(40)),
+  /**
+   * Only when the document states an Incoterm CODE. Colloquial terms (出厂价/离岸价/到岸价) MUST yield
+   * value: null + flag "basis_term_colloquial" (ADR-025). The engine treats unconfirmed basis as unknown.
+   */
   priceBasis: extractedField(z.enum(["EXW", "FCA", "FOB", "CFR", "CIF", "DAP", "DPU", "DDP"])),
   incotermPlace: extractedField(z.string().max(120)),
   moq: extractedField(decimalString),
@@ -71,6 +75,8 @@ export const quoteExtractionV1 = z.object({
   flags: z.array(
     z.enum([
       "embedded_instruction_detected",
+      "basis_term_colloquial",
+      "incoterm_place_missing",
       "contradictory_tiers",
       "mixed_currency",
       "relative_validity_date",

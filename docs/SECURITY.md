@@ -51,7 +51,10 @@ Request → Auth (Supabase JWT) → resolve active org + role (memberships)
 ```
 
 - `packages/domain/policy` is a pure function table: `(role, org_type, action, resourceContext) → allow | deny(reason)`. Every API route calls it; tests enumerate the matrix.
-- Service-role usage is confined to `apps/worker` and `apps/web/server/privileged/*`. Each privileged function re-checks the caller's authorization explicitly and emits `acting_as = 'system'` audit rows. Lint rule forbids importing the service client elsewhere.
+- Service-role usage is confined to `apps/worker` and `apps/web/src/server/privileged/**`. Each privileged function re-checks the caller's authorization explicitly and emits `acting_as = 'system'` audit rows. Lint rule forbids importing the service client elsewhere.
+- **`FORCE ROW LEVEL SECURITY` does not bind `BYPASSRLS` roles.** Supabase `service_role` bypasses RLS entirely; it must only invoke `SECURITY DEFINER` functions in `app` that re-check authorization and audit (`SECURITY_PERMISSION_MATRIX.md` §4). RLS tests run as `authenticated`, never as `service_role`.
+- **Ownership columns are immutable** (`app.prevent_owner_change` triggers on `org_id`, `buyer_org_id`, `supplier_id`, `project_id`, grant targets); the confirmed quotation payload is immutable (`MIGRATION_DEPENDENCY_MAP.md` §6). Policies therefore never rely on a self-referential `WITH CHECK`.
+- **Audit is foundational, not late:** `audit_events`/`security_events`/`document_access_log` and the trusted writer land in migration 0003, before any business table (ADR-022). `authenticated` has no `INSERT` grant on `audit_events`; rows come only from `app.record_audit_event` (actor derived from `auth.uid()`) and the row-change trigger, so audit entries cannot be spoofed. DB event log ≠ application request log (Sentry/pino); both are kept, the former is the legal record.
 - Internal operator access requires `project_assignments`; `platform_admin` bypass is logged and alerts on volume anomalies.
 - Role changes revoke sessions (Supabase `auth.admin.signOut(userId)`).
 
@@ -69,7 +72,7 @@ Request → Auth (Supabase JWT) → resolve active org + role (memberships)
 - Document text is inserted inside explicit data delimiters with a system instruction that the content is untrusted and that any instructions inside it must be ignored and reported in `flags: ["embedded_instruction_detected"]`.
 - Post-validation: zod schema; numeric ranges; enum membership; currency ISO-4217; cross-field rules (tier monotonicity). Any free-text field (`notes`) is length-capped and never used programmatically.
 - Canary check: a hidden token in the system prompt must not appear in output (detects exfil attempts).
-- Red-team fixtures (`eval/injection/*`) run in CI: PDFs containing instructions to change prices, reveal other tenants, send emails. Acceptance: 0 schema-escaping outputs, 100 % flagged.
+- Red-team fixtures (`eval/injection/*`) run in CI: PDFs containing instructions to change prices, reveal other tenants, send emails. **Security boundary (hard gate, must be 0):** schema-escaping outputs, tool/function calls, outbound messages, privilege changes or cross-tenant data in any output — these are enforced structurally (no tools, strict schema, no free text into actions, human gate), not by detection. **Quality metric (soft gate):** the model's `embedded_instruction_detected` flag rate on the adversarial set, target ≥ 0.95 (same number as `AI_EVALUATION_PLAN.md`). A flag or regex is a signal for reviewers, never a control.
 - Human approval gate before any AI-drafted message leaves the system or any AI-proposed field becomes canonical.
 
 ## 6. Confidential quotation and contact separation

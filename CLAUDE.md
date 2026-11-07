@@ -16,9 +16,9 @@ It is **not** a marketplace clone of Temu, 1688, Taobao, Weidian or Alibaba.com,
 
 ## 2. Source of truth (in priority order)
 
-1. `docs/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md` — authoritative *intended* design. **Note:** an identical copy exists at `docs/research/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md` (commit `bcb72ec`). Treat the `docs/` copy as canonical; the duplicate should be removed so the two cannot drift (OQ-01b).
+1. `docs/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md` — authoritative *intended* design (single copy; the research duplicate was removed in Phase 0.5, OQ-01b).
 2. `docs/DECISIONS.md` — accepted architecture decisions (ADRs). Never silently contradict an accepted ADR; add a superseding ADR.
-3. `docs/PRODUCT_REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/SCHEMA_PLAN.md`, `docs/SECURITY.md`, `docs/QUOTE_ENGINE_SPEC.md`, `docs/INTEGRATIONS_AND_PERMISSIONS.md`, `docs/QUALITY_ASSURANCE.md`, `docs/AI_EVALUATION_PLAN.md`, `docs/UX_INFORMATION_ARCHITECTURE.md`.
+3. `docs/PRODUCT_REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/SCHEMA_PLAN.md`, **`docs/MIGRATION_DEPENDENCY_MAP.md`** (executable migration order + every helper), `docs/SECURITY.md`, **`docs/SECURITY_PERMISSION_MATRIX.md`** (who may do what; grant evaluation), `docs/QUOTE_ENGINE_SPEC.md`, `docs/INTEGRATIONS_AND_PERMISSIONS.md`, `docs/QUALITY_ASSURANCE.md`, `docs/AI_EVALUATION_PLAN.md`, `docs/UX_INFORMATION_ARCHITECTURE.md`.
 4. `docs/STATUS.md` — what is actually Implemented / Tested / Deployed / Partial / Blocked / Planned. **Code, migrations, tests and deployments determine status — not documents.**
 5. `docs/BACKLOG.md` + `docs/ROADMAP.md` — what to build next, in order.
 6. `docs/OPEN_QUESTIONS.md` — founder decision gates. If a task depends on an open question, state the assumption you took and keep going unless the decision is irreversible or commercial.
@@ -34,6 +34,7 @@ Older concept documents (`docs/Factory_Bridge_Supplier_Quote_Intelligence_Bluepr
 5. **Run checks**: `pnpm typecheck && pnpm lint && pnpm test` (once the app exists), plus RLS negative tests for any schema change.
 6. **Security review** of the change against `docs/SECURITY.md` (tenant isolation, secrets, untrusted input, idempotency).
 7. **Report** using the milestone format in §6 and update `docs/STATUS.md`. Append to `docs/DECISIONS.md` if a decision was made.
+8. **Parallel sessions:** one owner per backlog ID; each agent works in its own git worktree on its own branch (`git worktree add ../wt-<id> -b <id>`); PR-only merges to `main` (ADR-027).
 
 ## 4. Hard rules (non-negotiable)
 
@@ -75,7 +76,7 @@ Founder actions required: ...
 Next task: ...
 ```
 
-## 7. Repository layout (target; Phase 0 has only `docs/`)
+## 7. Repository layout
 
 ```
 CLAUDE.md
@@ -88,20 +89,22 @@ packages/db/               # generated Supabase types, typed query helpers
 packages/domain/           # deterministic engines: money, units, tiers, incoterms, landed cost, state machines
 packages/ai/               # provider adapter, prompt templates (versioned), schemas, eval harness
 packages/i18n/             # en-US / zh-CN message catalogs
-supabase/migrations/       # SQL migrations incl. RLS policies
-supabase/tests/            # RLS negative tests (pgTAP or Vitest+pg)
+supabase/                  # @fbg/supabase workspace package: config.toml, migrations/, seed.sql, scripts/gen-enum-sql.ts
+supabase/migrations/       # SQL migrations incl. RLS policies (order: docs/MIGRATION_DEPENDENCY_MAP.md)
+supabase/tests/            # migrations.test.ts (drift, privileges, RLS coverage guard), rls.test.ts (B-07); PGlite locally, real Postgres in CI
 eval/                      # golden extraction fixtures (synthetic + authorized samples)
 ```
 
-## 8. Commands (valid once Phase 1 scaffolding exists; none run in Phase 0)
+## 8. Commands
 
 ```
 pnpm install
 pnpm dev                 # web + worker
 pnpm typecheck
 pnpm lint
-pnpm test                # vitest
-pnpm test:rls            # tenant-isolation suite against local supabase
+pnpm test                # vitest, all packages (supabase suite runs on PGlite — dev-time SQL checks, not Supabase integration)
+pnpm test:db             # same suite; set DATABASE_URL to run against real Postgres (CI does this on the local Supabase stack)
+pnpm db:gen-enums        # regenerate the enum block in migration 0001 from packages/domain/src/enums.ts
 pnpm test:e2e            # playwright
 supabase start           # local stack (Docker)
 supabase db reset        # apply migrations + seed (dev only)

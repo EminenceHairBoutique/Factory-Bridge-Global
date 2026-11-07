@@ -3,6 +3,13 @@ node_modules
 dist
 coverage
 pnpm-lock.yaml
+# scanner / tool artifacts
+*.sarif
+results.sarif
+gitleaks-report.*
+.next/
+supabase/.temp/
+supabase/.branches/
 docs/research
 docs/*.md
 docs/reports

@@ -32,23 +32,26 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Formatting runs BEFORE any step that writes files into the checkout (gitleaks emits results.sarif);
+      # *.sarif is also in .prettierignore and .gitignore so the two tools cannot interact either way.
+      - run: pnpm format:check
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+
       - name: Secret scan (gitleaks)
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm format:check
-      - run: pnpm test
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
 
       - name: Dependency audit (prod, high+)
         run: pnpm audit --prod --audit-level high
 
-  rls:
-    name: tenant isolation (RLS)
+  db:
+    name: "db: migrations on real Postgres (local Supabase stack) + RLS coverage guard"
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -57,5 +60,28 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # B-03 adds `supabase start` + `supabase db reset` here; B-07 replaces the placeholder with the Vitest RLS suite.
-      - run: pnpm test:rls
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # Real PostgreSQL + Supabase auth schema/roles. Heavy services that the DB tests do not need are excluded.
+      - name: Start local Supabase stack
+        run: supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,supavisor,realtime,storage-api
+
+      # Proves the migration chain applies from zero, then seed; run twice to prove seed idempotency.
+      - name: Apply migrations from scratch (twice)
+        run: |
+          supabase db reset
+          supabase db reset
+
+      # The suite VERIFIES the CLI-applied schema (enum drift, privileges, RLS coverage guard) and, from
+      # B-07, runs the tenant-isolation suite as `authenticated` sessions. It fails if no tests execute.
+      - name: "Database test suite (engine: postgres)"
+        run: pnpm test:db
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
+      - name: Stop stack
+        if: always()
+        run: supabase stop --no-backup
