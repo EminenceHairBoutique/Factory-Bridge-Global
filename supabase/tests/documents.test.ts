@@ -57,7 +57,16 @@ beforeAll(async () => {
     await applyMigrations(db);
     await db.exec(readSeed());
   }
+  // Shared database on real Postgres: remove this suite's own fixtures from a previous run, children first
+  // (document_access_log → documents is ON DELETE RESTRICT by design).
   await db.exec(`delete from storage.objects where name like 'eeeeee0%'`);
+  await db.exec(
+    `delete from public.document_access_log where document_id in (select id from public.documents where org_id in (${Object.values(
+      ORG,
+    )
+      .map((o) => `'${o}'`)
+      .join(",")}))`,
+  );
   await db.exec(
     `delete from public.organizations where id in (${Object.values(ORG)
       .map((o) => `'${o}'`)
