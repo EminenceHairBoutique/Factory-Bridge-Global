@@ -17,9 +17,17 @@ export const TENANT_TABLES: ReadonlyArray<{ table: string; coveredBy: string }> 
   // 0003b ai_runs_budget
   { table: "ai_runs", coveredBy: "ai-runs.test.ts" },
   { table: "ai_budgets", coveredBy: "ai-runs.test.ts" },
+  // 0004 taxonomy_products
+  { table: "products", coveredBy: "taxonomy.test.ts" },
+  { table: "product_variants", coveredBy: "taxonomy.test.ts" },
+  { table: "product_specifications", coveredBy: "taxonomy.test.ts" },
 ];
 
-export const PUBLIC_READ_TABLES: ReadonlyArray<string> = [];
+/** Reference tables readable by every signed-in user; still RLS-enabled with an explicit select policy. */
+export const PUBLIC_READ_TABLES: ReadonlyArray<string> = [
+  "product_taxonomy",
+  "attribute_definitions",
+];
 
 export type TablePrivilege = "SELECT" | "INSERT" | "UPDATE" | "DELETE";
 
@@ -45,4 +53,11 @@ export const AUTHENTICATED_MAX_PRIVILEGES: Readonly<Record<string, ReadonlyArray
     // 0003b ai_runs_budget — written only via app.record_ai_run / app.set_ai_budget
     ai_runs: ["SELECT"],
     ai_budgets: ["SELECT"],
+    // 0004 taxonomy_products — reference tables are read-only for every signed-in user (platform admins
+    // curate them via service_role); org-owned product rows are created/edited by members under RLS
+    product_taxonomy: ["SELECT"],
+    attribute_definitions: ["SELECT"],
+    products: ["SELECT", "INSERT", "UPDATE"],
+    product_variants: ["SELECT", "INSERT", "UPDATE"],
+    product_specifications: ["SELECT", "INSERT", "UPDATE"],
   };

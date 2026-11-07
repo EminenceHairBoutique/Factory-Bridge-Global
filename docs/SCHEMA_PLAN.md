@@ -69,8 +69,7 @@ Grouped by domain. "Owner" = the column RLS keys on.
 | `attribute_definitions` | `taxonomy_id, code, label_en, label_zh, data_type(number|text|enum|bool|dimension), unit, allowed_values jsonb, is_hard_default bool` | public read |
 | `products` | `id, taxonomy_id, canonical_name_en, canonical_name_zh, owner_org_id nullable (null = platform canonical)` | owner or public |
 | `product_variants` | `product_id, variant_code, attributes jsonb (code→value), attributes_hash` | follows product |
-| `product_specifications` | `id, variant_id nullable, brief_item_id nullable, version int, attributes jsonb, hard_attribute_codes text[], text_en, text_zh, source_lang, translation_run_id, confirmed_by, confirmed_at` | owning org |
-| `spec_versions` | immutable history of `product_specifications` | owning org |
+| `product_specifications` | `id, taxonomy_id, variant_id nullable, brief_item_id nullable (FK in 0008), owner_org_id nullable, version int, attributes jsonb, hard_attribute_codes text[], text_en, text_zh, source_lang, translation_run_id, confirmed_by, confirmed_at` — **versioned rows, payload immutable** (trigger); only confirmation columns may change; a new version is a new row (`unique (variant_id, version)`). The separate `spec_versions` table is therefore not needed. | owning org |
 
 Attribute values are canonical: dimensions in mm, mass in g, volume in ml, with the declared display unit stored separately by the UI layer. `attributes_hash` enables exact-match grouping in the comparison engine.
 
