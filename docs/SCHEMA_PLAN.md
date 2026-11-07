@@ -155,7 +155,7 @@ Lifecycle, transition authorizations, concurrency and supersession semantics: `M
 
 | Table | Key columns |
 |---|---|
-| `audit_events` (append-only) | `id, at, actor_user_id, actor_org_id, acting_as(internal|member|system), entity_table, entity_id, action, before_hash, after_hash, diff jsonb (redacted for restricted tables), request_id, ip_hash` |
+| `audit_events` (append-only) | `id, at, actor_user_id, actor_org_id, entity_org_id, acting_as(member|internal|platform_admin|system), entity_table, entity_id, action, before_hash, after_hash, diff jsonb (redacted for restricted tables), request_id, ip_hash` — `actor_org_id`/`entity_org_id` are **not** FKs (the log must outlive deleted rows) |
 | `security_events` | `kind(rls_denied|rate_limited|scan_rejected|webhook_sig_fail|injection_flag), details jsonb, at` |
 | `notifications` | `user_id, org_id, kind, payload, read_at, delivered_via` |
 | `jobs_dead_letter` | `queue, msg, error, attempts, first_failed_at` |

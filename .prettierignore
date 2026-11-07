@@ -14,6 +14,3 @@ docs/research
 docs/*.md
 docs/reports
 *.md
-
-# gitleaks output written in CI before format:check runs
-*.sarif

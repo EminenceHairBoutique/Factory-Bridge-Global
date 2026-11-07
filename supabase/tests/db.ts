@@ -52,6 +52,12 @@ do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role nologin bypassrls; end if;
 end $$;
 create schema if not exists auth;
+-- Supabase's auth.users has many more columns; tests only need id + email.
+create table if not exists auth.users (
+  id uuid primary key,
+  email text,
+  created_at timestamptz default now()
+);
 -- Mirrors Supabase's auth.uid(): sub claim from the request JWT settings.
 create or replace function auth.uid() returns uuid
 language sql stable
@@ -61,6 +67,9 @@ as $$
     (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')
   )::uuid
 $$;
+grant usage on schema auth to anon, authenticated, service_role;
+grant execute on function auth.uid() to anon, authenticated, service_role;
+grant usage on schema public to anon, authenticated, service_role;
 `;
 
 async function openPglite(): Promise<Db> {
@@ -109,4 +118,37 @@ export async function applyMigrations(db: Db): Promise<string[]> {
     applied.push(m.version);
   }
   return applied;
+}
+
+/** Run `fn` as a signed-in user (RLS enforced) or as service_role (BYPASSRLS), then restore the superuser session. */
+export async function asUser<T>(
+  db: Db,
+  userId: string | null,
+  fn: () => Promise<T>,
+  role: "authenticated" | "service_role" = "authenticated",
+): Promise<T> {
+  await db.exec(`set role ${role}`);
+  await db.exec(`select set_config('request.jwt.claim.sub', '${userId ?? ""}', false)`);
+  await db.exec(`select set_config('request.jwt.claim.role', '${role}', false)`);
+  try {
+    return await fn();
+  } finally {
+    await db.exec("reset role");
+    await db.exec("select set_config('request.jwt.claim.sub', '', false)");
+    await db.exec("select set_config('request.jwt.claim.role', '', false)");
+  }
+}
+
+/** Returns the error message of a statement expected to fail, or null if it unexpectedly succeeded. */
+export async function expectError(
+  db: Db,
+  sql: string,
+  params: unknown[] = [],
+): Promise<string | null> {
+  try {
+    await db.query(sql, params);
+    return null;
+  } catch (e) {
+    return e instanceof Error ? e.message : String(e);
+  }
 }
