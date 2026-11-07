@@ -14,6 +14,9 @@ export const TENANT_TABLES: ReadonlyArray<{ table: string; coveredBy: string }> 
   { table: "audit_events", coveredBy: "rls.test.ts" },
   { table: "security_events", coveredBy: "rls.test.ts" },
   { table: "document_access_log", coveredBy: "rls.test.ts" },
+  // 0003b ai_runs_budget
+  { table: "ai_runs", coveredBy: "ai-runs.test.ts" },
+  { table: "ai_budgets", coveredBy: "ai-runs.test.ts" },
 ];
 
 export const PUBLIC_READ_TABLES: ReadonlyArray<string> = [];

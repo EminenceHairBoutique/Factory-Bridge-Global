@@ -117,7 +117,8 @@ Lifecycle, transition authorizations, concurrency and supersession semantics: `M
 
 | Table | Key columns | Owner |
 |---|---|---|
-| `ai_runs` | `id, purpose(extract|translate|normalize|match|draft|flag), provider, model, prompt_template_id, prompt_version, input_hash, input_tokens, output_tokens, cost_usd numeric(12,6), latency_ms, status, error, org_id, triggered_by` | `org_id` + internal |
+| `ai_runs` (**0003b**, append-only) | `id, org_id, at, purpose(extract|translate|normalize|match|draft|flag), provider, model, prompt_template_id, prompt_version (sha256 of template), input_hash, status(ok|schema_invalid|provider_error|budget_exceeded|canary_leak|budget_refused), error, input_tokens, output_tokens, cache_read_input_tokens, cache_creation_input_tokens, cost_nano_usd bigint, cost_usd numeric(12,6) generated, latency_ms, attempts, flags text[], triggered_by, job_id (unique per org), request_id` | `org_id` owner/admin read; compliance + platform admin read; written only by `app.record_ai_run` (service_role) |
+| `ai_budgets` (**0003b**) | `org_id pk, monthly_cap_nano_usd bigint (0 = AI disabled), alert_threshold_pct, note, updated_by, created_at, updated_at` — absent row → platform default (`AI_MONTHLY_BUDGET_USD_DEFAULT`) | owner/admin read own; platform admin sets via `app.set_ai_budget` (audited); no delete |
 | `ai_extractions` | `ai_run_id, document_id, schema_name, schema_version, raw_output jsonb, validated_output jsonb, validation_errors jsonb, field_confidence jsonb, anchors jsonb, flags text[]` | via document |
 | `review_tasks` | `id, org_id, kind(extraction|translation|spec|match), subject_id, status review_status, assigned_to, due_at, resolved_by, resolved_at` | `org_id` + assigned internal |
 | `human_corrections` | `review_task_id, field_path, before jsonb, after jsonb, reason, corrected_by, at` | via review task |
@@ -156,7 +157,7 @@ Lifecycle, transition authorizations, concurrency and supersession semantics: `M
 | Table | Key columns |
 |---|---|
 | `audit_events` (append-only) | `id, at, actor_user_id, actor_org_id, entity_org_id, acting_as(member|internal|platform_admin|system), entity_table, entity_id, action, before_hash, after_hash, diff jsonb (redacted for restricted tables), request_id, ip_hash` — `actor_org_id`/`entity_org_id` are **not** FKs (the log must outlive deleted rows) |
-| `security_events` | `kind(rls_denied|rate_limited|scan_rejected|webhook_sig_fail|injection_flag), details jsonb, at` |
+| `security_events` | `kind(rls_denied|rate_limited|scan_rejected|webhook_sig_fail|injection_flag|auth_anomaly|privileged_access|ai_budget_exceeded|ai_canary_leak), actor_user_id, org_id, details jsonb, at` |
 | `notifications` | `user_id, org_id, kind, payload, read_at, delivered_via` |
 | `jobs_dead_letter` | `queue, msg, error, attempts, first_failed_at` |
 
