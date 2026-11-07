@@ -1,0 +1,26 @@
+{
+  "name": "@fbg/domain",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic business rules: enums, money, units, tier selection, Incoterm comparability, state machines, policy. No I/O.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./enums": "./src/enums.ts",
+    "./money": "./src/money.ts",
+    "./quote/tiers": "./src/quote/tiers.ts",
+    "./quote/incoterms": "./src/quote/incoterms.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "decimal.js": "^10.6.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.0"
+  }
+}

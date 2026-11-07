@@ -1,0 +1,41 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# env — never commit real values; .env.example is the only tracked env file
+.env
+.env.*
+!.env.example
+
+# test / coverage
+coverage/
+playwright-report/
+test-results/
+
+# supabase local
+supabase/.branches/
+supabase/.temp/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# OneDrive artifacts
+*.tmp
+~$*

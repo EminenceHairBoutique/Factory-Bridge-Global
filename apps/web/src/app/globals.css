@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/* Design tokens — docs/UX_INFORMATION_ARCHITECTURE.md §4 (restrained professional B2B). */
+@theme {
+  --color-ink: #0f1b2d;
+  --color-slate: #3a4a5e;
+  --color-paper: #faf8f4;
+  --color-surface: #ffffff;
+  --color-line: #e4e1da;
+  --color-accent: #b3613a;
+  --color-teal: #1f6f78;
+  --color-ok: #2e7d4f;
+  --color-warn: #b7791f;
+  --color-danger: #a33a2e;
+  --font-sans: "Inter", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-feature-settings: "tnum" 1;
+}

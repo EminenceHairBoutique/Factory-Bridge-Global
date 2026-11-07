@@ -4,7 +4,7 @@
 
 ## 1. What this project is
 
-Factory Bridge Global (working name; the GitHub repo is currently named `Great-Wall-Bridge`) is a
+Factory Bridge Global (GitHub: `EminenceHairBoutique/Factory-Bridge-Global`, local checkout `C:\dev\Factory Bridge Global`) is a
 U.S.-facing, software-enabled Chinese sourcing and procurement service for B2B buyers. Three
 connected workspaces:
 

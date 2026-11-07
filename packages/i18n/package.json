@@ -1,0 +1,18 @@
+{
+  "name": "@fbg/i18n",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "UI message catalogs: en-US and zh-CN are first-class. Stored canonical data is never localized here.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.0"
+  }
+}

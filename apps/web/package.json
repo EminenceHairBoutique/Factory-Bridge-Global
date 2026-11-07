@@ -1,0 +1,32 @@
+{
+  "name": "@fbg/web",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Next.js app: public site, buyer workspace (EN), supplier workspace (zh-CN), internal ops.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "next typegen && tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@fbg/db": "workspace:*",
+    "@fbg/domain": "workspace:*",
+    "@fbg/i18n": "workspace:*",
+    "next": "^16.4.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/node": "^22.19.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.5",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.0"
+  }
+}

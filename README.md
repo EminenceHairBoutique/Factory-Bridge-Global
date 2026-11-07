@@ -1,7 +1,5 @@
 # Factory Bridge Global
 
-> Repository name: `Great-Wall-Bridge` (rename pending founder decision — see `docs/OPEN_QUESTIONS.md` OQ-01).
-
 Factory Bridge Global is a U.S.-facing, software-enabled sourcing and procurement service for B2B buyers working with Chinese manufacturers. It combines bilingual sourcing expertise with software for structured briefs, authorized quote intake, AI-assisted bilingual extraction with human review, like-for-like quote comparison, transparent landed-cost estimates, and evidence-based quality workflows.
 
 It is **not** a marketplace clone of Temu, 1688, Taobao, Weidian or Alibaba.com, and it does not scrape or automate those platforms.

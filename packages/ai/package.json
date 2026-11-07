@@ -1,0 +1,21 @@
+{
+  "name": "@fbg/ai",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Provider-agnostic AI adapter, versioned prompt templates, output schemas, eval harness. No DB writes (ARCHITECTURE.md §4).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.0"
+  }
+}

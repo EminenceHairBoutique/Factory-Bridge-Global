@@ -1,0 +1,87 @@
+// Flat ESLint config for the monorepo.
+// Security-relevant rules live here so they apply to every package (see docs/SECURITY.md §3).
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import prettier from "eslint-config-prettier";
+import globals from "globals";
+
+export default tseslint.config(
+  {
+    ignores: [
+      "**/node_modules/**",
+      "**/.next/**",
+      "**/dist/**",
+      "**/coverage/**",
+      "**/next-env.d.ts",
+      "apps/web/.next/**",
+    ],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+      globals: { ...globals.node, ...globals.browser },
+    },
+    rules: {
+      "@typescript-eslint/consistent-type-imports": ["error", { prefer: "type-imports" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/switch-exhaustiveness-check": "error",
+      "no-console": ["error", { allow: ["warn", "error"] }],
+      eqeqeq: ["error", "always"],
+    },
+  },
+  {
+    // Deterministic domain code must never import I/O, AI SDKs or the DB client (ARCHITECTURE.md §4).
+    files: ["packages/domain/src/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@supabase/*", "@fbg/db", "@fbg/ai", "@anthropic-ai/*"],
+              message: "packages/domain must stay pure (no I/O, DB or AI).",
+            },
+            {
+              group: ["node:fs", "node:http", "node:https", "node:child_process"],
+              message: "packages/domain must stay pure.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Service-role client may only be constructed in the worker and reviewed privileged modules (SECURITY.md §3).
+    files: ["apps/web/**/*.{ts,tsx}"],
+    ignores: ["apps/web/src/server/privileged/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@fbg/db/service-role",
+              message:
+                "Service-role access is restricted to apps/worker and apps/web/src/server/privileged/**.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["**/*.mjs", "**/*.cjs", "**/*.js"],
+    ...tseslint.configs.disableTypeChecked,
+  },
+  prettier,
+);

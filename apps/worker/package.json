@@ -1,0 +1,26 @@
+{
+  "name": "@fbg/worker",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Long-running job consumer: parsing, extraction, translation, notifications, reports. Hosted separately from Vercel (ADR-006).",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fbg/ai": "workspace:*",
+    "@fbg/db": "workspace:*",
+    "@fbg/domain": "workspace:*",
+    "pino": "^10.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.0"
+  }
+}

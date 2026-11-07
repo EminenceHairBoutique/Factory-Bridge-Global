@@ -67,14 +67,25 @@ Living document. Append new ADRs; never edit an accepted ADR's substance — sup
 **Decision (proposed):** Pilot A: custom roll labels + printed folding cartons; Pilot B: human-hair bundles (founder's own brand as internal design-partner tenant). See `PILOT_CATEGORY_SELECTION.md`.
 
 ## ADR-014 — Repository and product naming
-**Status:** **proposed** (founder decision OQ-01)
-**Context:** GitHub repo and README say "Great Wall Bridge"; all specs say "Factory Bridge Global".
-**Decision (proposed):** Use "Factory Bridge Global" as the product name in all docs/code; optionally rename the GitHub repo to `factory-bridge-global`. Until decided, docs say "Factory Bridge Global (repo: Great-Wall-Bridge)".
+**Status:** accepted 2026-11-07 (founder action)
+**Context:** GitHub repo and README said "Great Wall Bridge"; all specs say "Factory Bridge Global".
+**Decision:** Product and repo are "Factory Bridge Global". Founder created `EminenceHairBoutique/Factory-Bridge-Global` with fresh history (Phase 0 docs as initial commit) and a local checkout at `C:\dev\Factory Bridge Global`. `Great-Wall-Bridge` is superseded; archive it on GitHub to avoid confusion. Prior commit history (4 commits) is not carried over; the Phase 0 session report records what it contained.
 
 ## ADR-015 — Master spec file location
 **Status:** accepted (path) / proposed (duplicate removal, OQ-01b)
 **Context:** Commit `bcb72ec` (2026-11-07) placed the spec at `docs/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md`, matching the kickoff prompt, and left a byte-identical copy at `docs/research/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md`.
 **Decision:** `docs/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md` is canonical and is what `CLAUDE.md` references. **Proposed:** delete the `docs/research/` copy (`git rm docs/research/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md`) so two copies cannot drift.
+
+## ADR-017 — Toolchain pins (B-01)
+**Status:** accepted
+**Context:** At scaffold time the npm registry offered TypeScript 7.0.x, ESLint 10, Vitest 5, Next.js 16.4, React 19.3, Tailwind 4.3, zod 4.6.
+**Decision:** TypeScript pinned to `~5.9` because `typescript-eslint` 8.x declares `typescript <6.1`; revisit when typescript-eslint supports TS 7. ESLint 10 flat config, Vitest 5, Next 16 App Router, Tailwind v4 (`@theme` tokens), zod 4. `pnpm` 10 via `packageManager` field (Corepack). Playwright added in B-05 when there is a flow to drive.
+**Consequences:** Upgrading TypeScript is a deliberate ADR change, not a routine bump.
+
+## ADR-018 — Where code is validated before it reaches the founder's machine
+**Status:** accepted
+**Context:** The working copy lives in a OneDrive-synced folder; `node_modules` there is a sync hazard, and the agent's shell on that mount cannot delete files (git lock-file problem).
+**Decision:** Agents build and run checks in a scratch environment, then deliver only source files + `pnpm-lock.yaml` into the repo folder. The founder (or Claude Code) performs commits and pushes. Founder is advised to move the repo outside OneDrive before local `pnpm install`.
 
 ## ADR-016 — No marketplace or messaging automation; connectors gated by the data-rights matrix
 **Status:** accepted

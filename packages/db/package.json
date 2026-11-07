@@ -1,0 +1,22 @@
+{
+  "name": "@fbg/db",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Generated Supabase types and typed query helpers. Regenerate with `supabase gen types` (B-03+).",
+  "exports": {
+    ".": "./src/index.ts",
+    "./service-role": "./src/service-role.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.0"
+  }
+}

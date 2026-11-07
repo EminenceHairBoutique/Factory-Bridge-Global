@@ -4,7 +4,7 @@ Living document. Each item: what is being decided, why it matters, default assum
 
 | ID | Question | Why it matters | Default assumption if unanswered | Blocks |
 |---|---|---|---|---|
-| **OQ-01** | Product/repo naming: rename repo to `factory-bridge-global`? Keep "Great Wall Bridge" as anything? | Consistency in code, domains, legal docs | Docs/code say "Factory Bridge Global"; repo name unchanged | Public site copy |
+| ~~OQ-01~~ | **Resolved 2026-11-07:** new repo `EminenceHairBoutique/Factory-Bridge-Global`; "Great Wall Bridge" retired (ADR-014). Remaining: archive the old GitHub repo. | — | — | — |
 | **OQ-01b** | Spec now exists at `docs/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md` **and** `docs/research/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md` (identical). Delete the `docs/research/` copy? | Two copies will drift | `docs/` copy is canonical; agent never edits the research copy | Nothing |
 | **OQ-02** | Legal entity, registered address, DBA/trademark, and whether "U.S.-based" may be claimed | FTC substantiation; public copy; contracts | No "U.S.-based" claim on site; "Operated from New Jersey, USA" only after entity verified | Public site launch |
 | **OQ-03** | Approve the bilingual supplier data-authorization form (after counsel) | Nothing supplier-provided can be shown to buyers without it | Only `internal_only` catalog data until approved | Phase 1 buyer-visible supplier data |
