@@ -67,6 +67,12 @@ as $$
     (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')
   )::uuid
 $$;
+-- Supabase sets DEFAULT PRIVILEGES in schema public that grant ALL on every new table, function and
+-- sequence to anon, authenticated and service_role. Reproducing them here means a migration that
+-- forgets to revoke fails on PGlite exactly as it fails on real Postgres.
+alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
 grant usage on schema auth to anon, authenticated, service_role;
 grant execute on function auth.uid() to anon, authenticated, service_role;
 grant usage on schema public to anon, authenticated, service_role;

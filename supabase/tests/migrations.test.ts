@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ENUM_REGISTRY } from "@fbg/domain/enums";
 import { extractEnumBlock, generateEnumSql } from "@fbg/domain/sql/enum-sql";
 import { applyMigrations, listMigrations, openDb, readSeed, type Db } from "./db.js";
-import { PUBLIC_READ_TABLES, TENANT_TABLES } from "./rls-coverage.js";
+import { AUTHENTICATED_MAX_PRIVILEGES, PUBLIC_READ_TABLES, TENANT_TABLES } from "./rls-coverage.js";
 
 let db: Db;
 
@@ -126,6 +126,39 @@ describe("RLS coverage guard (fails when a public table is added without harness
         [r.tablename],
       );
       expect(policies.length, `${r.tablename} must have at least one policy`).toBeGreaterThan(0);
+    }
+  });
+
+  it("authenticated holds exactly the allow-listed table privileges on every public table; anon reads nothing", async () => {
+    // Supabase default privileges hand ALL on new tables to anon/authenticated/service_role (the PGlite
+    // shim in db.ts reproduces this). A migration that forgets to revoke makes RLS the only barrier;
+    // this guard catches that for the whole class, not one table at a time.
+    const PRIVS = [
+      "SELECT",
+      "INSERT",
+      "UPDATE",
+      "DELETE",
+      "TRUNCATE",
+      "REFERENCES",
+      "TRIGGER",
+    ] as const;
+    const tables = [...TENANT_TABLES.map((t) => t.table), ...PUBLIC_READ_TABLES];
+    for (const table of tables) {
+      const allowed = AUTHENTICATED_MAX_PRIVILEGES[table];
+      expect(allowed, `${table} must have an entry in AUTHENTICATED_MAX_PRIVILEGES`).toBeDefined();
+      for (const priv of PRIVS) {
+        const rows = await db.query<{ ok: boolean }>(
+          "select has_table_privilege($1, $2, $3) as ok",
+          ["authenticated", `public.${table}`, priv],
+        );
+        const expected = (allowed ?? []).includes(priv as never);
+        expect(rows[0]?.ok, `authenticated ${priv} on ${table}`).toBe(expected);
+      }
+      const anon = await db.query<{ ok: boolean }>(
+        "select has_table_privilege('anon', $1, 'SELECT') as ok",
+        [`public.${table}`],
+      );
+      expect(anon[0]?.ok, `anon SELECT on ${table}`).toBe(false);
     }
   });
 
