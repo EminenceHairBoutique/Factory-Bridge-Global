@@ -1,0 +1,106 @@
+/*
+ * Design-preview scope (track UX-01). Loaded only by apps/web/src/app/design-preview/layout.tsx.
+ * Color tokens come from the shared Tailwind theme in app/globals.css (UX_INFORMATION_ARCHITECTURE.md §4);
+ * this file adds typography, focus, motion and a few layout helpers that the prototypes need.
+ */
+
+.fbg-dp {
+  font-family:
+    "Inter",
+    "Noto Sans SC",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  font-feature-settings:
+    "tnum" 1,
+    "cv11" 1,
+    "ss01" 1;
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.fbg-dp :lang(zh-CN),
+.fbg-dp .fbg-zh {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Inter", sans-serif;
+}
+
+.fbg-dp .fbg-num {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Visible focus for keyboard users; the ring uses the single action accent. */
+.fbg-dp :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* State transitions only (IA §4: 150 ms, no decorative motion). */
+.fbg-dp :where(button, a, input, select, textarea, summary) {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fbg-dp *,
+  .fbg-dp *::before,
+  .fbg-dp *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Demo watermark stripe: must stay readable, never decorative. */
+.fbg-dp .fbg-demo-stripe {
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in oklab, var(--color-warn) 14%, var(--color-paper)),
+    color-mix(in oklab, var(--color-warn) 14%, var(--color-paper)) 12px,
+    var(--color-paper) 12px,
+    var(--color-paper) 24px
+  );
+}
+
+/* Cost-line status markers (IA §3 StatusLine): solid / dashed / hollow. */
+.fbg-dp .fbg-line-sourced {
+  border-left: 3px solid var(--color-teal);
+}
+.fbg-dp .fbg-line-estimated {
+  border-left: 3px dashed var(--color-warn);
+}
+.fbg-dp .fbg-line-missing {
+  border-left: 3px double var(--color-danger);
+}
+.fbg-dp .fbg-line-na {
+  border-left: 3px solid var(--color-line);
+}
+
+/* Horizontal scroll with snap for the mobile comparison carousel. */
+.fbg-dp .fbg-snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.fbg-dp .fbg-snap-x > * {
+  scroll-snap-align: start;
+}
+
+.fbg-dp .fbg-scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+
+/* Hide scrollbars on the nav rail without removing scroll. */
+.fbg-dp .fbg-no-scrollbar {
+  scrollbar-width: none;
+}
+.fbg-dp .fbg-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
