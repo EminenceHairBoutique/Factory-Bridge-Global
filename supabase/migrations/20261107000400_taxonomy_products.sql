@@ -248,8 +248,10 @@ alter table public.product_variants        force row level security;
 alter table public.product_specifications  enable row level security;
 alter table public.product_specifications  force row level security;
 
+-- Supabase default privileges grant ALL to anon/authenticated/service_role on new tables: revoke from
+-- `authenticated` explicitly, then grant only what a policy can allow.
 revoke all on public.product_taxonomy, public.attribute_definitions, public.products,
-              public.product_variants, public.product_specifications from public, anon;
+              public.product_variants, public.product_specifications from public, anon, authenticated;
 grant select on public.product_taxonomy, public.attribute_definitions to authenticated;
 grant select, insert, update on public.products, public.product_variants, public.product_specifications to authenticated;
 grant all on public.product_taxonomy, public.attribute_definitions, public.products,
