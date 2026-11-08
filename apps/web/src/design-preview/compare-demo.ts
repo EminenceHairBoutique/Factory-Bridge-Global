@@ -82,8 +82,14 @@ export function selectTier(quote: DemoQuote, qty: number) {
   return quote.tiers.find((t) => qty >= t.minQty && (t.maxQty === null || qty < t.maxQty)) ?? null;
 }
 
-export function toUsd(amount: number, currency: DemoQuote["currency"]): number {
-  return currency === "USD" ? amount : amount * DEMO_FX.rate;
+/** Converts at the given USD-per-CNY rate (default: the demo reference rate); `null` means no usable rate (missing_fx). */
+export function toUsd(
+  amount: number,
+  currency: DemoQuote["currency"],
+  rate: number | null = DEMO_FX.rate,
+): number | null {
+  if (currency === "USD") return amount;
+  return rate === null ? null : amount * rate;
 }
 
 const REQUIRED_BY_BASIS: Record<string, LandedLineType[]> = {
@@ -134,6 +140,7 @@ export function evaluateQuote(
   qty: number,
   asOf: string,
   overrides: LandedOverrides[string] | undefined,
+  fxRate: number | null = DEMO_FX.rate,
 ): EvaluatedQuote {
   const flags: string[] = [];
   const hardMismatch = Object.entries(BRIEF_HARD_SPEC)
@@ -158,11 +165,12 @@ export function evaluateQuote(
   if (quote.validUntil === null) flags.push("validity_unconfirmed");
 
   const goodsOriginal = tier ? tier.unitPrice * qty : null;
-  const goodsUsd = goodsOriginal === null ? null : toUsd(goodsOriginal, quote.currency);
+  const goodsUsd = goodsOriginal === null ? null : toUsd(goodsOriginal, quote.currency, fxRate);
+  if (goodsOriginal !== null && goodsUsd === null) flags.push("missing_fx");
   const oneTimeFeesOriginal = quote.fees
     .filter((f) => !f.includedInUnitPrice)
     .reduce((sum, f) => sum + f.amount, 0);
-  const oneTimeFeesUsd = toUsd(oneTimeFeesOriginal, quote.currency);
+  const oneTimeFeesUsd = toUsd(oneTimeFeesOriginal, quote.currency, fxRate) ?? 0;
   const comparableGoodsUsd = goodsUsd === null ? null : goodsUsd + oneTimeFeesUsd;
 
   const required = new Set(REQUIRED_BY_BASIS[quote.priceBasis] ?? []);
@@ -222,8 +230,9 @@ export function compareQuotes(
   qty: number,
   asOf: string,
   overrides: LandedOverrides,
+  fxRate: number | null = DEMO_FX.rate,
 ): ComparisonResult {
-  const evaluated = quotes.map((q) => evaluateQuote(q, qty, asOf, overrides[q.id]));
+  const evaluated = quotes.map((q) => evaluateQuote(q, qty, asOf, overrides[q.id], fxRate));
   const included = evaluated.filter((e) => e.exclusion === null);
   const excluded = evaluated.filter((e) => e.exclusion !== null);
 
