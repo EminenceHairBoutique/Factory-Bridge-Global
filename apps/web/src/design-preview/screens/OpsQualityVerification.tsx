@@ -413,7 +413,7 @@ function TrackDetail({
       </div>
 
       <Panel title="Checkpoints" description={`Next: ${view.nextAction}`} padded={false}>
-        <ol className="grid divide-y divide-(--fbg-border-subtle) md:grid-cols-2 md:divide-y-0 xl:grid-cols-4">
+        <ol className="grid divide-y divide-(--fbg-border-subtle) md:grid-cols-2 md:divide-y-0 2xl:grid-cols-4">
           {view.steps.map((s, i) => (
             <li
               key={s.key}

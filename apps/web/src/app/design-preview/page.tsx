@@ -76,6 +76,12 @@ const SCREENS = [
     workspace: "Buyer (English)",
   },
   {
+    href: "/design-preview/buyer/qa",
+    title: "Samples and inspections (buyer QA status)",
+    body: "Per supplier on the project: every quality badge in the fixed wording, each opening to what was checked, by whom, when and against which checklist version; the eight steps in the buyer's words; samples, the golden sample agreement, production milestones with estimated vs committed dates, inspections with findings and the limits of sampling stated with the plan's numbers; the decision after a failed inspection recorded as the buyer's with an acknowledgement and relayed by the platform; remediation in plain words. Supplier contact data never appears.",
+    workspace: "Buyer (English)",
+  },
+  {
     href: "/design-preview/buyer/landed-cost",
     title: "Landed cost scenarios",
     body: 'Immutable snapshots citing the exact FX rows and inputs; a new scenario with quantity, as-of date (FX resolved by the 3-day lag rule or missing_fx), a freight estimate (provider or manual; sourced only with a document) and a person-recorded duty assumption (never AI-filled); every landed-cost line per eligible quotation with status and source; a total only when complete, otherwise "Partial — excludes: …"; cross-term ranking only when every eligible total is complete.',
