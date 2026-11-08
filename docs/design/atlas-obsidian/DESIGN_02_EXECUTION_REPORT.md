@@ -125,6 +125,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-33 (documents, access log, signed links, extraction summary, buyer notes, discard rule; server-side `searchParams`).
 
+## 6i. Session 11 — Buyer reports (2026-11-07, same branch)
+
+**Reuse first:** every number in a report comes from `compare-demo.ts`; `exclusionText` and `forwarderOverrides` moved out of the comparison screen into that helper so the comparison and the report footer share wording and freight inputs. The project overview's own report records were replaced by `demo-data/reports.ts`; its Reports tab, the comparison export dialog and the documents library now point at the new screens.
+
+**Implemented in preview:** `/design-preview/buyer/reports` (`BuyerReports.tsx`): versions with current / stale / superseded derived from the recorded inputs and every reason listed; a generate panel whose "What this version will contain" is derived from the live comparison (ranked and not-ranked counts, trade-term groups, whether cross-group ranking is available, assumption and exclusion counts, FX row, file name); simulated generation that flips earlier versions to superseded; Regenerate with current data; reproducibility facts in the evidence drawer (`ui/ReportFacts.tsx`). `/design-preview/buyer/report?id=` (`BuyerReportView.tsx`): the report rendered per QUOTE_ENGINE_SPEC §5 (running header, facts grid, ranked quotations by trade-term group with selected tier, goods in both currencies, fees, ordering key, landed lines with status, flags and soft differences, the not-ranked list, footer with assumptions, exclusions, rounding rule and disclaimers) and the five ADR-024 tables with a CSV preview; `id=live` renders a preview-generated version from its inputs. `reports-demo.ts` with 9 tests (file name pattern, banker's rounding, status derivation, content and tables, CSV quoting). Details in `BUYER_REPORTS_SCREENS.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 258: web 59); `next build` exit 0; production `next start`: `/design-preview/buyer/reports` and `/design-preview/buyer/report?id=rep_1` → 404. Browser: generate flow, status flips, download-link logging, regenerate pre-fill, empty states, viewer tabs and sheets, comparison dialog link, overview tab; no console errors; no horizontal page overflow at 320 / 375 / 768 / 1440 in both themes.
+
+**Cross-track:** H-34 (reports table, server-side status derivation, generation job, five tables with reproducibility columns).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).
