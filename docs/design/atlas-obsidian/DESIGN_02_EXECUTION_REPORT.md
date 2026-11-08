@@ -155,6 +155,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-36 (supplier-side message visibility, relay state, anonymized buyer, attachments through the pipeline, free-text prices are not quotations).
 
+## 6l. Session 14 — Supplier 产品目录 and 批量导入 (2026-11-07, same branch)
+
+**Reuse first:** the catalog lists the same `SUPPLIER_PRODUCTS` the 阶梯报价 editor and 工作台 already use; import validation reuses `validateTiers` and `validateBasis` from `supplier-demo.ts` so a row fails for exactly the reasons the editor would show, and the upload pre-check and its Chinese reasons come from the documents and messages helpers. The AppShell was deliberately left untouched: the UX-03 session is rewriting it and owns the nav wiring (`nav.ts`), so 产品目录 is reached from the 工作台 header and the preview index until that lands.
+
+**Implemented in preview:** `/design-preview/supplier/catalog` (`SupplierCatalog.tsx`) and `/design-preview/supplier/catalog/import` (`SupplierCatalogImport.tsx`) as described in `SUPPLIER_ZH_CN_SCREENS.md` §3.6; `demo-data/supplier-import.ts` (template columns, two sample files); `supplier-catalog-demo.ts` with 8 tests; index entries; 工作台 header link.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 301: web 83); `next build` exit 0; production `next start`: both routes → 404. Browser: catalog counts, tabs and visibility filter, 新增产品 validation and creation notice, 暂停 / 恢复 with the drawer warning; import template download, the valid sample previewing 更新 / 未变化 / 新增 with the labels diff, the error sample showing every row-numbered message, an SVG refused in Chinese, an XLSX explained as server-parsed, pasted CSV, import of the clean rows as 待确认 with the confirm links; no console errors from the preview; widths as recorded in the commit message.
+
+**Cross-track:** H-37 (catalog import contract). Coordination: UX-03 owns AppShell / primitives / BuyerDashboard / design-preview.css; #15 merges first; nav entries for 消息 and 产品目录 handed over.
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

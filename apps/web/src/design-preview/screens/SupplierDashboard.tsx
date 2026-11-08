@@ -72,10 +72,15 @@ export function SupplierDashboard() {
             </>
           }
           actions={
-            <Link href="/design-preview/supplier/pricing" className={buttonClasses("primary")}>
-              <Icon name="plus" size={16} />
-              新增阶梯报价
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/design-preview/supplier/catalog" className={buttonClasses("secondary")}>
+                产品目录
+              </Link>
+              <Link href="/design-preview/supplier/pricing" className={buttonClasses("primary")}>
+                <Icon name="plus" size={16} />
+                新增阶梯报价
+              </Link>
+            </div>
           }
         />
 

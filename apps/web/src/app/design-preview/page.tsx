@@ -94,6 +94,18 @@ const SCREENS = [
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/supplier/catalog",
+    title: "供应商：产品目录 (supplier catalog, zh-CN)",
+    body: "Products with price state and visibility, counts, status tabs and a visibility filter; 新增产品 creates a priced-later product as 待确认; 暂停 / 恢复; the 依据 drawer explains what each visibility means and that unconfirmed prices never reach a buyer.",
+    workspace: "Supplier",
+  },
+  {
+    href: "/design-preview/supplier/catalog/import",
+    title: "供应商：批量导入 (catalog import, zh-CN)",
+    body: "Template download (CSV, UTF-8 with BOM, one row per tier), file or pasted CSV or sample files, a per-product preview with row-numbered Chinese errors and warnings (colloquial trade terms, missing places, overlapping tiers, bad currency, expired dates, invalid scope) and the diff against the catalog, then import of the clean rows as 待确认.",
+    workspace: "Supplier",
+  },
+  {
     href: "/design-preview/supplier/pricing",
     title: "阶梯报价 (Price tier editor)",
     body: "Ascending non-overlapping tiers with inline validation, Incoterm code plus 指定地点, colloquial 出厂价 never defaulted to EXW, validity required, visibility intent.",
