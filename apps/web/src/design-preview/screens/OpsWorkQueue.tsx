@@ -304,7 +304,11 @@ export function OpsWorkQueue() {
                           ) : null}
                         </div>
                         <div className="flex flex-wrap gap-2 md:justify-end">
-                          {t.status === "done" ? null : t.assignee === "unassigned" ? (
+                          {t.status === "done" ? null : t.kind === "compliance_hold" && t.href ? (
+                            <Link href={t.href} className={buttonClasses("secondary", "sm")}>
+                              Open hold
+                            </Link>
+                          ) : t.assignee === "unassigned" ? (
                             <Button
                               size="sm"
                               variant="primary"

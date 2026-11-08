@@ -142,6 +142,12 @@ const SCREENS = [
     workspace: "Internal operations",
   },
   {
+    href: "/design-preview/ops/compliance",
+    title: "Operations: compliance holds",
+    body: 'Holds for blocked and out-of-pilot categories, export-sensitive items, contact disclosure grants and supplier provenance, ordered by urgency with SLA chips; each hold shows its trigger, policy basis, evidence, what the buyer sees (only "Compliance review required") and internal notes; a decision form (release, release with conditions, decline, escalate) that states the downstream effect before recording who, role, when, reason and conditions; a view-as switch shows that operators read and only compliance reviewers and platform admins decide.',
+    workspace: "Internal operations",
+  },
+  {
     href: "/design-preview/ops/suppliers",
     title: "Operations: supplier CRM",
     body: "Sortable supplier list with stage, checks due, catalog grant and assignment, and the supplier record: claimed vs verified profile, facilities, restricted contacts with contact basis and disclosure grants, checks that generate the buyer badge, documents with rights class, source-permission editor.",
