@@ -571,12 +571,15 @@ export function ProjectOverview() {
               <Notice tone="warn" title="Cross-group ranking unavailable">
                 Required landed-cost lines are missing for{" "}
                 {comparison.landedRankingBlockedBy.join(", ")}. Add a freight estimate and a duty
-                assumption on the comparison screen.
+                assumption in a landed-cost scenario.
               </Notice>
             </div>
-            <div className="mt-4">
+            <div className="mt-4 flex flex-wrap gap-2">
               <Link href="/design-preview/buyer/compare" className={buttonClasses("primary")}>
                 Open comparison
+              </Link>
+              <Link href="/design-preview/buyer/landed-cost" className={buttonClasses("secondary")}>
+                Landed cost scenarios
               </Link>
             </div>
           </Panel>
