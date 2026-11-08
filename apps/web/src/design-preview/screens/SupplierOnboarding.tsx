@@ -510,8 +510,19 @@ export function SupplierOnboarding() {
                 title="资质文件"
                 description="PDF、JPG、PNG，单个文件不超过 25 MB。文件先进入隔离区并完成安全扫描，再由运营人员审核。"
               >
-                <Notice tone="warn" title="原型：文件不会上传">
-                  本界面仅记录文件名与大小。正式系统中的上传、扫描与审核由后端任务完成。
+                <Notice
+                  tone="warn"
+                  title="原型：文件不会上传"
+                  action={
+                    <Link
+                      href="/design-preview/supplier/documents"
+                      className={buttonClasses("secondary", "sm")}
+                    >
+                      文件资料
+                    </Link>
+                  }
+                >
+                  本界面仅记录文件名与大小。正式系统中的上传、扫描与审核由后端任务完成；所有文件及其审核状态在“文件资料”中集中管理。
                 </Notice>
                 {fileError ? (
                   <div className="mt-3">
