@@ -81,7 +81,8 @@ Chinese-first form: company, representative, families, trade readiness, allowed 
 | 产品目录 | list, 新增产品, 批量导入 with preview and per-row errors |
 | 阶梯报价 | 起订量 · 数量区间 · 单价 · 货币 · 单位 · 交易条款 (code + 指定地点 required; 出厂价 alone is stored as unknown) · 有效期 · 规格版本; actions 确认有效 · 更新报价 · 暂停产品 |
 | 询价单 | accept / decline / 需要澄清; structured quote form mirroring the quote schema; buyer specification shown read-only in both languages |
-| 文件与消息 | documents with provenance; messages with approval states |
+| 消息 | **Prototyped** (`/design-preview/supplier/messages?thread=`): buyer questions relayed in Chinese with the English original and translation provenance; the supplier's replies with their relay state (待平台转达 → 已转达); platform notices; anonymized buyer label; reply composer that warns on contact details and prices and routes attachments through the upload pipeline; relay log; see `SUPPLIER_ZH_CN_SCREENS.md` §3.5 |
+| 文件资料 | documents with provenance (specified) |
 | 数据共享设置 | per-field 仅内部 / 平台买家 / 指定买家; 撤销授权 with its effect explained |
 
 Formats: dates 2026年11月7日, ¥ with `CNY` code, tabular numerals, Incoterms in Latin letters.

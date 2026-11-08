@@ -180,7 +180,8 @@ const SUPPLIER_NAV: NavItem[] = [
     mobile: true,
     mobileOrder: 1,
   },
-  { label: "文件与消息", icon: "message", badge: 1 },
+  { label: "消息", icon: "message", href: "/design-preview/supplier/messages", badge: 1 },
+  { label: "文件资料", icon: "upload" },
   { label: "数据共享设置", icon: "lock", href: "/design-preview/supplier/sharing" },
 ];
 

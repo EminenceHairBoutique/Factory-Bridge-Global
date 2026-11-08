@@ -7,9 +7,20 @@ import Link from "next/link";
 import { useState } from "react";
 import { SUPPLIER_PROFILE, SUPPLIER_PRODUCTS, SUPPLIER_RFQS } from "../demo-data/supplier";
 import { daysUntil, formatZhDate, formatZhMoney, tierRangeZh } from "../supplier-demo";
+import { SUPPLIER_THREADS } from "../demo-data/supplier-messages";
+import { smSummary } from "../supplier-messages-demo";
 import { AppShell } from "../ui/AppShell";
 import { Icon } from "../ui/icons";
-import { Badge, Button, PageHeader, Panel, buttonClasses, cx, type Tone } from "../ui/primitives";
+import {
+  Badge,
+  Button,
+  buttonClasses,
+  cx,
+  Notice,
+  PageHeader,
+  Panel,
+  type Tone,
+} from "../ui/primitives";
 
 const TODAY = "2026-11-07";
 
@@ -30,6 +41,8 @@ const PRICE_TONE: Record<string, Tone> = {
 };
 
 const VERIFY_TONE: Record<string, Tone> = { 已核验: "ok", 待审核: "neutral", 需补充: "warn" };
+
+const PENDING_MESSAGES = smSummary(SUPPLIER_THREADS).pendingReply;
 
 export function SupplierDashboard() {
   const [confirmed, setConfirmed] = useState<Set<string>>(new Set());
@@ -65,6 +78,24 @@ export function SupplierDashboard() {
             </Link>
           }
         />
+
+        {PENDING_MESSAGES > 0 ? (
+          <Notice
+            tone="warn"
+            icon="message"
+            title={`${PENDING_MESSAGES} 条买家消息待回复`}
+            action={
+              <Link
+                href="/design-preview/supplier/messages"
+                className={buttonClasses("secondary", "sm")}
+              >
+                查看消息
+              </Link>
+            }
+          >
+            买家的澄清问题由平台翻译并转达；您的回复经平台运营核对后转达买家。
+          </Notice>
+        ) : null}
 
         <div className="grid gap-4 xl:grid-cols-3">
           {/* 待处理询价 */}

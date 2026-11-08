@@ -106,6 +106,12 @@ const SCREENS = [
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/supplier/messages",
+    title: "供应商：消息 (supplier inbox, zh-CN)",
+    body: "The supplier's side of the threads: buyer questions in Chinese with the English original and translation provenance, the supplier's replies with their relay state (待平台转达 → 已转达), platform notices, an anonymized buyer label, a reply composer that warns on contact details and prices and routes attachments through the upload pipeline, and the relay log.",
+    workspace: "Supplier",
+  },
+  {
     href: "/design-preview/supplier/sharing",
     title: "数据共享设置 (Data-sharing settings)",
     body: "Per-field 仅内部 / 平台买家 / 指定买家, contacts locked behind a separate disclosure grant, recorded grants with revocation effects explained.",

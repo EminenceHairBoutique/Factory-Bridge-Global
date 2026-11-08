@@ -145,6 +145,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-35 (supplier_messages approval record, channel eligibility from contact basis, inbound flags as data, outbound log).
 
+## 6k. Session 13 — Supplier 消息 inbox (2026-11-07, same branch)
+
+**Reuse first:** the supplier inbox is the other side of the buyer threads already in the preview (Supplier A's MOQ and sample conversations) plus the 询价单 clarification the RFQ screen already showed; it reuses the shared upload pre-check (`validateUploads`) with Chinese reasons, the AppShell supplier chrome, and the list-then-thread layout of the buyer inbox.
+
+**Implemented in preview:** `/design-preview/supplier/messages?thread=` (`SupplierMessages.tsx`): 待回复-first list with status tabs and unread marks; threads with buyer questions in Chinese plus the English original and provenance, supplier replies with relay state and the platform's translation once relayed, platform notes, a 平台说明 where contact details were removed, anonymized buyer labels; a reply composer with contact and price warnings, attachments through the upload pipeline, simulated relay; the 依据 drawer with channel and visibility rules and the 转达记录. 工作台 notice, sidebar 消息 and the 询价单 clarification link wired. `supplier-messages-demo.ts` with 6 tests. Details in `SUPPLIER_ZH_CN_SCREENS.md` §3.5.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 293: web 75); `next build` exit 0; production `next start`: `/design-preview/supplier/messages` → 404. Browser: ordering and counts, warnings, attachment rejection in Chinese, submit → 待平台转达 → 已转达 with the relay log row and the 询价单 note, contact-removed notice and English translation on the relayed reply, notice and closed threads blocking the composer, unread count dropping on open, 工作台 and 询价单 links; no console errors from the preview; no horizontal page overflow at 320 / 375 / 768 / 1440 in both themes.
+
+**Cross-track:** H-36 (supplier-side message visibility, relay state, anonymized buyer, attachments through the pipeline, free-text prices are not quotations).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).
