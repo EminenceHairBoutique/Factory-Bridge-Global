@@ -125,10 +125,11 @@ begin
     raise exception 'Direct deletion from storage tables is not allowed. Use the Storage API instead.'
       using hint = 'This prevents accidental data loss from orphaned objects.', errcode = '42501';
   end if;
-  return old;
+  return null;
 end $$;
-create trigger objects_delete_protect before delete on storage.objects for each row execute function storage.protect_delete();
-create trigger buckets_delete_protect before delete on storage.buckets for each row execute function storage.protect_delete();
+-- statement-level, like Supabase's: it fires even when RLS leaves no row to delete
+create trigger objects_delete_protect before delete on storage.objects for each statement execute function storage.protect_delete();
+create trigger buckets_delete_protect before delete on storage.buckets for each statement execute function storage.protect_delete();
 alter table storage.buckets enable row level security;
 alter table storage.objects enable row level security;
 grant usage on schema storage to anon, authenticated, service_role;
