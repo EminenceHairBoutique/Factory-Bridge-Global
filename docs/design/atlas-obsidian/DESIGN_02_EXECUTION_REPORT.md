@@ -195,6 +195,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-39 (compliance holds contract).
 
+## 6p. Session 18 — Research inbox and new supplier (2026-11-08, branch `design/ux04-ops-crm`, stacked on PR #20)
+
+**Reuse first:** the list screen keeps its table and filters and gains state plus the panel; the panel reuses `contactCanBeSaved` from the record's contacts tab, the `Field` / `Checkbox` primitives and the list–detail layout of the compliance screen; the inbox mirrors the 0005 columns rather than inventing fields.
+
+**Implemented in preview:** `/design-preview/ops/research?lead=` (`OpsResearchInbox.tsx`): five leads (two fresh 1688 leads, a stale Weidian reseller, one already linked to the Foshan carton factory, one dismissed), fresh-first ordering, observation facts with the register status and freshness, record form with the 0005 rules and a blocked Alibaba.com entry, dismiss with a reason, create-supplier handoff. `/design-preview/ops/suppliers?new=1&lead=` (`OpsNewSupplier.tsx` inside `OpsSupplierList.tsx`): prefilled panel, validation, WeChat basis rule, created row first with a "New this session" chip and a notice. `ops-crm-demo.ts` with 8 tests. Details in `OPS_SUPPLIER_CRM_SCREEN.md` §2a–§2b.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 323: web 105); `next build` exit 0; production `next start`: `/design-preview/ops/research` and `/design-preview/ops/suppliers?new=1` → 404. Browser (built-in, dev server on :3100): Atlas 1440 — no overflow or console errors; empty save shows the five required-field errors; Alibaba.com shows the blocked-register refusal; max < min and MOQ 0 rejected; a valid lead saved first in the list with the log line; dismiss with a reason; the create link opened the list panel prefilled (Labels checked, origin fixed to lead, note naming the lead); empty create showed legal name and city errors; a WeChat handle without basis was refused; with basis and name the supplier was created at Lead identified, first in the table with the chip and the notice. Obsidian 375 / 320 / 768 — no horizontal overflow on either page with the forms open after one fix (the listing URL now wraps with `break-all`); "1 days ago" corrected to "1 day ago".
+
+**Cross-track:** H-40 (research inbox and supplier creation contract); Research nav entry for UX-03.
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).
