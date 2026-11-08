@@ -124,6 +124,12 @@ const SCREENS = [
     workspace: "Supplier",
   },
   {
+    href: "/design-preview/supplier/documents",
+    title: "供应商：文件资料 (supplier documents, zh-CN)",
+    body: "Every file the supplier uploaded or the platform attached with its pipeline status, its review state (供应商提供，未核验 until a platform check), expiry, linked record and who can see it; the certification checklist with upload prompts; upload through the shared pre-check with a simulated pipeline; replace as a new version; delete only where the file is not evidence; signed download links that are logged.",
+    workspace: "Supplier",
+  },
+  {
     href: "/design-preview/supplier/sharing",
     title: "数据共享设置 (Data-sharing settings)",
     body: "Per-field 仅内部 / 平台买家 / 指定买家, contacts locked behind a separate disclosure grant, recorded grants with revocation effects explained.",

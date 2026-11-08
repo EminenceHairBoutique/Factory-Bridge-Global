@@ -71,6 +71,20 @@ The supplier's side of the message threads (IA `/supplier/messages`). Route `/de
 
 **Verified in the browser:** see `DESIGN_02_EXECUTION_REPORT.md` session 14.
 
+### 3.7 文件资料 — `SupplierDocuments.tsx` (added 2026-11-08, session 16)
+
+The supplier's document library (IA `/supplier/documents`). Route `/design-preview/supplier/documents?doc=&upload=`.
+
+- **Header:** counts of files, 需补充 (required certification items missing or rejected), 待平台审核, 即将到期; as-of date.
+- **认证清单:** the onboarding certification items each resolved to their newest live file with 已拒绝 / 待上传 / 扫描中 / 待平台审核 / 已核验 and 必需 / 可选; 上传 or 重新上传 pre-selects the category and item in the upload panel.
+- **上传文件:** category, certification item (for 企业资质) or a one-line note per category, drop zone and picker through the shared pre-check with Chinese reasons, a sample file; new files walk 已上传 → 扫描中 → 已解析 → 待平台审核 (产品资料 stops at 已解析) in the browser, labelled as simulated.
+- **List:** category tabs with counts; rejected and in-review files first, then newest; each row shows name and version, pipeline status (已转达 for accepted quotation files), review label (供应商提供，未核验 / 已核验（平台 · 日期） / 已拒绝), an expiry chip within 30 days or past, category · size · uploader · time · visibility, and the linked record or the scan rejection reason.
+- **文件记录 drawer** (panel below the list on narrow screens): status and review chips; 下载链接 (logged, 15 minutes), 替换 (new version, old marked 已作废 and kept), 删除 only where the file is not evidence (reviewed files explain why not; a file under review withdraws the review); scan rejection notice; 审核状态 with reviewer, date, check id and note; 有效期 with its state; 可见范围 with the explanation and a link to 数据共享设置 for certificates; 关联记录 (认证项, 询价单, 产品, 消息, 导入) with links; file facts; version history; 保留 policy; 访问记录 including buyer views under a grant.
+- **Wired:** 工作台 certification panel (上传生产场地证明 opens the library's picker on that item; 文件资料 link), onboarding document step links to the library, index entry. The sidebar item stays with the UX-03 nav wiring.
+- **Rules (`supplier-documents-demo.ts`, 8 tests):** labels, expiry state (30-day window), certification checklist, summary, delete / replace / download gates, versioned replace, simulated pipeline by category, ordering.
+
+**Verified in the browser:** Atlas 1440: counts (9 files, 1 需补充, 1 待平台审核, 1 即将到期); the checklist shows 已拒绝 for 生产场地证明 with the rejected archive and its scan reason first in the list, 待平台审核 for 出口资质, 已核验 for the licence, identity and ISO files; the ISO certificate carries 即将到期（23 天）and the relayed quotation reads 已转达; the licence record refuses 删除 with the evidence reason and shows its check id; 下载链接 is logged; 重新上传 from the checklist pre-selects 企业资质 and 生产场地证明 and focuses the picker; a ZIP is refused in Chinese while a JPG beside it is added and walks 已上传 → 扫描中 → 已解析 → 待平台审核, after which 需补充 reads 0 and the checklist item follows; 替换 on the ISO certificate creates v2 as a fresh upload and marks the old file 已作废; 删除 on the file under review warns that the review is withdrawn, Escape closes, confirming removes it and the checklist item returns to 待上传; the 产品资料 tab shows two files with the spec linking to its product; 工作台 and the onboarding document step link into the library. Obsidian 375: facts below the list and the selected certificate with its expiry; 320 and 768: no horizontal page overflow. No console errors from the preview.
+
 ## 4. Validation module
 
 `supplier-demo.ts` (11 tests): `validateTiers` (ascending, non-overlapping [min, max), open-ended must be last, gap and non-monotonic warnings), `validateBasis` (unknown → warning, place required for FCA/FOB/CFR/CIF/DAP/DPU/DDP, recommended for EXW), `quoteSubmissionGate`, zh-CN formatters. Display-only; the authoritative checks are the `quotation_tiers` exclusion constraint (B-18) and `packages/domain` (B-14).
