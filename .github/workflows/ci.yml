@@ -67,9 +67,10 @@ jobs:
           version: latest
           github-token: ${{ secrets.GITHUB_TOKEN }} # resolving "latest" unauthenticated hits the API rate limit
 
-      # Real PostgreSQL + Supabase auth schema/roles. Heavy services that the DB tests do not need are excluded.
+      # Real PostgreSQL + Supabase auth schema/roles + storage-api (its migrations create the storage.buckets columns
+      # and storage.objects shape that migration 0006's bucket rows and policies depend on). Other heavy services are excluded.
       - name: Start local Supabase stack
-        run: supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,supavisor,realtime,storage-api
+        run: supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,supavisor,realtime
 
       # Proves the migration chain applies from zero, then seed; run twice to prove seed idempotency.
       - name: Apply migrations from scratch (twice)

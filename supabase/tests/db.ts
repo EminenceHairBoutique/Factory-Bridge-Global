@@ -76,6 +76,65 @@ alter default privileges in schema public grant all on sequences to anon, authen
 grant usage on schema auth to anon, authenticated, service_role;
 grant execute on function auth.uid() to anon, authenticated, service_role;
 grant usage on schema public to anon, authenticated, service_role;
+-- Supabase Storage (storage-api) owns schema storage. The columns below are the subset migration 0006 touches
+-- (bucket limits + the objects policies key on bucket_id and name). Supabase grants ALL on these tables to the
+-- three API roles and enables RLS on both, so nothing is readable until a policy says so.
+create schema if not exists storage;
+create table if not exists storage.buckets (
+  id                 text primary key,
+  name               text not null unique,
+  owner              uuid,
+  public             boolean not null default false,
+  file_size_limit    bigint,
+  allowed_mime_types text[],
+  created_at         timestamptz default now(),
+  updated_at         timestamptz default now()
+);
+create table if not exists storage.objects (
+  id               uuid primary key default gen_random_uuid(),
+  bucket_id        text references storage.buckets (id),
+  name             text,
+  owner            uuid,
+  owner_id         text,
+  metadata         jsonb,
+  created_at       timestamptz default now(),
+  updated_at       timestamptz default now(),
+  last_accessed_at timestamptz default now(),
+  unique (bucket_id, name)
+);
+create or replace function storage.foldername(name text) returns text[]
+language plpgsql immutable as $$
+declare _parts text[];
+begin
+  _parts := string_to_array(name, '/');
+  return _parts[1 : array_length(_parts, 1) - 1];
+end $$;
+create or replace function storage.filename(name text) returns text
+language plpgsql immutable as $$
+declare _parts text[];
+begin
+  _parts := string_to_array(name, '/');
+  return _parts[array_length(_parts, 1)];
+end $$;
+-- storage-api forbids direct deletes on its tables (storage.protect_delete, errcode 42501) unless the Storage API's own
+-- GUC is set; mirrored here so a test that deletes from storage.objects fails on PGlite the way it fails on Supabase.
+create or replace function storage.protect_delete() returns trigger
+language plpgsql as $$
+begin
+  if current_setting('storage.allow_delete_query', true) is distinct from 'true' then
+    raise exception 'Direct deletion from storage tables is not allowed. Use the Storage API instead.'
+      using hint = 'This prevents accidental data loss from orphaned objects.', errcode = '42501';
+  end if;
+  return null;
+end $$;
+-- statement-level, like Supabase's: it fires even when RLS leaves no row to delete
+create trigger objects_delete_protect before delete on storage.objects for each statement execute function storage.protect_delete();
+create trigger buckets_delete_protect before delete on storage.buckets for each statement execute function storage.protect_delete();
+alter table storage.buckets enable row level security;
+alter table storage.objects enable row level security;
+grant usage on schema storage to anon, authenticated, service_role;
+grant all on storage.buckets, storage.objects to anon, authenticated, service_role;
+grant execute on function storage.foldername(text), storage.filename(text) to anon, authenticated, service_role;
 `;
 
 async function openPglite(): Promise<Db> {
