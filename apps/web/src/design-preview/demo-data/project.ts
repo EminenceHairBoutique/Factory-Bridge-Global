@@ -233,40 +233,6 @@ export const PROJECT_MESSAGES: MessageThread[] = [
   },
 ];
 
-export interface ProjectReport {
-  id: string;
-  name: string;
-  generatedAt: string;
-  briefVersion: number;
-  fxDate: string;
-  quotesIncluded: number;
-  assumptions: string[];
-  exclusions: string[];
-  status: "ready" | "stale";
-}
-
-export const PROJECT_REPORTS: ProjectReport[] = [
-  {
-    id: "rep_1",
-    name: "fbg-comparison-prj_demo_labels-v3-2026-11-06.pdf",
-    generatedAt: "2026-11-06 11:32",
-    briefVersion: 3,
-    fxDate: "2026-11-06",
-    quotesIncluded: 2,
-    assumptions: [
-      "FX 7.20 CNY/USD (demo reference rate, 2026-11-06)",
-      "No freight or duty inputs: landed totals partial",
-    ],
-    exclusions: [
-      "Supplier C: specification differs (material)",
-      "Supplier D: expired 2026-10-31",
-      "Supplier E: below MOQ (20,000)",
-      "Supplier F: price basis not stated",
-    ],
-    status: "stale",
-  },
-];
-
 export interface ActivityEvent {
   id: string;
   at: string;

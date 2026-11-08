@@ -18,7 +18,7 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 | Supplier options | `/app/projects/[id]/options` | Specified §3.3 | B-09 |
 | Quote comparison + landed cost | `/app/projects/[id]/compare`, `/landed-cost` | Prototyped | B-22, B-14, B-21 |
 | Messages / clarifications | `/app/projects/[id]/messages` | Approval modal prototyped | B-24 |
-| Reports | `/app/projects/[id]/reports` | Planned | B-23 |
+| Reports | `/app/projects/[id]/reports` | Prototyped (`/design-preview/buyer/reports`, `/design-preview/buyer/report?id=`; see `atlas-obsidian/BUYER_REPORTS_SCREENS.md`) | B-23 |
 | Supplier public profile | `/app/suppliers/[id]` | Specified §3.4 | B-08b |
 | Settings | `/app/settings/*` | Planned | B-05 |
 | Sign-in, invitation, organization setup | `/sign-in`, `/invite/[token]`, `/app/onboarding` | Prototyped (`/design-preview/auth`, `/auth/invite`, `/auth/org-setup`; see `atlas-obsidian/AUTH_AND_ORG_SETUP_SCREENS.md`) | B-05 |

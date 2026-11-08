@@ -11,16 +11,24 @@ import { useMemo, useState } from "react";
 import { DEMO_AS_OF, DEMO_PROJECTS, DEMO_QUOTES, STAGE_LABEL, STAGE_ORDER } from "../demo-data";
 import {
   DOCUMENT_STATUS_LABEL,
+  type MessageThread,
   PROJECT_ACTIVITY,
   PROJECT_BRIEF_SUMMARY,
   PROJECT_DOCUMENTS,
+  PROJECT_ID,
   PROJECT_MESSAGES,
-  PROJECT_REPORTS,
   PROJECT_TIMELINE,
-  type MessageThread,
   type ProjectDocument,
 } from "../demo-data/project";
 import { compareQuotes, formatQty } from "../compare-demo";
+import { DEMO_REPORTS } from "../demo-data/reports";
+import {
+  REPORT_STATE_LABEL,
+  REPORT_STATE_TONE,
+  contentForReport,
+  reportStatus,
+  type ReportContext,
+} from "../reports-demo";
 import { AppShell } from "../ui/AppShell";
 import { Icon, type IconName } from "../ui/icons";
 import {
@@ -57,6 +65,20 @@ const DOC_ICON: Record<ProjectDocument["kind"], IconName> = {
   artwork: "camera",
   logistics: "truck",
   report: "download",
+};
+
+const PROJECT_REPORT_ROWS = DEMO_REPORTS.filter((r) => r.projectId === PROJECT_ID).sort(
+  (a, b) => b.version - a.version,
+);
+const PROJECT_UNIT = DEMO_PROJECTS.find((p) => p.id === PROJECT_ID)?.unit ?? "pcs";
+const REPORT_CTX: ReportContext = {
+  currentBriefVersion: DEMO_PROJECTS.find((p) => p.id === PROJECT_ID)?.briefVersion ?? 0,
+  currentQuotes: DEMO_QUOTES.map((q) => ({
+    id: q.id,
+    supplier: q.supplier,
+    confirmedAt: q.confirmedAt,
+  })),
+  newestReportId: PROJECT_REPORT_ROWS[0]?.id ?? null,
 };
 
 const MSG_STATUS: Record<MessageThread["status"], { label: string; tone: Tone }> = {
@@ -260,7 +282,7 @@ export function ProjectOverview() {
             { value: "compare", label: "Compare" },
             { value: "documents", label: "Documents", count: PROJECT_DOCUMENTS.length },
             { value: "messages", label: "Messages", count: awaitingYou || undefined },
-            { value: "reports", label: "Reports", count: PROJECT_REPORTS.length },
+            { value: "reports", label: "Reports", count: PROJECT_REPORT_ROWS.length },
             { value: "activity", label: "Activity" },
           ]}
         />
@@ -754,74 +776,98 @@ export function ProjectOverview() {
         {tab === "reports" ? (
           <Panel
             title="Reports"
-            description="Each report records the brief version, FX date, every landed-cost line with its status, assumptions and exclusions."
+            description="Each report is a snapshot of the brief version, quantity, FX row and exact quotation versions it used. Reports never change; new inputs mean a new version."
             padded={false}
+            actions={
+              <Link
+                href="/design-preview/buyer/reports"
+                className={buttonClasses("secondary", "sm")}
+              >
+                All reports
+              </Link>
+            }
           >
-            {PROJECT_REPORTS.length === 0 ? (
+            {PROJECT_REPORT_ROWS.length === 0 ? (
               <div className="p-5">
                 <EmptyState
                   title="No reports yet"
-                  body="Generate one from the comparison screen once the inputs you need are present."
+                  body="Generate one from the Reports screen once the comparison has the inputs you need."
                 />
               </div>
             ) : (
               <ul className="divide-y divide-(--fbg-border-subtle)">
-                {PROJECT_REPORTS.map((r) => (
-                  <li key={r.id} className="flex flex-col gap-3 px-5 py-4">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="fbg-num text-sm font-medium text-(--fbg-text-primary)">
-                          {r.name}
-                        </p>
-                        <p className="fbg-num text-xs text-(--fbg-text-secondary)">
-                          Generated {r.generatedAt} · brief v{r.briefVersion} · FX {r.fxDate} ·{" "}
-                          {r.quotesIncluded} quotes ranked
-                        </p>
-                      </div>
-                      {r.status === "stale" ? (
-                        <Badge tone="warn" icon="alert">
-                          Stale: a quote was confirmed after generation
+                {PROJECT_REPORT_ROWS.map((r) => {
+                  const status = reportStatus(r, REPORT_CTX);
+                  const content = contentForReport(r);
+                  return (
+                    <li key={r.id} className="flex flex-col gap-3 px-5 py-4">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="fbg-num text-sm font-medium break-all text-(--fbg-text-primary)">
+                            {r.fileName}
+                          </p>
+                          <p className="fbg-num text-xs text-(--fbg-text-secondary)">
+                            Report v{r.version} · generated {r.generatedAt} · brief v
+                            {r.briefVersion} · {formatQty(r.quantity)} {PROJECT_UNIT} · FX{" "}
+                            {r.fxRateId}
+                            {content
+                              ? ` · ${content.counts.ranked} ranked, ${content.counts.notRanked} not ranked`
+                              : ""}
+                          </p>
+                        </div>
+                        <Badge
+                          tone={REPORT_STATE_TONE[status.state]}
+                          icon={status.state === "stale" ? "alert" : null}
+                        >
+                          {REPORT_STATE_LABEL[status.state]}
                         </Badge>
-                      ) : (
-                        <Badge tone="ok">Current</Badge>
-                      )}
-                    </div>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div>
-                        <p className="text-xs font-medium text-(--fbg-text-primary)">Assumptions</p>
-                        <ul className="mt-1 list-disc pl-4 text-xs text-(--fbg-text-secondary)">
-                          {r.assumptions.map((a) => (
-                            <li key={a}>{a}</li>
-                          ))}
-                        </ul>
                       </div>
-                      <div>
-                        <p className="text-xs font-medium text-(--fbg-text-primary)">Exclusions</p>
-                        <ul className="mt-1 list-disc pl-4 text-xs text-(--fbg-text-secondary)">
-                          {r.exclusions.map((a) => (
-                            <li key={a}>{a}</li>
-                          ))}
-                        </ul>
+                      {status.reasons.length > 0 ? (
+                        <p className="text-xs text-(--fbg-text-secondary)">
+                          {status.reasons.join(" · ")}
+                        </p>
+                      ) : null}
+                      {content ? (
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div>
+                            <p className="text-xs font-medium text-(--fbg-text-primary)">
+                              Assumptions
+                            </p>
+                            <ul className="mt-1 list-disc pl-4 text-xs text-(--fbg-text-secondary)">
+                              {content.footer.assumptions.slice(0, 3).map((a) => (
+                                <li key={a}>{a}</li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-(--fbg-text-primary)">
+                              Exclusions
+                            </p>
+                            <ul className="mt-1 list-disc pl-4 text-xs text-(--fbg-text-secondary)">
+                              {content.footer.exclusions.map((x) => (
+                                <li key={x}>{x}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      ) : null}
+                      <div className="flex flex-wrap gap-2">
+                        <Link
+                          href={`/design-preview/buyer/report?id=${r.id}`}
+                          className={buttonClasses("primary", "sm")}
+                        >
+                          View report
+                        </Link>
+                        <Link
+                          href="/design-preview/buyer/reports"
+                          className={buttonClasses("secondary", "sm")}
+                        >
+                          Generate a new version
+                        </Link>
                       </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        size="sm"
-                        icon="download"
-                        disabled
-                        title="Signed download link arrives with B-23"
-                      >
-                        Download PDF
-                      </Button>
-                      <Link
-                        href="/design-preview/buyer/compare"
-                        className={buttonClasses("secondary", "sm")}
-                      >
-                        Generate a new report
-                      </Link>
-                    </div>
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </Panel>
