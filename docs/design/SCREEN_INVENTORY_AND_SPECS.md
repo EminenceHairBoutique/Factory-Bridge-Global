@@ -32,6 +32,7 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 | 产品目录 / 批量导入 | `/supplier/catalog`, `/import` | Prototyped (`/design-preview/supplier/catalog`, `/design-preview/supplier/catalog/import`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md` §3.6) |
 | 价格梯度 editor | `/supplier/catalog/[id]/pricing` | Prototyped (`/design-preview/supplier/pricing`) |
 | 询价单 / 提交报价 | `/supplier/rfqs`, `/[id]` | Prototyped (`/design-preview/supplier/rfqs`; Phase 2 feature) |
+| 我的报价 | `/supplier/quotes` | Prototyped (`/design-preview/supplier/quotes?group=`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md` §3.8) |
 | 数据共享设置 | `/supplier/settings/data-sharing` | Prototyped (`/design-preview/supplier/sharing`) |
 | 消息 | `/supplier/messages` | Prototyped (`/design-preview/supplier/messages?thread=`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md` §3.5) |
 | 文件资料 | `/supplier/documents` | Prototyped (`/design-preview/supplier/documents?doc=`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md` §3.7) |
