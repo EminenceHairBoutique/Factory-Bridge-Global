@@ -2,7 +2,8 @@
 
 /**
  * Operations: Supplier CRM list (IA §2.4 `/ops/suppliers`; BACKLOG B-09). Dense sortable table with filters;
- * cards on phones. Local state only; synthetic data.
+ * cards on phones; "New supplier" panel (US-O2) that can be prefilled from a research lead
+ * (`?new=1&lead=`). Local state only; synthetic data.
  */
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -13,7 +14,9 @@ import {
   STAGE_ORDER,
   type OpsSupplier,
 } from "../demo-data/ops-suppliers";
+import { RESEARCH_LEADS } from "../demo-data/research-leads";
 import { checksDue } from "../ops-demo";
+import { NewSupplierPanel } from "./OpsNewSupplier";
 import { AppShell } from "../ui/AppShell";
 import { Icon } from "../ui/icons";
 import {
@@ -48,7 +51,17 @@ function hasGrant(s: OpsSupplier) {
   );
 }
 
-export function OpsSupplierList() {
+export function OpsSupplierList({
+  initialNew,
+  leadId,
+}: {
+  initialNew?: boolean | undefined;
+  leadId?: string | undefined;
+}) {
+  const [suppliers, setSuppliers] = useState<OpsSupplier[]>(OPS_SUPPLIERS);
+  const [creating, setCreating] = useState(initialNew ?? false);
+  const [created, setCreated] = useState<OpsSupplier | null>(null);
+  const lead = leadId ? (RESEARCH_LEADS.find((l) => l.id === leadId) ?? null) : null;
   const [query, setQuery] = useState("");
   const [stage, setStage] = useState<string>("all");
   const [family, setFamily] = useState<string>("all");
@@ -61,7 +74,7 @@ export function OpsSupplierList() {
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = OPS_SUPPLIERS.filter((s) => {
+    const list = suppliers.filter((s) => {
       if (q && !`${s.legalNameZh} ${s.nameEn} ${s.city}`.toLowerCase().includes(q)) return false;
       if (stage !== "all" && s.stage !== stage) return false;
       if (family !== "all" && !s.families.includes(family)) return false;
@@ -84,7 +97,7 @@ export function OpsSupplierList() {
           return dir * a.lastActivity.localeCompare(b.lastActivity);
       }
     });
-  }, [query, stage, family, onlyDue, onlyMine, sort]);
+  }, [suppliers, query, stage, family, onlyDue, onlyMine, sort]);
 
   const toggleSort = (key: SortKey) =>
     setSort((s) =>
@@ -118,7 +131,8 @@ export function OpsSupplierList() {
     );
   };
 
-  const totalDue = OPS_SUPPLIERS.reduce((n, s) => n + dueCount(s), 0);
+  const totalDue = suppliers.reduce((n, s) => n + dueCount(s), 0);
+  const isNew = (s: OpsSupplier) => s.id.startsWith("sup_new_");
 
   return (
     <AppShell workspace="ops" title="Suppliers">
@@ -133,7 +147,7 @@ export function OpsSupplierList() {
           meta={
             <>
               <Badge tone="neutral" icon={null} className="fbg-num">
-                {OPS_SUPPLIERS.length} suppliers
+                {suppliers.length} suppliers
               </Badge>
               <Badge tone={totalDue > 0 ? "warn" : "ok"} icon="clock" className="fbg-num">
                 {totalDue} checks due or overdue
@@ -142,15 +156,44 @@ export function OpsSupplierList() {
           }
           actions={
             <>
-              <Button icon="search" title="Research inbox arrives with B-09">
+              <Link href="/design-preview/ops/research" className={buttonClasses("secondary")}>
                 Research inbox
-              </Button>
-              <Button variant="primary" icon="plus" title="Create supplier arrives with B-09">
+              </Link>
+              <Button
+                variant="primary"
+                icon="plus"
+                onClick={() => setCreating((v) => !v)}
+                aria-expanded={creating}
+              >
                 New supplier
               </Button>
             </>
           }
         />
+
+        {creating ? (
+          <NewSupplierPanel
+            lead={lead}
+            nextId={`sup_new_${suppliers.filter(isNew).length + 1}`}
+            onCreate={(s) => {
+              setSuppliers((prev) => [s, ...prev]);
+              setCreated(s);
+              setCreating(false);
+              setSort({ key: "activity", dir: "desc" });
+            }}
+            onCancel={() => setCreating(false)}
+          />
+        ) : null}
+        {created ? (
+          <Notice tone="ok" icon="check" title={`Created ${created.nameEn} at Lead identified`}>
+            Claimed fields only; nothing is verified yet. {created.contacts.length} contact
+            {created.contacts.length === 1 ? "" : "s"} recorded in the restricted panel
+            {created.documents.length > 0
+              ? "; the research lead is attached as internal-only manual research"
+              : ""}
+            . In this prototype the record page shows seeded suppliers only.
+          </Notice>
+        ) : null}
 
         <Panel padded={false}>
           <div className="flex flex-col gap-3 border-b border-(--fbg-border-subtle) p-4 lg:flex-row lg:items-center">
@@ -250,12 +293,21 @@ export function OpsSupplierList() {
                       className="hover:bg-(--fbg-hover) [&>td]:px-4 [&>td]:py-3 [&>td]:align-top"
                     >
                       <td>
-                        <Link
-                          href={`/design-preview/ops/supplier?id=${s.id}`}
-                          className="font-medium text-(--fbg-text-primary) hover:text-(--fbg-link) hover:underline"
-                        >
-                          {s.nameEn}
-                        </Link>
+                        {isNew(s) ? (
+                          <span className="font-medium text-(--fbg-text-primary)">
+                            {s.nameEn}{" "}
+                            <Badge tone="teal" icon={null}>
+                              New this session
+                            </Badge>
+                          </span>
+                        ) : (
+                          <Link
+                            href={`/design-preview/ops/supplier?id=${s.id}`}
+                            className="font-medium text-(--fbg-text-primary) hover:text-(--fbg-link) hover:underline"
+                          >
+                            {s.nameEn}
+                          </Link>
+                        )}
                         <span
                           className="fbg-zh block text-xs text-(--fbg-text-secondary)"
                           lang="zh-CN"
@@ -326,12 +378,18 @@ export function OpsSupplierList() {
               const due = dueCount(s);
               return (
                 <li key={s.id} className="flex flex-col gap-2 px-4 py-3">
-                  <Link
-                    href={`/design-preview/ops/supplier?id=${s.id}`}
-                    className="text-[15px] font-medium text-(--fbg-text-primary)"
-                  >
-                    {s.nameEn}
-                  </Link>
+                  {isNew(s) ? (
+                    <span className="text-[15px] font-medium text-(--fbg-text-primary)">
+                      {s.nameEn}
+                    </span>
+                  ) : (
+                    <Link
+                      href={`/design-preview/ops/supplier?id=${s.id}`}
+                      className="text-[15px] font-medium text-(--fbg-text-primary)"
+                    >
+                      {s.nameEn}
+                    </Link>
+                  )}
                   <p className="fbg-zh text-xs text-(--fbg-text-secondary)" lang="zh-CN">
                     {s.legalNameZh} · {s.city}
                   </p>
@@ -355,7 +413,7 @@ export function OpsSupplierList() {
           </ul>
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-(--fbg-border-subtle) px-4 py-2.5 text-xs text-(--fbg-text-secondary)">
             <span className="fbg-num">
-              {rows.length} of {OPS_SUPPLIERS.length} shown · sorted by {sort.key} {sort.dir}
+              {rows.length} of {suppliers.length} shown · sorted by {sort.key} {sort.dir}
             </span>
             <Link href="/design-preview/ops/quote-review" className={buttonClasses("ghost", "sm")}>
               Quotes awaiting review

@@ -11,7 +11,15 @@
 
 ## 2. List (`OpsSupplierList.tsx`)
 
-Internal-workspace notice; header with supplier count and checks due; search by name or city; filters for stage and family; toggles "Checks due" and "Assigned to me". Dense table on md+ with sortable headers (`aria-sort`): supplier (English name over the Chinese legal name), city, stage, families, checks due, catalog grant (active or "None — internal only"), assigned (you, n projects), last activity. Cards on phones. Footer with the count and sort, link to the review queue. "New supplier" and "Research inbox" are inert (B-09).
+Internal-workspace notice; header with supplier count and checks due; search by name or city; filters for stage and family; toggles "Checks due" and "Assigned to me". Dense table on md+ with sortable headers (`aria-sort`): supplier (English name over the Chinese legal name), city, stage, families, checks due, catalog grant (active or "None — internal only"), assigned (you, n projects), last activity. Cards on phones. Footer with the count and sort, link to the review queue. "Research inbox" opens `/design-preview/ops/research`; "New supplier" opens the panel in §2a (session 18, B-09 remainder).
+
+## 2a. New supplier panel (`OpsNewSupplier.tsx`, PRD US-O2)
+
+Opened by "New supplier" or by `/design-preview/ops/suppliers?new=1&lead=<id>` from the research inbox, which prefills the family, the origin (fixed to the lead) and a note naming the lead; the legal name is never prefilled because a listing title is not a legal name. Fields: legal name (Chinese, required), working name (defaults to “Lead: <legal name>”), city (required), province, product families (at least one), origin, notes, and an optional first contact (name, role, channel, handle, basis). `validateSupplierDraft` reuses `contactCanBeSaved`: any handle needs a recorded basis, a WeChat handle always, and a contact needs a name. `createSupplier` writes a `lead_identified` record with claimed fields only, `verified` all null, the contact with `basisRecordedAt` today, the research-lead document as internal-only manual research when the origin is a lead, and audit lines naming the origin and the contact basis. The list prepends the row with a "New this session" chip (the record page reads seeded suppliers only in this prototype) and shows a notice stating what was and was not recorded.
+
+## 2b. Research inbox (`OpsResearchInbox.tsx`, `/design-preview/ops/research?lead=`, PRD US-O1, INTEGRATIONS S1)
+
+Notice "Internal only — not buyer-visible". Header counts (open, stale, became suppliers). Lead list ordered fresh-first (`sortLeads`: new and fresh by newest observed, then new and stale, then linked, then dismissed) with status and freshness chips; filter Open / Suppliers / Dismissed / All. Detail: Chinese title, family, source, recorder; **Observation** facts (read on with the register status, reference, search term, title, indicative price range with its freshness and "do not use for estimates" once stale, MOQ, date, fixed rights class) and the operator's notes; **What happens next** with "Create supplier from lead" (to the list panel) and dismiss with a required reason, or the linked supplier, or the dismissal reason. **Record a lead** form (`validateLead`): family, source from the register (a blocked entry such as Alibaba.com is selectable only to show the refusal), reference, Chinese search term and observed date required; date not in the future; prices ≥ 0 with min ≤ max; MOQ a positive integer; rights class shown read-only; notes hint "your own words only, do not paste the listing text". Right rail: what a lead is and is not, the source register with each entry's status and note, the session log.
 
 ## 3. Record (`OpsSupplierRecord.tsx`)
 
@@ -30,9 +38,9 @@ Internal-workspace notice; header with supplier count and checks due; search by 
 | Documents | file, source type, rights class, permission reference, visibility, imported by/at; "Import an authorized file" form | a catalog with buyer visibility needs an active source permission (AC-O3.1); otherwise the record stays internal only; research leads carry `internal_market_observation` |
 | Permissions | permissions with buyer visibility, named organizations, fields, evidence, recorded, expiry, revoked; revoke with a reason; "Record a permission" form (visibility, named orgs, fields, evidence, expiry; benchmark disabled until Phase 5) | the notice states that labels never grant access and that revocation applies at the next read |
 
-## 4. Display-only rules (`ops-demo.ts`, 11 tests)
+## 4. Display-only rules (`ops-demo.ts`, 11 tests; `ops-crm-demo.ts`, 8 tests)
 
-`badgesFromChecks` (no record, no badge; expired checks drop out; sample/inspection never generated here), `checksDue` (expiring within 30 days, overdue, pending past date), `stageGate` (records required per stage), `contactCanBeSaved` (WeChat handle requires a basis). Authoritative rules belong to migration 0005 constraints, RLS and `packages/domain`.
+`badgesFromChecks` (no record, no badge; expired checks drop out; sample/inspection never generated here), `checksDue` (expiring within 30 days, overdue, pending past date), `stageGate` (records required per stage), `contactCanBeSaved` (WeChat handle requires a basis). Authoritative rules belong to migration 0005 constraints, RLS and `packages/domain`. `ops-crm-demo.ts` adds `leadFreshness` (stale after 30 days), `priceRangeText`, `validateLead`, `leadFromInput`, `sortLeads`, `leadSummary`, `supplierDraftFromLead`, `validateSupplierDraft` and `createSupplier` (see §2a–§2b).
 
 ## 5. Verified in the browser
 
@@ -44,4 +52,4 @@ Supplier record DTO over `supplier_profiles` (claimed vs verified columns with t
 
 ## 7. Not built
 
-New supplier creation, research inbox, facility editing, real evidence upload, compliance approval of grants, audit explorer link.
+Facility editing, real evidence upload, audit explorer link, opening the record of a supplier created in the session (the record page reads seeded suppliers only), linking a lead to an existing supplier (duplicate check), and the ops navigation entry for Research (UX-03 owns `AppShell.tsx`; wire `Research → /design-preview/ops/research`). Compliance approval of grants is prototyped on `/design-preview/ops/compliance` (session 17).
