@@ -200,6 +200,17 @@ Living document. Append new ADRs; never edit an accepted ADR's substance — sup
 6. A brief item on a `blocked` taxonomy node is refused at insert; on a `review_required` node it is created with `compliance_hold = true`, which only compliance / platform admin may clear.
 7. Not yet: audit-trail reads scoped to assigned projects (matrix `I.op+` AU) — `audit_events` policies are unchanged; RFQs, supplier messages and quote groups (0009) will hang off `project_suppliers`.
 
+## ADR-036 — Quotations are written only by two functions; the lifecycle table lives in both TS and SQL and is tested equal
+**Status:** accepted 2026-11-07 (B-20; implements ADR-021)
+**Decision:**
+1. `authenticated` holds SELECT only on `quote_groups`, `quotations`, `quote_tiers`, `quote_fees`, `quotation_states`, `quote_status_events`. Every write happens inside `app.supersede_quotation` (version 1 or a new version in the same thread) or `app.transition_quotation` (`expired`, `withdrawn`), both SECURITY DEFINER, both audited, both idempotent on a caller-supplied key (≥ 8 chars; a replay returns the first result and writes nothing). A reason (≥ 3 chars) is mandatory. Nothing is confirmed by a job: `supersede_quotation` requires `auth.uid()`.
+2. `quotations`, `quote_tiers`, `quote_fees` raise on UPDATE/DELETE for everyone including the superuser (trigger). CHECKs pin the payload's honesty: `price_basis = unknown ⇒ basis_confirmed = false`; `valid_until ≥ quote_date` (NULL = unconfirmed); `quote_type ↔ buyer_org_id` (catalog/listing have no buyer); `quote_type ↔ rights_class` (listing ⇒ internal observation; catalog ⇒ catalog-permission or supplier-private; negotiated/final ⇒ customer-private / buyer-uploaded / supplier-private); `visibility_scope` consistent with type — and never consulted by reads.
+3. Tier bands are `[min, max)`; overlap is impossible by `EXCLUDE USING gist`. MOQ, gaps, unit compatibility and non-monotonic prices are domain-engine flags, not DB errors.
+4. The actor is derived, never passed: `app.quote_actor_for()` yields `system` (service_role, no uid), `platform_admin`, `assigned_operator` (brief item's project, or shortlist link for the buyer org × supplier), `supplier_owner`, `reviewer` (buyer member+), or null. `app.quote_transition_allowed(from, to, actor, via_supersede)` is the transition table; `supabase/tests/quotations.test.ts` enumerates every `(from, to, actor, via)` against `packages/domain` `canTransition` and fails on any divergence.
+5. One current version per thread is a partial unique index, not application logic; both functions lock the `quote_groups` row. Superseding keeps the old version's row and events (`expired` → `superseded` is recorded as such).
+6. `quote_visibility_grants` attach to an exact version, are created by assigned operators / platform admins with a reason, are immutable except revocation, and are the only way a third org reads a negotiated quotation. Catalog quotes are readable by buyers only while `app.catalog_grant_active(supplier, my org, 'price_tiers')` holds; internal staff read catalog and listing quotes without assignment.
+7. Not in 0009: `extraction_id` FK (0010), `app.expire_quotations()` + schedule (0012), the domain engine's comparison snapshots (0011).
+
 ## ADR-016 — No marketplace or messaging automation; connectors gated by the data-rights matrix
 **Status:** accepted
 **Decision:** S2 and S6 in `INTEGRATIONS_AND_PERMISSIONS.md` are permanently blocked. API connectors (S8–S11) require recorded license/scopes and founder approval before design is turned into code.
