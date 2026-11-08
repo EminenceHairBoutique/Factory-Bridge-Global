@@ -191,6 +191,7 @@ export const QUEUE_TASKS: QueueTask[] = [
     createdAt: "2026-11-06T16:00:00Z",
     dueAt: "2026-11-07T16:00:00Z",
     status: "in_progress",
+    href: "/design-preview/ops/cases?case=c_duty",
   },
   {
     id: "t9",

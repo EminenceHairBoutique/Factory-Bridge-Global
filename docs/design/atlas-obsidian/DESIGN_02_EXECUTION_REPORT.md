@@ -245,6 +245,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-44.
 
+## 6u. Session 23 — Operations buyer cases (2026-11-08, branch `design/ux04-buyer-cases`, stacked on PR #27)
+
+**Reuse first:** the pilot-target chip reuses the work queue's `slaFor`; the list–detail layout, right rail and session log follow the other operations screens; the no-claims rule is the CLAUDE.md §4 list plus the master spec's no-SLA-promise row, encoded once in `claimsCheck` and applied to replies and resolution notes.
+
+**Implemented in preview:** `/design-preview/ops/cases?case=` (`OpsBuyerCases.tsx`): five cases (a duty-sourcing question linked to a landed-cost snapshot and the queue task, a data issue awaiting the buyer, an escalated complaint past its target, a fulfilled request, an answered "verified factory" question); linked records; timeline with buyer-visible markers and locked internal entries; reply, note, resolve, escalate and reopen with their gates. `cases-demo.ts` with 8 tests. Queue task t8 opens its case. Details in `OPS_BUYER_CASES_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 363: web 145); `next build` exit 0; production `next start`: `/design-preview/ops/cases` → 404. Browser (built-in, dev server on :3100): Atlas 1440 — the complaint listed first with "Overdue", "High" and "Escalated to Founder"; two buyer-visible markers and the locked internal note; a reply containing "guarantee", "verified factory" and "within 24 business hours" raised the claims notice and kept sending disabled; a plain reply with the thread linked sent, set "Awaiting buyer" and logged; on the data issue a reply without a record showed the data-issue error, and Resolve stayed disabled until a code and note, then showed "Resolved: No action needed" and the reopen panel; the queue's All open view links the case; no console errors. Obsidian 375 / 320 / 768 — no horizontal overflow with the composer open.
+
+**Cross-track:** H-45; Cases nav entry for UX-03.
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).
