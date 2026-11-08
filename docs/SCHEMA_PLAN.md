@@ -130,11 +130,11 @@ Lifecycle, transition authorizations, concurrency and supersession semantics: `M
 
 | Table | Key columns | Owner |
 |---|---|---|
-| `fx_rates` | `base, quote, rate numeric(18,8), rate_date, source(provider name), fetched_at` ; UNIQUE(base,quote,rate_date,source) | public read; worker write |
-| `freight_estimates` | `project_id, origin, destination, mode, provider_or_manual, amount, currency, valid_until, document_id, status cost_line_status` | via project |
-| `duty_assumptions` | `project_id, hts_candidate text nullable, rate_pct nullable, basis, reviewed_by_broker bool, notes` ; **never auto-filled by AI** | via project |
-| `comparison_snapshots` | `brief_item_id, inputs_hash, quantity, result jsonb, fx_rate_ids uuid[], generated_at, engine_version` | via project |
-| `landed_cost_scenarios` | `comparison_snapshot_id, quotation_id, lines jsonb[{type,status,amount,currency,source_ref,assumption}], total_status(complete|partial)` | via project |
+| `fx_rates` **(0011 ✅)** | `base, quote, rate numeric(18,8), rate_date, source, is_reference, fetched_at, recorded_by` ; UNIQUE(base,quote,rate_date,source); append-only; `app.fx_rate_for()` | public read; worker / platform admin write |
+| `freight_estimates` **(0011 ✅)** | `project_id, org_id (denormalized), origin, destination, mode(sea_lcl|sea_fcl|air|express|rail|truck), provider_or_manual, provider_name, amount, currency, valid_until, document_id (required when sourced), status cost_line_status, notes` | via project |
+| `duty_assumptions` **(0011 ✅)** | `project_id, org_id (denormalized), brief_item_id?, hts_candidate (format-checked), rate_pct (needs a basis), basis(buyer_provided|broker_advice|operator_lookup|unverified), reviewed_by_broker + broker_name, mpf_applies, hmf_applies, notes, created_by (a person — never a job/AI)` | via project |
+| `comparison_snapshots` **(0011 ✅, immutable)** | `brief_item_id, project_id + org_id (denormalized), quantity, quantity_unit, as_of, inputs_hash (sha256), engine_version, fx_rate_ids uuid[] (verified), result jsonb, generated_by, generated_at` | via project |
+| `landed_cost_scenarios` **(0011 ✅, immutable)** | `comparison_snapshot_id, org_id, quotation_id (exact version, restrict), lines jsonb[{type,status,amount,currency,source_ref,assumption}] (validated), total_status(complete|partial), goods_total/currency, landed_total/currency (NULL when partial), eligible_for_ranking (= complete), explanations text[]` | via project |
 
 ### 2.9 Quality (Phase 3 tables, designed now)
 

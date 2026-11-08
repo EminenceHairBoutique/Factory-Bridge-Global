@@ -211,6 +211,16 @@ Living document. Append new ADRs; never edit an accepted ADR's substance — sup
 6. `quote_visibility_grants` attach to an exact version, are created by assigned operators / platform admins with a reason, are immutable except revocation, and are the only way a third org reads a negotiated quotation. Catalog quotes are readable by buyers only while `app.catalog_grant_active(supplier, my org, 'price_tiers')` holds; internal staff read catalog and listing quotes without assignment.
 7. Not in 0009: `extraction_id` FK (0010), `app.expire_quotations()` + schedule (0012), the domain engine's comparison snapshots (0011).
 
+## ADR-037 — Landed-cost inputs are rows with provenance; a stored result cannot claim more than its inputs
+**Status:** accepted 2026-11-07 (B-21)
+**Decision:**
+1. `fx_rates` are append-only rows `(base, quote, rate, rate_date, source, is_reference)`; written by the FX worker (`service_role`) or a platform admin by hand (audited, `recorded_by`); never updated — a correction is a new row under its own source. `app.fx_rate_for(base, quote, as_of, lag = 3)` implements QUOTE_ENGINE_SPEC §2.5 (exact day, else latest prior within the lag, else NULL = `missing_fx`); the TS engine implements the same rule and snapshots pin the row ids actually used.
+2. `freight_estimates.status = 'sourced'` requires a `document_id` (a real quote); otherwise it is `estimated` or `missing`; a `provider` entry names the provider.
+3. `duty_assumptions` are recorded by a signed-in person only (a job or AI run cannot insert — trigger), with an explicit `basis` (`buyer_provided | broker_advice | operator_lookup | unverified`); a `rate_pct` requires a basis other than `unverified`; `reviewed_by_broker` requires a broker name; HTS is a format-checked *candidate*.
+4. `comparison_snapshots` are immutable (trigger, superuser included) and bind `brief_item`, `quantity`, `as_of`, `inputs_hash` (sha256), `engine_version`, every `fx_rate_id` (each must exist) and the result. `landed_cost_scenarios` are immutable, one per `(snapshot, quotation version)`, reference the quotation by `restrict` FK (a superseded version stays readable in the snapshot), and are validated: known line types only, statuses from `cost_line_status`, sourced/estimated lines carry a non-negative amount and currency, a `goods` line always present, `complete ⇔ no missing line`, `partial ⇒ landed_total IS NULL` and `eligible_for_ranking = false`. The writer must be able to see the quotation (`app.quotation_visible`).
+5. Reads/writes follow the project (Pattern B): buyer owner/admin/member and assigned operators write; viewers read; compliance has no access; platform admins read.
+6. Migration numbering: 0011 is applied before 0010 (`ai_review`, Claude Code) exists; the two are independent. Once a remote database exists, migrations must be added only with later timestamps (the CLI refuses out-of-order pushes) — 0010 will therefore get a timestamp after 0011 when it lands.
+
 ## ADR-016 — No marketplace or messaging automation; connectors gated by the data-rights matrix
 **Status:** accepted
 **Decision:** S2 and S6 in `INTEGRATIONS_AND_PERMISSIONS.md` are permanently blocked. API connectors (S8–S11) require recorded license/scopes and founder approval before design is turned into code.
