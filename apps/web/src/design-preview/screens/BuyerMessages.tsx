@@ -2,11 +2,12 @@
 
 /**
  * Buyer workspace: Messages / Inbox (IA §2.1 "Messages → Inbox (approval stages visible)";
- * project route `/app/projects/[id]/messages`). Thread list with status filters, the thread with
- * every message in both languages and its translation provenance, the approval chain on every
- * outbound message with the buyer's approve / edit / withdraw, a composer that submits to the
- * operator queue, inbound flags, and the outbound log in the evidence drawer. Nothing is sent from
- * this screen: the operator's approval and the send happen server-side (PRD AC-B6.1, ADR-012).
+ * project route `/app/projects/[id]/messages`). Conversation-first (UX-04): a compact thread list,
+ * a spacious conversation with the approval requirement pinned above it, a sticky composer, and
+ * the supplier, evidence and approval history in an on-demand drawer. Every outbound message
+ * still shows its chain You → Operator → Sent and the buyer's approve / edit / withdraw. Nothing
+ * is sent from this screen: the operator's approval and the send happen server-side
+ * (PRD AC-B6.1, ADR-012).
  */
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -39,23 +40,30 @@ import {
 } from "../messages-demo";
 import { ApprovalChainChips } from "../ui/ApprovalChain";
 import { AppShell } from "../ui/AppShell";
+import { ConversationShell, DOT_CLASS, ThreadRow } from "../ui/ConversationShell";
 import { Icon } from "../ui/icons";
 import {
   Badge,
   Button,
-  buttonClasses,
   EmptyState,
   KeyValue,
   Notice,
   PageHeader,
   Panel,
   Select,
-  Tabs,
   TextArea,
   cx,
 } from "../ui/primitives";
 
 type Filter = "all" | "needs_you" | "operator" | "awaiting_reply" | "replied";
+
+const FILTER_LABEL: Record<Filter, string> = {
+  all: "All threads",
+  needs_you: "Needs you",
+  operator: "With the operator",
+  awaiting_reply: "Awaiting reply",
+  replied: "Supplier replied",
+};
 
 const FILTER_MATCH: Record<Filter, (s: ThreadStatus) => boolean> = {
   all: () => true,
@@ -85,6 +93,7 @@ export function BuyerMessages({ initialThreadId }: { initialThreadId?: string | 
       : (sortThreads(DEMO_THREADS)[0]?.id ?? null),
   );
   const [view, setView] = useState<"list" | "thread">(initialThreadId ? "thread" : "list");
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [composeText, setComposeText] = useState("");
@@ -105,6 +114,11 @@ export function BuyerMessages({ initialThreadId }: { initialThreadId?: string | 
 
   const thread = threads.find((t) => t.id === selectedId) ?? null;
   const status = thread ? threadStatus(thread) : null;
+  const openDraft = thread
+    ? [...thread.messages]
+        .reverse()
+        .find((m) => m.direction === "outbound" && outboundState(m) !== "sent")
+    : undefined;
   const note = (line: string) =>
     setLog((l) => [`${new Date().toISOString().slice(11, 16)} · ${line}`, ...l]);
 
@@ -135,6 +149,7 @@ export function BuyerMessages({ initialThreadId }: { initialThreadId?: string | 
   const startEdit = (m: ThreadMessage) => {
     setEditingId(m.id);
     setEditText(m.en);
+    document.getElementById(`msg-${m.id}`)?.scrollIntoView({ block: "center" });
   };
 
   const saveEdit = (t: Thread, m: ThreadMessage) => {
@@ -210,20 +225,135 @@ export function BuyerMessages({ initialThreadId }: { initialThreadId?: string | 
   const selectThread = (id: string) => {
     setSelectedId(id);
     setView("thread");
+    setDrawerOpen(false);
     setEditingId(null);
     setComposeText("");
     setComposeChannel("platform");
   };
 
-  const rightRail = thread ? (
-    <div className="flex flex-col gap-5 text-sm">
-      <div>
-        <p className="text-xs text-(--fbg-text-secondary)">Evidence drawer</p>
-        <p className="text-[15px] font-semibold text-(--fbg-text-primary)">
-          Who sees this, and how it is sent
-        </p>
+  const list = (
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-2 gap-2">
+        <Select
+          aria-label="Filter by status"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value as Filter)}
+        >
+          {(Object.keys(FILTER_LABEL) as Filter[]).map((f) => (
+            <option key={f} value={f}>
+              {FILTER_LABEL[f]} ({countFor(f)})
+            </option>
+          ))}
+        </Select>
+        <Select
+          aria-label="Filter by project"
+          value={projectFilter}
+          onChange={(e) => setProjectFilter(e.target.value)}
+        >
+          <option value="all">All projects</option>
+          {DEMO_PROJECTS.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </Select>
       </div>
+      <Panel padded={false}>
+        {rows.length === 0 ? (
+          <div className="p-5">
+            <EmptyState
+              title="No threads match"
+              body="Change the filters. New questions start from a quotation in the comparison or from a thread with that supplier."
+              icon="message"
+            />
+          </div>
+        ) : (
+          <ul className="divide-y divide-(--fbg-border-subtle)">
+            {rows.map((t) => {
+              const s = threadStatus(t);
+              return (
+                <li key={t.id}>
+                  <ThreadRow
+                    active={t.id === selectedId}
+                    dotClass={DOT_CLASS[THREAD_STATUS_TONE[s]]}
+                    subject={t.subject}
+                    meta={`${t.supplier?.name ?? "System"} · ${t.projectName}`}
+                    statusLabel={THREAD_STATUS_LABEL[s]}
+                    time={lastActivity(t).slice(5)}
+                    onSelect={() => selectThread(t.id)}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Panel>
+    </div>
+  );
+
+  const header = thread ? (
+    <div className="min-w-0">
+      <h2 className="truncate text-[17px] font-semibold text-(--fbg-text-primary)">
+        {thread.subject}
+      </h2>
+      <p className="fbg-num truncate text-xs text-(--fbg-text-secondary)">
+        {thread.supplier?.name ?? "System"} · {thread.projectName}
+        {thread.rfqRef ? ` · ${thread.rfqRef}` : ""} · {THREAD_KIND_LABEL[thread.kind]}
+        {status ? ` · ${THREAD_STATUS_LABEL[status]}` : ""}
+      </p>
+    </div>
+  ) : null;
+
+  const strip =
+    thread && status && openDraft ? (
+      <ApprovalStrip
+        status={status}
+        draft={openDraft}
+        onApprove={() => approve(thread, openDraft)}
+        onEdit={() => startEdit(openDraft)}
+      />
+    ) : null;
+
+  const conversation = thread
+    ? thread.messages.map((m) => (
+        <div key={m.id} id={`msg-${m.id}`}>
+          {m.direction === "system" ? (
+            <p className="mx-auto max-w-[72ch] px-3 text-center text-xs text-(--fbg-text-secondary)">
+              <span className="fbg-num">{m.at}</span> · {m.en}
+            </p>
+          ) : (
+            <MessageCard
+              thread={thread}
+              m={m}
+              editing={editingId === m.id}
+              editText={editText}
+              onEditText={setEditText}
+              onApprove={() => approve(thread, m)}
+              onStartEdit={() => startEdit(m)}
+              onSaveEdit={() => saveEdit(thread, m)}
+              onCancelEdit={() => setEditingId(null)}
+              onWithdraw={() => withdraw(thread, m)}
+            />
+          )}
+        </div>
+      ))
+    : null;
+
+  const composer = thread ? (
+    <Composer
+      thread={thread}
+      text={composeText}
+      onText={setComposeText}
+      channel={composeChannel}
+      onChannel={setComposeChannel}
+      onSubmit={() => submitCompose(thread)}
+    />
+  ) : null;
+
+  const drawer = thread ? (
+    <div className="flex flex-col gap-5">
       <ThreadFacts thread={thread} />
+      <ApprovalHistory thread={thread} />
       <div>
         <p className="text-xs font-semibold text-(--fbg-text-primary)">Actions this session</p>
         {log.length === 0 ? (
@@ -245,12 +375,12 @@ export function BuyerMessages({ initialThreadId }: { initialThreadId?: string | 
   ) : null;
 
   return (
-    <AppShell workspace="buyer" title="Messages" rightRail={rightRail}>
-      <div className="flex flex-col gap-5">
+    <AppShell workspace="buyer" title="Messages">
+      <div className="flex flex-col gap-4">
         <div className={cx(view === "thread" && "hidden lg:block")}>
           <PageHeader
             title="Messages"
-            lead="Every question to a supplier goes through two approvals: you approve the wording, an operator approves and sends it through a recorded channel. Supplier replies are relayed by the operator with the original Chinese and a checked translation."
+            lead="You approve the wording; an operator approves and sends through a recorded channel. Replies come back with the original Chinese and a checked translation."
             meta={
               <>
                 <Badge
@@ -274,184 +404,106 @@ export function BuyerMessages({ initialThreadId }: { initialThreadId?: string | 
           />
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[22rem_1fr]">
-          {/* Thread list */}
-          <div className={cx("flex min-w-0 flex-col gap-3", view === "thread" && "hidden lg:flex")}>
-            <Tabs
-              label="Thread status"
-              value={filter}
-              onChange={setFilter}
-              tabs={[
-                { value: "all", label: "All", count: countFor("all") },
-                { value: "needs_you", label: "Needs you", count: countFor("needs_you") },
-                { value: "operator", label: "With operator", count: countFor("operator") },
-                {
-                  value: "awaiting_reply",
-                  label: "Awaiting reply",
-                  count: countFor("awaiting_reply"),
-                },
-                { value: "replied", label: "Replied", count: countFor("replied") },
-              ]}
-            />
-            <Select
-              aria-label="Filter by project"
-              value={projectFilter}
-              onChange={(e) => setProjectFilter(e.target.value)}
-            >
-              <option value="all">All projects</option>
-              {DEMO_PROJECTS.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </Select>
-            <Panel padded={false}>
-              {rows.length === 0 ? (
-                <div className="p-5">
-                  <EmptyState
-                    title="No threads match"
-                    body="Change the filters. New questions start from a quotation in the comparison or from a thread with that supplier."
-                    icon="message"
-                  />
-                </div>
-              ) : (
-                <ul className="divide-y divide-(--fbg-border-subtle)">
-                  {rows.map((t) => {
-                    const s = threadStatus(t);
-                    const last = t.messages[t.messages.length - 1];
-                    const active = t.id === selectedId;
-                    return (
-                      <li key={t.id}>
-                        <button
-                          type="button"
-                          onClick={() => selectThread(t.id)}
-                          aria-pressed={active}
-                          className={cx(
-                            "flex w-full min-w-0 flex-col gap-1 px-4 py-3 text-left hover:bg-(--fbg-bg-canvas)",
-                            active && "bg-(--fbg-selected)",
-                          )}
-                        >
-                          <span className="flex min-w-0 items-start justify-between gap-2">
-                            <span className="min-w-0 text-sm font-medium text-(--fbg-text-primary)">
-                              {t.subject}
-                            </span>
-                            <Badge tone={THREAD_STATUS_TONE[s]} icon={null}>
-                              {THREAD_STATUS_LABEL[s]}
-                            </Badge>
-                          </span>
-                          <span className="truncate text-xs text-(--fbg-text-secondary)">
-                            {t.supplier?.name ?? "System"} · {t.projectName}
-                          </span>
-                          {last ? (
-                            <span className="line-clamp-2 text-xs text-(--fbg-text-secondary)">
-                              {last.en}
-                            </span>
-                          ) : null}
-                          <span className="fbg-num text-[11px] text-(--fbg-text-secondary)">
-                            {THREAD_KIND_LABEL[t.kind]} · {lastActivity(t)}
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </Panel>
-          </div>
-
-          {/* Thread */}
-          <div className={cx("flex min-w-0 flex-col gap-4", view === "list" && "hidden lg:flex")}>
-            {thread && status ? (
-              <>
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="flex min-w-0 items-start gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setView("list")}
-                      className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-(--fbg-radius-control) border border-(--fbg-border-subtle) text-(--fbg-text-secondary) lg:hidden"
-                      aria-label="Back to threads"
-                    >
-                      <Icon name="chevron-right" size={16} className="rotate-180" />
-                    </button>
-                    <div className="min-w-0">
-                      <h2 className="text-[17px] font-semibold text-(--fbg-text-primary)">
-                        {thread.subject}
-                      </h2>
-                      <p className="fbg-num text-xs text-(--fbg-text-secondary)">
-                        {thread.supplier?.name ?? "System"} · {thread.projectName}
-                        {thread.rfqRef ? ` · ${thread.rfqRef}` : ""} ·{" "}
-                        {THREAD_KIND_LABEL[thread.kind]}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge tone={THREAD_STATUS_TONE[status]} icon={null}>
-                      {THREAD_STATUS_LABEL[status]}
-                    </Badge>
-                    <Link
-                      href="/design-preview/buyer/project"
-                      className={buttonClasses("ghost", "sm")}
-                    >
-                      Open project
-                    </Link>
-                  </div>
-                </div>
-
-                <ol className="flex flex-col gap-3" aria-label="Messages">
-                  {thread.messages.map((m) => (
-                    <li key={m.id}>
-                      {m.direction === "system" ? (
-                        <div className="flex items-start gap-2 rounded-(--fbg-radius-control) border border-dashed border-(--fbg-border-subtle) px-3 py-2 text-xs text-(--fbg-text-secondary)">
-                          <Icon name="info" size={14} className="mt-0.5 shrink-0" />
-                          <span>
-                            <span className="fbg-num">{m.at}</span> · {m.en}
-                          </span>
-                        </div>
-                      ) : (
-                        <MessageCard
-                          thread={thread}
-                          m={m}
-                          editing={editingId === m.id}
-                          editText={editText}
-                          onEditText={setEditText}
-                          onApprove={() => approve(thread, m)}
-                          onStartEdit={() => startEdit(m)}
-                          onSaveEdit={() => saveEdit(thread, m)}
-                          onCancelEdit={() => setEditingId(null)}
-                          onWithdraw={() => withdraw(thread, m)}
-                        />
-                      )}
-                    </li>
-                  ))}
-                </ol>
-
-                <Composer
-                  thread={thread}
-                  text={composeText}
-                  onText={setComposeText}
-                  channel={composeChannel}
-                  onChannel={setComposeChannel}
-                  onSubmit={() => submitCompose(thread)}
-                />
-
-                <div className="xl:hidden">
-                  <Panel title="Who sees this, and how it is sent">
-                    <ThreadFacts thread={thread} />
-                  </Panel>
-                </div>
-              </>
-            ) : (
+        <ConversationShell
+          list={list}
+          header={header}
+          strip={strip}
+          conversation={conversation}
+          composer={composer}
+          drawer={drawer}
+          drawerTitle="Thread details"
+          drawerOpen={drawerOpen}
+          onDrawerOpenChange={setDrawerOpen}
+          view={view}
+          onBack={() => setView("list")}
+          labels={{
+            back: "Back to threads",
+            details: "Details",
+            close: "Close details",
+            list: "Threads",
+            conversation: "Conversation",
+          }}
+          empty={
+            thread ? undefined : (
               <EmptyState
                 title="Select a thread"
                 body="Threads that need your approval are listed first."
                 icon="message"
               />
-            )}
-          </div>
-        </div>
+            )
+          }
+        />
       </div>
     </AppShell>
   );
+}
+
+function ApprovalStrip({
+  status,
+  draft,
+  onApprove,
+  onEdit,
+}: {
+  status: ThreadStatus;
+  draft: ThreadMessage;
+  onApprove: () => void;
+  onEdit: () => void;
+}) {
+  if (status === "awaiting_your_approval")
+    return (
+      <div
+        role="status"
+        className="flex flex-wrap items-center gap-2 rounded-(--fbg-radius-control) border border-(--fbg-status-warning)/40 bg-(--fbg-status-warning-fill) px-3 py-2 text-sm text-(--fbg-text-primary)"
+      >
+        <Icon name="alert" size={16} className="shrink-0 text-(--fbg-status-warning)" />
+        <span className="min-w-0 flex-1">
+          Your approval of the wording is needed before an operator can send this.
+        </span>
+        <Button
+          size="sm"
+          variant="primary"
+          icon="check"
+          disabled={!canApprove(draft)}
+          onClick={onApprove}
+        >
+          Approve wording
+        </Button>
+        <Button size="sm" onClick={onEdit}>
+          Edit wording
+        </Button>
+      </div>
+    );
+  if (status === "returned_to_you")
+    return (
+      <div
+        role="status"
+        className="flex flex-wrap items-center gap-2 rounded-(--fbg-radius-control) border border-(--fbg-status-danger)/40 bg-(--fbg-status-danger-fill) px-3 py-2 text-sm text-(--fbg-text-primary)"
+      >
+        <Icon name="alert" size={16} className="shrink-0 text-(--fbg-status-danger)" />
+        <span className="min-w-0 flex-1">
+          The operator returned this draft
+          {draft.approval?.operator.note ? `: ${draft.approval.operator.note}` : ""}. Edit the
+          wording and approve it again.
+        </span>
+        <Button size="sm" variant="primary" onClick={onEdit}>
+          Edit wording
+        </Button>
+      </div>
+    );
+  if (status === "awaiting_operator")
+    return (
+      <div
+        role="status"
+        className="flex flex-wrap items-center gap-2 rounded-(--fbg-radius-control) border border-(--fbg-action-primary)/30 bg-(--fbg-selected) px-3 py-2 text-sm text-(--fbg-text-primary)"
+      >
+        <Icon name="clock" size={16} className="shrink-0 text-(--fbg-action-primary)" />
+        <span className="min-w-0 flex-1">
+          With the operator: they approve the wording and send it through the recorded channel.
+          Nothing else is needed from you.
+        </span>
+      </div>
+    );
+  return null;
 }
 
 function MessageCard({
@@ -486,10 +538,10 @@ function MessageCard({
   return (
     <article
       className={cx(
-        "rounded-(--fbg-radius-card) border bg-(--fbg-bg-surface) p-4",
+        "w-full max-w-[72ch] rounded-(--fbg-radius-card) border border-(--fbg-border-subtle) border-l-4 bg-(--fbg-bg-surface) p-4",
         outbound
-          ? "border-(--fbg-border-subtle) border-l-4 border-l-(--fbg-brand-accent)"
-          : "border-(--fbg-border-subtle) border-l-4 border-l-(--fbg-action-primary)",
+          ? "ml-auto border-l-(--fbg-brand-accent)"
+          : "mr-auto border-l-(--fbg-action-primary)",
       )}
       aria-label={`${outbound ? "Outbound" : "Inbound"} message from ${m.author}`}
     >
@@ -555,20 +607,22 @@ function MessageCard({
       ) : (
         <div className="mt-3 flex flex-col gap-2">
           {zhFirst && m.zh ? (
-            <p className="fbg-zh text-sm text-(--fbg-text-primary)" lang="zh-CN">
+            <p className="fbg-zh text-[15px] leading-7 text-(--fbg-text-primary)" lang="zh-CN">
               {m.zh}
             </p>
           ) : null}
           <p
             className={cx(
-              "text-sm",
-              zhFirst ? "text-(--fbg-text-secondary)" : "text-(--fbg-text-primary)",
+              "leading-7",
+              zhFirst
+                ? "text-sm text-(--fbg-text-secondary)"
+                : "text-[15px] text-(--fbg-text-primary)",
             )}
           >
             {m.en}
           </p>
           {!zhFirst && m.zh ? (
-            <p className="fbg-zh text-sm text-(--fbg-text-secondary)" lang="zh-CN">
+            <p className="fbg-zh text-sm leading-7 text-(--fbg-text-secondary)" lang="zh-CN">
               {m.zh}
             </p>
           ) : null}
@@ -674,71 +728,69 @@ function Composer({
           ? "Approve or withdraw the open draft before writing another message."
           : null;
 
+  if (!open) return <p className="text-xs text-(--fbg-text-secondary)">{blockedReason}</p>;
+
   return (
-    <Panel
-      title={`Ask ${thread.supplier?.name ?? "the supplier"}`}
-      description="Write in English. The Chinese is drafted from it and checked by the operator, who approves and sends through the recorded channel."
-    >
-      {!open ? (
-        <p className="text-sm text-(--fbg-text-secondary)">{blockedReason}</p>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {thread.kind === "revalidation" && text.length === 0 ? (
-            <div>
-              <Button size="sm" icon="clock" onClick={() => onText(REVALIDATION_PREFILL)}>
-                Ask for revalidation
-              </Button>
-            </div>
-          ) : null}
-          <TextArea
-            aria-label="Your question in English"
-            rows={3}
-            value={text}
-            onChange={(e) => onText(e.target.value)}
-            placeholder="For example: does the unit price include the plate fee, and until what date is it valid?"
-          />
-          {text.length > 0
-            ? validation.errors.map((e) => (
-                <p key={e} className="text-xs text-(--fbg-status-danger)">
-                  {e}
-                </p>
-              ))
-            : null}
-          {validation.warnings.map((w) => (
-            <p key={w} className="text-xs text-(--fbg-status-warning)">
-              {w}
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-semibold text-(--fbg-text-primary)">
+          Ask {thread.supplier?.name ?? "the supplier"}
+        </p>
+        {thread.kind === "revalidation" && text.length === 0 ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            icon="clock"
+            onClick={() => onText(REVALIDATION_PREFILL)}
+          >
+            Ask for revalidation
+          </Button>
+        ) : null}
+      </div>
+      <TextArea
+        id="buyer-compose"
+        aria-label="Your question in English"
+        rows={2}
+        value={text}
+        onChange={(e) => onText(e.target.value)}
+        placeholder="Write in English. The Chinese is drafted from it and checked by the operator."
+      />
+      {text.length > 0
+        ? validation.errors.map((e) => (
+            <p key={e} className="text-xs text-(--fbg-status-danger)">
+              {e}
             </p>
+          ))
+        : null}
+      {validation.warnings.map((w) => (
+        <p key={w} className="text-xs text-(--fbg-status-warning)">
+          {w}
+        </p>
+      ))}
+      <div className="flex flex-wrap items-center gap-2">
+        <Select
+          aria-label="Channel"
+          value={channel}
+          onChange={(e) => onChannel(e.target.value as Channel)}
+          className="min-w-0 sm:w-72"
+        >
+          {allowed.map((c) => (
+            <option key={c} value={c}>
+              {CHANNEL_LABEL[c]}
+            </option>
           ))}
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Select
-              aria-label="Channel"
-              value={channel}
-              onChange={(e) => onChannel(e.target.value as Channel)}
-              className="sm:w-80"
-            >
-              {allowed.map((c) => (
-                <option key={c} value={c}>
-                  {CHANNEL_LABEL[c]}
-                </option>
-              ))}
-            </Select>
-            <span className="text-xs text-(--fbg-text-secondary)">
-              {allowed.includes("wechat_relay")
-                ? `WeChat relay is available: a contact basis was recorded on ${thread.supplier?.wechatConsentRecordedAt}.`
-                : "Platform message only: no WeChat contact basis is recorded for this supplier."}
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="primary" icon="message" disabled={!validation.ok} onClick={onSubmit}>
-              Submit for operator approval
-            </Button>
-            <span className="text-xs text-(--fbg-text-secondary)">
-              Counts as your approval of the wording. The operator approves and sends.
-            </span>
-          </div>
-        </div>
-      )}
-    </Panel>
+        </Select>
+        <Button variant="primary" icon="message" disabled={!validation.ok} onClick={onSubmit}>
+          Submit for operator approval
+        </Button>
+        <span className="text-xs text-(--fbg-text-secondary)">
+          {allowed.includes("wechat_relay")
+            ? `WeChat relay available: contact basis recorded ${thread.supplier?.wechatConsentRecordedAt}.`
+            : "Platform message only: no WeChat contact basis recorded."}{" "}
+          Counts as your approval; the operator approves and sends.
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -804,6 +856,31 @@ function ThreadFacts({ thread }: { thread: Thread }) {
           Every sent message records channel, both approvers, time and the exact text.
         </p>
       </div>
+    </div>
+  );
+}
+
+function ApprovalHistory({ thread }: { thread: Thread }) {
+  const outbound = thread.messages.filter((m) => m.direction === "outbound" && m.approval);
+  return (
+    <div>
+      <p className="text-xs font-semibold text-(--fbg-text-primary)">Approval history</p>
+      {outbound.length === 0 ? (
+        <p className="mt-1 text-xs text-(--fbg-text-secondary)">
+          No outbound message in this thread yet.
+        </p>
+      ) : (
+        <ol className="mt-2 flex flex-col gap-3">
+          {outbound.map((m) => (
+            <li key={m.id} className="flex flex-col gap-1.5">
+              <p className="line-clamp-2 text-xs text-(--fbg-text-primary)">{m.en}</p>
+              {m.approval ? (
+                <ApprovalChainChips steps={approvalChain(m.approval, m.channel)} />
+              ) : null}
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }
