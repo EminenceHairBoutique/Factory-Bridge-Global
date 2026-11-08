@@ -172,6 +172,12 @@ const SCREENS = [
     workspace: "Internal operations",
   },
   {
+    href: "/design-preview/ops/cases",
+    title: "Operations: buyer cases",
+    body: "Buyer questions, data issues, requests and complaints ordered by derived priority with internal pilot targets; each case with its linked records, a timeline that marks what the buyer sees, a reply composer that blocks claims and response-time promises and names the record it concerns, internal notes, resolution with a code and a buyer-visible note, escalation with a target and reason, and reopening only with the buyer's own message.",
+    workspace: "Internal operations",
+  },
+  {
     href: "/design-preview/ops/quality",
     title: "Operations: quality verification",
     body: "One checkpoint track per project, supplier and variant through spec, sample, golden sample, production, inspection, exceptions, remediation and closure (QUALITY_ASSURANCE.md §4); the QSR with its sampling plan resolved for the lot (illustrative ISO 2859-1 Level II values), samples and the golden sample agreement, milestones flagged estimated or committed, inspection jobs with the exact badge sentence and findings by class, a result derived from the accept numbers (report required), the shipment-release recommendation, the buyer's decision recorded only against the buyer's message, and the remediation case with the fixed responsibility and resolution vocabulary.",
