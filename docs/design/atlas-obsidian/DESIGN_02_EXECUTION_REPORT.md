@@ -215,6 +215,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-41 (landed-cost scenarios contract).
 
+## 6r. Session 20 — Operations quality verification (2026-11-08, branch `design/ux04-quality`, stacked on PR #23)
+
+**Reuse first:** the list–detail layout, the right rail and the session log follow the compliance, research and landed-cost screens; badge wording comes straight from QUALITY_ASSURANCE.md §3 and §5; the data mirrors SCHEMA_PLAN §2.9 rather than inventing tables.
+
+**Implemented in preview:** `/design-preview/ops/quality?track=` (`OpsQualityVerification.tsx`): three tracks (Supplier A in production with the pre-shipment inspection scheduled, Supplier B at a failed pre-shipment inspection awaiting the buyer's decision, Supplier E blocked at an unapproved QSR); the eight checkpoints with states and summaries; the QSR with its sampling plan; samples and the golden sample agreement; milestones with date kinds; inspections with the resolved plan, the exact badge sentence and findings; the result form with the derived result; the buyer-decision gate; the remediation case. `quality-demo.ts` with 10 tests. Details in `OPS_QUALITY_VERIFICATION_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 343: web 125); `next build` exit 0; production `next start`: `/design-preview/ops/quality` → 404. Browser (built-in, dev server on :3100): Atlas 1440 — no overflow or console errors; Supplier B listed first with "Buyer decision pending", release "not recommended", the exact §5 sentence for lot L-0003 and "code letter K, 125 units"; a four-character reference kept the decision button disabled with the "decision is the buyer's" sentence, a thread reference enabled it and the decision was recorded; Supplier A's form showed "200 sampled, code letter L", stayed disabled while empty, derived Fail at 11 majors, Pass at 3, Pass with rework with the checkbox, and recording produced the "passed pre-shipment inspection on 2026-11-07 with rework of found units" sentence, release "recommended" and the log line. Obsidian 375 / 320 / 768 — no horizontal overflow on both tracks with the result form open. Screenshots could not be captured this session (the browser pane was not painting); verification is by DOM probes.
+
+**Cross-track:** H-42; Quality nav entry for UX-03.
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).
