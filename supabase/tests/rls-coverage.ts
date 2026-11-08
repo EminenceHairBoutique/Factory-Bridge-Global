@@ -36,6 +36,12 @@ export const TENANT_TABLES: ReadonlyArray<{ table: string; coveredBy: string }> 
   // 0007 supplier_evidence
   { table: "supplier_verification_checks", coveredBy: "supplier-evidence.test.ts" },
   { table: "supplier_documents", coveredBy: "supplier-evidence.test.ts" },
+  // 0008 projects_briefs
+  { table: "sourcing_projects", coveredBy: "projects.test.ts" },
+  { table: "project_assignments", coveredBy: "projects.test.ts" },
+  { table: "project_suppliers", coveredBy: "projects.test.ts" },
+  { table: "buyer_briefs", coveredBy: "projects.test.ts" },
+  { table: "brief_items", coveredBy: "projects.test.ts" },
 ];
 
 /** Reference tables readable by every signed-in user; still RLS-enabled with an explicit select policy. */
@@ -94,4 +100,10 @@ export const AUTHENTICATED_MAX_PRIVILEGES: Readonly<Record<string, ReadonlyArray
     supplier_verification_checks: ["SELECT", "INSERT", "UPDATE"],
     supplier_documents: ["SELECT", "INSERT", "UPDATE"],
     supplier_stage_requirements: ["SELECT"],
+    // 0008 projects_briefs — no DELETE: projects close, assignments deactivate, shortlist rows are dropped by status
+    sourcing_projects: ["SELECT", "INSERT", "UPDATE"],
+    project_assignments: ["SELECT", "INSERT", "UPDATE"],
+    project_suppliers: ["SELECT", "INSERT", "UPDATE"],
+    buyer_briefs: ["SELECT", "INSERT", "UPDATE"],
+    brief_items: ["SELECT", "INSERT", "UPDATE"],
   };
