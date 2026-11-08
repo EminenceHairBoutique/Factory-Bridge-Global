@@ -59,7 +59,7 @@ Chinese-first form: company, representative, families, trade readiness, allowed 
 | Supplier options | Specified | allowed attributes only; evidence labels; no ratings |
 | Quote comparison | Prototyped | view filters, compare-selected mode, "What is missing" per card, export dialog with PDF/XLSX states, basis-not-stated quote shown as "Not ranked" |
 | Documents and review | Prototyped (`/design-preview/buyer/documents`, `/design-preview/buyer/review?doc=`) | document library with pipeline status, who acts next, scan result, extraction flags, linked record, access log, simulated upload, discard with confirmation; buyer review reuses `ui/ReviewSplit.tsx` read-only with flag-for-operator and notes; see `DOCUMENTS_AND_EXTRACTION_REVIEW_SCREENS.md` |
-| Reports | Specified | versioned list, assumptions preview, file name pattern `fbg-comparison-<project>-v<brief>-<date>.<ext>` |
+| Reports | Prototyped (`/design-preview/buyer/reports`, `/design-preview/buyer/report?id=`) | versioned list with current / stale / superseded derived from recorded inputs, generate panel that lists the next version's content before it exists, file name pattern `fbg-comparison-<project>-v<brief>-<date>.<ext>` (CSV as ZIP), viewer rendered per QUOTE_ENGINE_SPEC §5 with the five ADR-024 tables and a CSV preview; see `BUYER_REPORTS_SCREENS.md` |
 | Inbox / settings | Specified | approval stages visible on every thread |
 
 ## 3. Operations deltas

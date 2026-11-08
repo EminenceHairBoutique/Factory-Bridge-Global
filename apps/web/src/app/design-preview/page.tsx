@@ -46,6 +46,18 @@ const SCREENS = [
     workspace: "Buyer",
   },
   {
+    href: "/design-preview/buyer/reports",
+    title: "Buyer: comparison reports",
+    body: "Versioned reports with current / stale / superseded derived from the recorded inputs (brief version, quantity, FX row, exact quotation versions); a generate panel that lists what the next version will contain before it exists; simulated generation; reproducibility facts in the evidence drawer.",
+    workspace: "Buyer",
+  },
+  {
+    href: "/design-preview/buyer/report?id=rep_1",
+    title: "Buyer: report viewer (stale report)",
+    body: "One report rendered as the file reads: header, ranked quotations by trade-term group with selected tier, goods, fees and every landed line with its status, the not-ranked list with reasons, and the footer with assumptions, exclusions, the rounding rule and disclaimers; plus the five export tables with a CSV preview.",
+    workspace: "Buyer",
+  },
+  {
     href: "/design-preview/buyer/brief",
     title: "Brief confirmation (AI proposal → your version)",
     body: "Raw input with highlighted sources, the AI proposal with from input / inferred / missing provenance and Chinese translation, your decisions per field, and a versioned confirm.",
