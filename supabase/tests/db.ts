@@ -116,6 +116,19 @@ begin
   _parts := string_to_array(name, '/');
   return _parts[array_length(_parts, 1)];
 end $$;
+-- storage-api forbids direct deletes on its tables (storage.protect_delete, errcode 42501) unless the Storage API's own
+-- GUC is set; mirrored here so a test that deletes from storage.objects fails on PGlite the way it fails on Supabase.
+create or replace function storage.protect_delete() returns trigger
+language plpgsql as $$
+begin
+  if current_setting('storage.allow_delete_query', true) is distinct from 'true' then
+    raise exception 'Direct deletion from storage tables is not allowed. Use the Storage API instead.'
+      using hint = 'This prevents accidental data loss from orphaned objects.', errcode = '42501';
+  end if;
+  return old;
+end $$;
+create trigger objects_delete_protect before delete on storage.objects for each row execute function storage.protect_delete();
+create trigger buckets_delete_protect before delete on storage.buckets for each row execute function storage.protect_delete();
 alter table storage.buckets enable row level security;
 alter table storage.objects enable row level security;
 grant usage on schema storage to anon, authenticated, service_role;

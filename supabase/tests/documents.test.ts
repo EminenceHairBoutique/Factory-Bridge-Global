@@ -59,7 +59,12 @@ beforeAll(async () => {
   }
   // Shared database on real Postgres: remove this suite's own fixtures from a previous run, children first
   // (document_access_log → documents is ON DELETE RESTRICT by design).
-  await db.exec(`delete from storage.objects where name like 'eeeeee0%'`);
+  // Supabase Storage forbids direct deletes on its tables (storage.protect_delete, CI run 42437221300). The harness
+  // cleans its own fixtures the way the Storage API itself does: the escape-hatch GUC, SET LOCAL inside one transaction.
+  // Only a test fixture may do this — application code never deletes storage rows by SQL (orphaned files).
+  await db.exec(
+    `begin; set local storage.allow_delete_query = 'true'; delete from storage.objects where name like 'eeeeee0%'; commit;`,
+  );
   await db.exec(
     `delete from public.document_access_log where document_id in (select id from public.documents where org_id in (${Object.values(
       ORG,
