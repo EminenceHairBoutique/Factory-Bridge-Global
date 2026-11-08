@@ -88,6 +88,12 @@ const SCREENS = [
     workspace: "Buyer (English)",
   },
   {
+    href: "/design-preview/buyer/landed-cost",
+    title: "Landed cost scenarios",
+    body: 'Immutable snapshots citing the exact FX rows and inputs; a new scenario with quantity, as-of date (FX resolved by the 3-day lag rule or missing_fx), a freight estimate (provider or manual; sourced only with a document) and a person-recorded duty assumption (never AI-filled); every landed-cost line per eligible quotation with status and source; a total only when complete, otherwise "Partial — excludes: …"; cross-term ranking only when every eligible total is complete.',
+    workspace: "Buyer (English)",
+  },
+  {
     href: "/design-preview/ops/quote-review",
     title: "Operations: quotation review (concept)",
     body: "Review queue and split view with source anchors, confidence bands and the accept gate.",
