@@ -107,14 +107,16 @@
 
 /* ---- Obsidian (dark) ----------------------------------------------------------------------------- */
 /*
- * `html[data-fbg-theme]` is set by a pre-hydration script in app/design-preview/layout.tsx from the stored
- * choice (or `?theme=`), so a dark preference paints dark on the first frame instead of flashing Atlas and
- * animating every colour 180 ms later. Scopes with a fixed theme (gallery panels) opt out.
+ * `<meta name="fbg-theme">` is added to <head> by a pre-hydration script in app/design-preview/layout.tsx
+ * from the stored choice (or `?theme=`), so a dark preference paints dark on the first frame instead of
+ * flashing Atlas and animating every colour 180 ms later. Only unhydrated scopes read it; once React has
+ * applied the stored choice the scope's own data-theme governs. Scopes with a fixed theme (gallery) opt out.
  */
 .fbg-dp[data-theme="obsidian"],
 .fbg-dp [data-theme="obsidian"],
 .fbg-dp .fbg-obsidian,
-html[data-fbg-theme="obsidian"] .fbg-dp:not([data-theme-fixed]):not(.fbg-hydrated) {
+html:has(meta[name="fbg-theme"][content="obsidian"])
+  .fbg-dp:not([data-theme-fixed]):not(.fbg-hydrated) {
   --fbg-bg-canvas: #0d1118;
   --fbg-bg-surface: #161e29;
   --fbg-bg-raised: #1d2733;
@@ -169,7 +171,8 @@ html[data-fbg-theme="obsidian"] .fbg-dp:not([data-theme-fixed]):not(.fbg-hydrate
 
 @media (prefers-color-scheme: dark) {
   .fbg-dp[data-theme="system"],
-  html[data-fbg-theme="system"] .fbg-dp:not([data-theme-fixed]):not(.fbg-hydrated) {
+  html:has(meta[name="fbg-theme"][content="system"])
+    .fbg-dp:not([data-theme-fixed]):not(.fbg-hydrated) {
     --fbg-bg-canvas: #0d1118;
     --fbg-bg-surface: #161e29;
     --fbg-bg-raised: #1d2733;
@@ -261,8 +264,44 @@ html[data-fbg-theme="obsidian"] .fbg-dp:not([data-theme-fixed]):not(.fbg-hydrate
   .fbg-dp *::after {
     transition-duration: 0ms !important;
     animation-duration: 0ms !important;
+    animation-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Marketing hero: one orchestrated entrance on load (rise in three beats, the arc drawn once), then still. */
+@keyframes fbg-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fbg-dp .fbg-rise {
+  animation: fbg-rise 560ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.fbg-dp .fbg-rise-2 {
+  animation-delay: 120ms;
+}
+.fbg-dp .fbg-rise-3 {
+  animation-delay: 240ms;
+}
+@keyframes fbg-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+/* Requires pathLength="1" on the path. */
+.fbg-dp .fbg-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: fbg-draw 1100ms 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* ---- Surfaces ---------------------------------------------------------------------------------- */

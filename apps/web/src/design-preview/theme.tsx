@@ -60,8 +60,6 @@ export function ThemeScope({
 
   const setTheme = (next: ThemeChoice) => {
     setThemeState(next);
-    // Keep the pre-hydration attribute in step so the next page load paints the chosen theme at once.
-    document.documentElement.setAttribute("data-fbg-theme", next);
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
     } catch {
