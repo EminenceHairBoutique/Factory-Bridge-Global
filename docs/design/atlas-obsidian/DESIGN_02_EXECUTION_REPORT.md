@@ -165,6 +165,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-37 (catalog import contract). Coordination: UX-03 owns AppShell / primitives / BuyerDashboard / design-preview.css; #15 merges first; nav entries for 消息 and 产品目录 handed over.
 
+## 6m. Session 15 — Conversation-first inboxes (2026-11-08, branch `design/ux04-conversation-inbox`, stacked on PR #15)
+
+**Brief (UX-04, relayed by the UX-03 session):** Messages screens conversation-first: compact thread list, spacious conversation panel, supplier info / evidence / approval history in an on-demand drawer, buyer and operator approval requirements still visible and functional.
+
+**Implemented in preview:** `ui/ConversationShell.tsx` (compact list column, conversation column with a sticky composer, Details control opening an overlay drawer with Escape and focus handling, phone list → conversation → back) and `ThreadRow` (status dot, subject + time, meta + status), used by both inboxes. `BuyerMessages.tsx`: approval strip pinned above the conversation (needs your approval with Approve / Edit; returned with the operator's note; with the operator), right-aligned outbound and left-aligned inbound at a 72-character measure, chain and actions kept on every draft, drawer with supplier facts, channels, visibility, outbound log, approval history and the session log. `SupplierMessages.tsx`: status strip with 回复 focusing the composer, the same conversation treatment, 详情 drawer with 买家, 渠道, 可见范围, 转达记录 and the session log. Helpers and tests unchanged (the rules did not move). The AppShell, primitives and stylesheet were not touched (UX-03 owns them); the shell's right rail is simply not used by these two screens any more.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 301: web 83); `next build` exit 0; production `next start`: both inbox routes → 404. Browser: Atlas 1440: list column 304 px, conversation 792 px, 54 px rows; the tooling draft opens with the approval strip and its Approve / Edit; Edit from the strip opens the editor on the draft; Approve from the strip moves the thread to "With the operator", removes the Approve control everywhere and the row updates; Details opens a 384 px drawer with Supplier, Channels, Who can see it, Outbound log, Approval history and the session log, focus moves inside and Escape closes; the Supplier A thread has no strip, a sticky composer, submission adds a second outbound card and the drawer's approval history shows two chains. Supplier: the 出厂价 thread opens with the 待回复 strip, 回复 focuses the composer, 详情 opens the drawer with 买家 · 渠道 · 可见范围 · 转达记录 · 本次操作记录, a reply goes 待平台转达 → 已转达 with the strip following. Obsidian 375: list → conversation → back, the drawer at full width, the sticky composer 56 px above the viewport bottom clearing the tab bar; 320 and 768: no horizontal page overflow on either inbox with the drawer open. No console errors from the preview.
+
+**Cross-track:** none new; H-35 and H-36 unchanged.
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

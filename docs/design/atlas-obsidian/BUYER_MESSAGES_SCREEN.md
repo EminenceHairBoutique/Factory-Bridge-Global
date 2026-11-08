@@ -1,6 +1,6 @@
 # Buyer Messages and Approvals — Prototyped Screen
 
-**Status:** prototyped 2026-11-07 in the UX-01 / DESIGN-02 design preview (same branch, PR #14). Route `/design-preview/buyer/messages?thread=`; dev only, 404 in production builds. Implements the buyer sidebar's "Messages → Inbox (approval stages visible)" (Atlas IA §2.1), the project route `/app/projects/[id]/messages` ("Clarifications & follow-ups, approval states visible"), PRD R-10 / AC-B6.1 and ADR-012. Synthetic data only; nothing is sent.
+**Status:** prototyped 2026-11-07 in the UX-01 / DESIGN-02 design preview (PR #15); reworked conversation-first on 2026-11-08 per the UX-04 brief (branch `design/ux04-conversation-inbox`). Route `/design-preview/buyer/messages?thread=`; dev only, 404 in production builds. Implements the buyer sidebar's "Messages → Inbox (approval stages visible)" (Atlas IA §2.1), the project route `/app/projects/[id]/messages` ("Clarifications & follow-ups, approval states visible"), PRD R-10 / AC-B6.1 and ADR-012. Synthetic data only; nothing is sent.
 
 ## 1. Job
 
@@ -27,17 +27,19 @@ Give the buyer one place to see every exchange with a supplier and to do the one
 - **Allowed channels:** platform message always; WeChat relay only where the CRM recorded a contact basis for the supplier; email is intake only.
 - **Outbound log:** channel, both approvers with times, reference, for messages that actually left the system.
 
-## 4. Layout
+## 4. Layout (conversation-first, UX-04)
 
-Header with counts (needs your approval, with the operator, awaiting reply) and the as-of date. Two panes from the large breakpoint; phones show the list, then the thread with a back control.
+Shared `ui/ConversationShell.tsx`: a compact thread list (18–19 rem), a spacious conversation column, a sticky composer at the bottom of the viewport, and an on-demand drawer opened from a Details control in the conversation header (overlay, Escape closes, focus moves into it). Phones show the list, then the conversation with a back control. The page header keeps only the counts and a one-sentence lead.
 
-**Thread list:** status tabs All · Needs you · With operator · Awaiting reply · Replied with counts; project filter; each row has the subject, status chip, supplier and project, the latest message, kind and last activity.
+**Approval strip:** pinned above the conversation whenever a draft is open: needs your approval (Approve wording, Edit wording), returned by the operator with the note (Edit wording), or with the operator (nothing needed from you). The chain and the same actions stay on the draft itself, so the requirement is visible without scrolling and functional in both places.
 
-**Thread:** subject, supplier, project, RFQ reference, kind, status; "Open project". Messages in order: system notes as dashed lines; outbound and inbound as cards with the author, direction badge, "Drafted by AI from your request" where true, time and channel. Inbound shows the Chinese first, then the translation; outbound shows the English first, then the Chinese. Every translation states who made it and who checked it. Inbound flags appear as notices: text addressed to the software found and ignored (recorded as a security event), contact details removed, links not opened. Attachments link to the document review. Each outbound message shows its approval chain; while a draft is open the buyer can Approve wording, Edit wording (the Chinese is re-drafted and both approvals reset) or Withdraw draft; sent messages show the channel, time, reference and both approvers.
+**Thread list:** status and project selects with counts in the option labels; each row is a status dot, one line of subject with the time, and one line of supplier · project · status (`ThreadRow`).
 
-**Composer:** English text, channel select limited to what the supplier's recorded contact basis allows with the reason stated, validation errors and the contact-details warning, "Submit for operator approval" which counts as the buyer's approval. Revalidation threads offer a one-click prefilled request.
+**Conversation:** subject and one meta line in the header; system notes as centered lines; outbound messages right-aligned with the brand accent edge and inbound left-aligned with the teal edge, both capped at 72 characters with a 15 px / 28 px reading measure; the author, direction badge, "Drafted by AI from your request" where true, time and channel. Inbound shows the Chinese first, then the translation; outbound shows the English first, then the Chinese. Every translation states who made it and who checked it. Inbound flags appear as notices: text addressed to the software found and ignored (recorded as a security event), contact details removed, links not opened. Attachments link to the document review. Each outbound message shows its approval chain; while a draft is open the buyer can Approve wording, Edit wording (the Chinese is re-drafted and both approvals reset) or Withdraw draft; sent messages show the channel, time, reference and both approvers.
 
-**Evidence drawer:** supplier with the contact-confidentiality sentence, project, RFQ, allowed channels with the recorded basis date, who can see the thread, the outbound log, and the session's actions. On narrow screens the facts sit below the thread.
+**Composer (sticky):** a two-row English field, the channel select limited to what the supplier's recorded contact basis allows with the reason stated, validation errors and the contact-details warning, "Submit for operator approval" which counts as the buyer's approval; blocked states collapse to one line. Revalidation threads offer a one-click prefilled request.
+
+**Details drawer (on demand):** supplier with the contact-confidentiality sentence, project, RFQ, allowed channels with the recorded basis date, who can see the thread, the outbound log, the approval history (every outbound message with its chain) and the session's actions.
 
 ## 5. Verified in the browser
 
