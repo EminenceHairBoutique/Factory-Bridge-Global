@@ -42,6 +42,19 @@ export const TENANT_TABLES: ReadonlyArray<{ table: string; coveredBy: string }> 
   { table: "project_suppliers", coveredBy: "projects.test.ts" },
   { table: "buyer_briefs", coveredBy: "projects.test.ts" },
   { table: "brief_items", coveredBy: "projects.test.ts" },
+  // 0009 quotations
+  { table: "quote_groups", coveredBy: "quotations.test.ts" },
+  { table: "quotations", coveredBy: "quotations.test.ts" },
+  { table: "quote_tiers", coveredBy: "quotations.test.ts" },
+  { table: "quote_fees", coveredBy: "quotations.test.ts" },
+  { table: "quotation_states", coveredBy: "quotations.test.ts" },
+  { table: "quote_status_events", coveredBy: "quotations.test.ts" },
+  { table: "quote_visibility_grants", coveredBy: "quotations.test.ts" },
+  // 0011 fx_landed_cost
+  { table: "freight_estimates", coveredBy: "landed-cost.test.ts" },
+  { table: "duty_assumptions", coveredBy: "landed-cost.test.ts" },
+  { table: "comparison_snapshots", coveredBy: "landed-cost.test.ts" },
+  { table: "landed_cost_scenarios", coveredBy: "landed-cost.test.ts" },
 ];
 
 /** Reference tables readable by every signed-in user; still RLS-enabled with an explicit select policy. */
@@ -49,6 +62,7 @@ export const PUBLIC_READ_TABLES: ReadonlyArray<string> = [
   "product_taxonomy",
   "attribute_definitions",
   "supplier_stage_requirements",
+  "fx_rates",
 ];
 
 export type TablePrivilege = "SELECT" | "INSERT" | "UPDATE" | "DELETE";
@@ -106,4 +120,18 @@ export const AUTHENTICATED_MAX_PRIVILEGES: Readonly<Record<string, ReadonlyArray
     project_suppliers: ["SELECT", "INSERT", "UPDATE"],
     buyer_briefs: ["SELECT", "INSERT", "UPDATE"],
     brief_items: ["SELECT", "INSERT", "UPDATE"],
+    // 0009 quotations — payload and lifecycle are written only inside app.supersede_quotation / app.transition_quotation
+    quote_groups: ["SELECT"],
+    quotations: ["SELECT"],
+    quote_tiers: ["SELECT"],
+    quote_fees: ["SELECT"],
+    quotation_states: ["SELECT"],
+    quote_status_events: ["SELECT"],
+    quote_visibility_grants: ["SELECT", "INSERT", "UPDATE"],
+    // 0011 fx_landed_cost — rates append-only (platform admin / worker); snapshots and scenarios immutable
+    fx_rates: ["SELECT", "INSERT"],
+    freight_estimates: ["SELECT", "INSERT", "UPDATE"],
+    duty_assumptions: ["SELECT", "INSERT", "UPDATE"],
+    comparison_snapshots: ["SELECT", "INSERT"],
+    landed_cost_scenarios: ["SELECT", "INSERT"],
   };

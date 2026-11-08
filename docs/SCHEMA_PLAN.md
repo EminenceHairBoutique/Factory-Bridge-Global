@@ -104,13 +104,13 @@ Storage buckets **(0006 ✅)**: `quarantine` (write-only for uploaders, worker r
 
 | Table | Key columns | Owner |
 |---|---|---|
-| `quote_groups` | `id, supplier_id, buyer_org_id nullable (null only for supplier_catalog), brief_item_id nullable, quote_type, created_at` — one group per (supplier, buyer, brief item) negotiation thread; versions live under it | as quotation |
-| `quotations` **(immutable)** | `id, group_id, version int (unique per group), supplier_id, buyer_org_id, brief_item_id, specification_id, quote_type, rights_class, source_type, document_id, extraction_id, price_basis, incoterm_place, basis_confirmed bool, currency, quantity_unit, moq numeric, production_lead_days, payment_terms, quote_date, confirmed_at, valid_until date nullable (**NULL = validity unconfirmed**), confirmed_by, created_at` ; `BEFORE UPDATE OR DELETE` trigger raises | `buyer_org_id` (private) / grant-evaluated (catalog) / owning supplier |
-| `quote_tiers` | `quotation_id, min_qty, max_qty nullable, unit_price numeric(18,6), price_includes text[]` ; `EXCLUDE USING gist (quotation_id WITH =, numrange(min_qty, coalesce(max_qty,'infinity'),'[)') WITH &&)` (needs `btree_gist`) | follows quotation |
-| `quote_fees` | `quotation_id, fee_type, amount numeric(18,6), currency, is_one_time, included_in_unit_price` | follows quotation |
-| `quotation_states` (1:1, mutable only via functions) | `quotation_id pk, group_id, status quote_status, is_current bool, superseded_by uuid nullable, state_version int, updated_at` ; `unique (group_id) where is_current`; **no UPDATE grant to `authenticated`** | follows quotation |
-| `quote_status_events` (append-only) | `quotation_id, from_status, to_status, actor_user_id, acting_as, reason, idempotency_key unique, at` | follows quotation |
-| `quote_visibility_grants` | `quotation_id, grantee_org_id, granted_by, reason, expires_at, revoked_at, revoked_by` ; attached to an exact quotation **version** | internal writes; grantee reads own |
+| `quote_groups` **(0009 ✅)** | `id, supplier_id, buyer_org_id nullable (null only for supplier_catalog), brief_item_id nullable, quote_type, created_at` — one group per (supplier, buyer, brief item) negotiation thread; versions live under it | as quotation |
+| `quotations` **(immutable; 0009 ✅)** | `id, group_id, version int (unique per group), supplier_id, buyer_org_id, brief_item_id, specification_id, quote_type, rights_class, source_type, document_id, extraction_id, price_basis, incoterm_place, basis_confirmed bool, currency, quantity_unit, moq numeric, production_lead_days, payment_terms, quote_date, confirmed_at, valid_until date nullable (**NULL = validity unconfirmed**), confirmed_by, created_at` ; `BEFORE UPDATE OR DELETE` trigger raises | `buyer_org_id` (private) / grant-evaluated (catalog) / owning supplier |
+| `quote_tiers` **(0009 ✅)** | `quotation_id, min_qty, max_qty nullable, unit_price numeric(18,6), price_includes text[]` ; `EXCLUDE USING gist (quotation_id WITH =, numrange(min_qty, coalesce(max_qty,'infinity'),'[)') WITH &&)` (needs `btree_gist`) | follows quotation |
+| `quote_fees` **(0009 ✅)** | `quotation_id, fee_type, amount numeric(18,6), currency, is_one_time, included_in_unit_price` | follows quotation |
+| `quotation_states` (1:1, mutable only via functions) **(0009 ✅)** | `quotation_id pk, group_id, status quote_status, is_current bool, superseded_by uuid nullable, state_version int, updated_at` ; `unique (group_id) where is_current`; **no UPDATE grant to `authenticated`** | follows quotation |
+| `quote_status_events` (append-only) **(0009 ✅)** | `quotation_id, from_status, to_status, actor_user_id, acting_as, reason, idempotency_key unique, at` | follows quotation |
+| `quote_visibility_grants` **(0009 ✅)** | `quotation_id, grantee_org_id, granted_by, reason, expires_at, revoked_at, revoked_by` ; attached to an exact quotation **version** | internal writes; grantee reads own |
 
 Lifecycle, transition authorizations, concurrency and supersession semantics: `MIGRATION_DEPENDENCY_MAP.md` §6. Visibility rule: `SECURITY_PERMISSION_MATRIX.md` §3.1–3.2 (`app.quotation_visible()`).
 
@@ -130,11 +130,11 @@ Lifecycle, transition authorizations, concurrency and supersession semantics: `M
 
 | Table | Key columns | Owner |
 |---|---|---|
-| `fx_rates` | `base, quote, rate numeric(18,8), rate_date, source(provider name), fetched_at` ; UNIQUE(base,quote,rate_date,source) | public read; worker write |
-| `freight_estimates` | `project_id, origin, destination, mode, provider_or_manual, amount, currency, valid_until, document_id, status cost_line_status` | via project |
-| `duty_assumptions` | `project_id, hts_candidate text nullable, rate_pct nullable, basis, reviewed_by_broker bool, notes` ; **never auto-filled by AI** | via project |
-| `comparison_snapshots` | `brief_item_id, inputs_hash, quantity, result jsonb, fx_rate_ids uuid[], generated_at, engine_version` | via project |
-| `landed_cost_scenarios` | `comparison_snapshot_id, quotation_id, lines jsonb[{type,status,amount,currency,source_ref,assumption}], total_status(complete|partial)` | via project |
+| `fx_rates` **(0011 ✅)** | `base, quote, rate numeric(18,8), rate_date, source, is_reference, fetched_at, recorded_by` ; UNIQUE(base,quote,rate_date,source); append-only; `app.fx_rate_for()` | public read; worker / platform admin write |
+| `freight_estimates` **(0011 ✅)** | `project_id, org_id (denormalized), origin, destination, mode(sea_lcl|sea_fcl|air|express|rail|truck), provider_or_manual, provider_name, amount, currency, valid_until, document_id (required when sourced), status cost_line_status, notes` | via project |
+| `duty_assumptions` **(0011 ✅)** | `project_id, org_id (denormalized), brief_item_id?, hts_candidate (format-checked), rate_pct (needs a basis), basis(buyer_provided|broker_advice|operator_lookup|unverified), reviewed_by_broker + broker_name, mpf_applies, hmf_applies, notes, created_by (a person — never a job/AI)` | via project |
+| `comparison_snapshots` **(0011 ✅, immutable)** | `brief_item_id, project_id + org_id (denormalized), quantity, quantity_unit, as_of, inputs_hash (sha256), engine_version, fx_rate_ids uuid[] (verified), result jsonb, generated_by, generated_at` | via project |
+| `landed_cost_scenarios` **(0011 ✅, immutable)** | `comparison_snapshot_id, org_id, quotation_id (exact version, restrict), lines jsonb[{type,status,amount,currency,source_ref,assumption}] (validated), total_status(complete|partial), goods_total/currency, landed_total/currency (NULL when partial), eligible_for_ranking (= complete), explanations text[]` | via project |
 
 ### 2.9 Quality (Phase 3 tables, designed now)
 
@@ -215,7 +215,7 @@ create policy sp_update on public.sourcing_projects for update to authenticated
 
 **Pattern B — children with denormalized `org_id`** (`buyer_briefs`, `brief_items`, `documents`): same shape as A on the child's own `org_id`; trigger `app.assert_same_org()` guarantees the child's `org_id` equals the parent's at insert/update, so policies stay flat and fast.
 
-**Pattern C — quotations (grant-evaluated)**
+**Pattern C — quotations (grant-evaluated; 0009 ✅ as written, plus `app.operator_for_buyer_supplier` for threads without a brief item and internal read of catalog/listing types)**
 ```sql
 create policy q_select on public.quotations for select to authenticated
   using (app.quotation_visible(id));
