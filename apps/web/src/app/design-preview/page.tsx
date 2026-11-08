@@ -22,6 +22,12 @@ const SCREENS = [
     workspace: "Buyer (English)",
   },
   {
+    href: "/design-preview/buyer/project",
+    title: "Project overview",
+    body: "Record page for one sourcing project: stage strip, next action, status timeline with who and when, quotes at a glance, and tabs for brief, supplier options, compare, documents, messages with approval chains, reports and audit activity.",
+    workspace: "Buyer (English)",
+  },
+  {
     href: "/design-preview/buyer/brief",
     title: "Brief confirmation (AI proposal → your version)",
     body: "Raw input with highlighted sources, the AI proposal with from input / inferred / missing provenance and Chinese translation, your decisions per field, and a versioned confirm.",

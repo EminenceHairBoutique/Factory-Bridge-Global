@@ -81,6 +81,14 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-28 (onboarding submission and verification-check contract).
 
+## 6d. Session 6 — Project overview (2026-11-07, same branch)
+
+**Implemented in preview:** `/design-preview/buyer/project` (`ProjectOverview.tsx`, `demo-data/project.ts`): RecordPage for the labels demo project with stage strip, next-action card, status timeline (who and when per step, what unlocks pending steps), quotes at a glance (statuses from the comparison helper), open items, and tabs Brief · Supplier options · Compare · Documents (pipeline statuses, filter) · Messages (approval chain You → Operator → Sent; Approve draft advances it) · Reports (assumptions, exclusions, staleness) · Activity (audit-derived with acting_as labels); evidence drawer with record facts, brief versions and approval gates. Dashboard project row and index entry link to it. Details in `PROJECT_OVERVIEW_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 224); `next build` exit 0; production `next start`: `/design-preview/buyer/project` → 404. Browser: all eight tabs render; Approve draft advances the chain and clears the Overview prompt; no console errors; no horizontal overflow at 320 / 375 / 768 px in Obsidian.
+
+**Cross-track:** H-29 (project record DTO).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

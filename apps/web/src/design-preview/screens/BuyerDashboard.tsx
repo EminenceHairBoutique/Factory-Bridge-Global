@@ -326,7 +326,18 @@ export function BuyerDashboard() {
                         className="hover:bg-paper [&>td]:px-4 [&>td]:py-3 [&>td]:align-top"
                       >
                         <td>
-                          <p className="font-medium text-ink">{p.name}</p>
+                          <p className="font-medium text-ink">
+                            {p.id === "prj_demo_labels" ? (
+                              <Link
+                                href="/design-preview/buyer/project"
+                                className="hover:text-(--fbg-link) hover:underline"
+                              >
+                                {p.name}
+                              </Link>
+                            ) : (
+                              p.name
+                            )}
+                          </p>
                           <p className="mt-0.5 text-xs text-slate">
                             {p.family} · brief v{p.briefVersion} · {p.destination}
                           </p>

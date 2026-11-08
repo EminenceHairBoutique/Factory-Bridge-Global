@@ -54,7 +54,7 @@ Chinese-first form: company, representative, families, trade readiness, allowed 
 | Overview | Prototyped | sidebar order; "New sourcing request" primary on Home; no charts |
 | Project list | Partially prototyped | search field and saved views to add in B-15; cards below 768 px |
 | Create sourcing brief | Prototyped | five steps kept as Product → Quantity and destination → Specification and quality → Documents → Review (equivalent to the brief's Product → Specifications → Quantity → References → Review; the order keeps required fields earliest) |
-| Project details | Specified | tabs per IA §2.1; status timeline; next action card |
+| Project details | Prototyped (`/design-preview/buyer/project`) | stage strip, next action, status timeline with who/when, quotes at a glance, tabs Brief · Supplier options · Compare · Documents · Messages (approval chains) · Reports · Activity; evidence drawer; see `PROJECT_OVERVIEW_SCREEN.md` |
 | Specification builder | Prototyped (`/design-preview/buyer/brief`) | raw input with highlighted sources, AI proposal with from input / inferred / missing provenance and 中文, per-field Accept / Edit / Not sure / Skip, versioned confirm; see `BRIEF_CONFIRMATION_SCREEN.md` |
 | Supplier options | Specified | allowed attributes only; evidence labels; no ratings |
 | Quote comparison | Prototyped | view filters, compare-selected mode, "What is missing" per card, export dialog with PDF/XLSX states, basis-not-stated quote shown as "Not ranked" |
