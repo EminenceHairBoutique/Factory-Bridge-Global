@@ -127,7 +127,13 @@ const BUYER_NAV_BOTTOM: NavItem[] = [
 ];
 
 const OPS_NAV: NavItem[] = [
-  { label: "Work queue", short: "Queue", icon: "list", mobile: true },
+  {
+    label: "Work queue",
+    short: "Queue",
+    icon: "list",
+    href: "/design-preview/ops/queue",
+    mobile: true,
+  },
   { label: "Projects", icon: "folder", mobile: true },
   { label: "Research", icon: "search" },
   { label: "Suppliers", icon: "building", href: "/design-preview/ops/suppliers" },

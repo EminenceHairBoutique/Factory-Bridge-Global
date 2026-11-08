@@ -105,6 +105,14 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-31 (auth and organization-setup contract; role copy to i18n).
 
+## 6g. Session 9 — Operations work queue and pipeline (2026-11-07, same branch)
+
+**Implemented in preview:** `/design-preview/ops/queue` (`OpsWorkQueue.tsx`, `demo-data/ops-queue.ts`, `queue-demo.ts` with 6 tests): SLA-ordered queue (My queue · Unassigned · All open) with kind and project filters, claim, inline outbound approval showing the chain Buyer approved → Operator → Sent via platform with EN and 中文 text and the channel rule, supplier-reply relay, links into the review split, supplier record and comparison; Pipeline tab with seven stage columns, per-stage targets and days-in-stage. Evidence drawer with the turnaround targets ("not shown to buyers as promises") and the session's audit lines. Ops sidebar "Work queue" and index entry link to it. Details in `OPS_WORK_QUEUE_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 240: web 41); `next build` exit 0; production `next start`: route → 404. Browser: overdue-first ordering, draft chain, approve-and-send, relay, claim from Unassigned, pipeline columns and past-target flags; no console errors; no horizontal page overflow at 320 / 375 / 768 px.
+
+**Cross-track:** H-32 (work-items view and outbound-approval endpoint).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

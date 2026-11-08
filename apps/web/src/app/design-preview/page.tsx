@@ -82,6 +82,12 @@ const SCREENS = [
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/ops/queue",
+    title: "Operations: work queue and pipeline",
+    body: "Everything waiting on an operator ordered by SLA, with claim, inline outbound approval (buyer approved → operator → sent via platform), supplier-reply relay, kind and project filters, and a pipeline board of projects by stage with per-stage targets.",
+    workspace: "Internal operations",
+  },
+  {
     href: "/design-preview/ops/suppliers",
     title: "Operations: supplier CRM",
     body: "Sortable supplier list with stage, checks due, catalog grant and assignment, and the supplier record: claimed vs verified profile, facilities, restricted contacts with contact basis and disclosure grants, checks that generate the buyer badge, documents with rights class, source-permission editor.",

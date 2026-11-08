@@ -39,7 +39,7 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 | Screen | Route | Status |
 |---|---|---|
 | Quotes awaiting review + review split | `/ops/review`, `/ops/review/[taskId]` | Prototyped (concept) |
-| Pipeline board | `/ops` | Specified §5.1 |
+| Pipeline board + work queue | `/ops` | Prototyped (`/design-preview/ops/queue`; see `atlas-obsidian/OPS_WORK_QUEUE_SCREEN.md`) |
 | Supplier CRM + profile | `/ops/suppliers`, `/[id]` | Prototyped (`/design-preview/ops/suppliers`, `/design-preview/ops/supplier?id=`; see `atlas-obsidian/OPS_SUPPLIER_CRM_SCREEN.md`) |
 | Research inbox | `/ops/research` | Specified §5.3 |
 | Outreach approval queue | `/ops/outreach` | Specified §5.4 |
