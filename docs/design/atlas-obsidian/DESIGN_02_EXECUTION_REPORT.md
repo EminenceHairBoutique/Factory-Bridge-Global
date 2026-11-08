@@ -175,6 +175,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** none new; H-35 and H-36 unchanged.
 
+## 6n. Session 16 — Supplier 文件资料 (2026-11-08, branch `design/ux04-supplier-documents`, stacked on PR #17)
+
+**Reuse first:** the library resolves the same onboarding certification items (`ONBOARDING_DOC_TYPES`) and file names the 企业认证 flow and 工作台 already show, reuses the shared upload pre-check with the Chinese reasons from the messages helper, and keeps the "供应商提供，未核验 until a platform check" rule from PRD / SECURITY.md T20 as a derived label rather than a stored flag. AppShell untouched (UX-03 wires the sidebar item).
+
+**Implemented in preview:** `/design-preview/supplier/documents?doc=&upload=` (`SupplierDocuments.tsx`) as described in `SUPPLIER_ZH_CN_SCREENS.md` §3.7; `demo-data/supplier-documents.ts` (nine files across 企业资质, 报价与询价, 产品资料, 样品与检验 including a rejected archive and an expiring certificate); `supplier-documents-demo.ts` with 8 tests; 工作台 and onboarding links; index entry.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 309: web 91); `next build` exit 0; production `next start`: the route → 404. Browser: Atlas 1440: counts (9 files, 1 需补充, 1 待平台审核, 1 即将到期); the checklist shows 已拒绝 for 生产场地证明 with the rejected archive and its scan reason first in the list, 待平台审核 for 出口资质, 已核验 for the licence, identity and ISO files; the ISO certificate carries 即将到期（23 天）and the relayed quotation reads 已转达; the licence record refuses 删除 with the evidence reason and shows its check id; 下载链接 is logged; 重新上传 from the checklist pre-selects 企业资质 and 生产场地证明 and focuses the picker; a ZIP is refused in Chinese while a JPG beside it is added and walks 已上传 → 扫描中 → 已解析 → 待平台审核, after which 需补充 reads 0 and the checklist item follows; 替换 on the ISO certificate creates v2 as a fresh upload and marks the old file 已作废; 删除 on the file under review warns that the review is withdrawn, Escape closes, confirming removes it and the checklist item returns to 待上传; the 产品资料 tab shows two files with the spec linking to its product; 工作台 and the onboarding document step link into the library. Obsidian 375: facts below the list and the selected certificate with its expiry; 320 and 768: no horizontal page overflow. No console errors from the preview.
+
+**Cross-track:** H-38 (supplier document library contract).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).
