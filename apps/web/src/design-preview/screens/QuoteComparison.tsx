@@ -4,6 +4,7 @@
  * Supplier Quotation Comparison (IA §2.2 `/app/projects/[id]/compare`, §3 ComparisonMatrix; PRD US-B4).
  * All arithmetic comes from `compare-demo.ts`, a display-only mirror of QUOTE_ENGINE_SPEC §2. Local state only.
  */
+import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import {
   BRIEF_HARD_SPEC,
@@ -19,10 +20,11 @@ import {
 } from "../demo-data";
 import {
   compareQuotes,
+  type EvaluatedQuote,
+  exclusionText,
   formatMoney,
   formatQty,
-  type EvaluatedQuote,
-  type Exclusion,
+  forwarderOverrides,
   type LandedOverrides,
 } from "../compare-demo";
 import { AppShell } from "../ui/AppShell";
@@ -31,6 +33,8 @@ import { useEscapeKey } from "../ui/useEscapeKey";
 import {
   Badge,
   Button,
+  buttonClasses,
+  cx,
   EvidenceBadge,
   FreshnessChip,
   Notice,
@@ -39,7 +43,6 @@ import {
   SegmentedControl,
   StatusChip,
   TextInput,
-  cx,
 } from "../ui/primitives";
 
 const QUANTITIES = [5_000, 10_000, 25_000] as const;
@@ -59,21 +62,6 @@ const QUOTE_TYPE_LABEL: Record<string, string> = {
   final_offer: "Factory-confirmed quote",
   estimate: "Estimate",
 };
-
-function exclusionText(x: Exclusion): string {
-  switch (x.code) {
-    case "expired":
-      return `Expired ${x.date}`;
-    case "below_moq":
-      return `Below MOQ (MOQ ${formatQty(x.moq)})`;
-    case "hard_mismatch":
-      return `Not comparable — specification differs (${x.attributes.map((a) => SPEC_LABEL[a] ?? a).join(", ")})`;
-    case "no_tier_covers_qty":
-      return "No price tier covers this quantity";
-    case "basis_unknown":
-      return "Price basis not stated — request confirmation";
-  }
-}
 
 function usdRateLabel(): string {
   return `USD @ ${(1 / DEMO_FX.rate).toFixed(2)} CNY/USD (${DEMO_FX.source}, ${DEMO_FX.rateDate})`;
@@ -114,20 +102,10 @@ export function QuoteComparison() {
     dutyRateNumber >= 0 &&
     dutySource.trim().length > 2;
 
-  const overrides = useMemo<LandedOverrides>(() => {
-    const out: LandedOverrides = {};
-    if (applyForwarder) {
-      for (const [id, lines] of Object.entries(DEMO_FREIGHT_ESTIMATE.perQuoteUsd)) {
-        out[id] = Object.fromEntries(
-          Object.entries(lines).map(([type, amountUsd]) => [
-            type,
-            { amountUsd, status: "estimated" as const, source: DEMO_FREIGHT_ESTIMATE.source },
-          ]),
-        );
-      }
-    }
-    return out;
-  }, [applyForwarder]);
+  const overrides = useMemo<LandedOverrides>(
+    () => (applyForwarder ? forwarderOverrides() : {}),
+    [applyForwarder],
+  );
 
   // Duty assumption is applied as goods × rate per quote; the rate is a buyer-recorded assumption, never AI-filled.
   const result = useMemo(() => {
@@ -518,14 +496,18 @@ export function QuoteComparison() {
                     fbg-comparison-prj_demo_labels-v{project.briefVersion}-{DEMO_AS_OF}.
                     {exportFormat}
                   </span>
-                  . Generation runs server-side and arrives with backlog item B-23.
+                  . Generation runs server-side (B-23). The Reports screen shows exactly what the
+                  file will contain and simulates the generation in this preview.
                 </Notice>
               </div>
               <div className="mt-4 flex justify-end gap-2">
                 <Button onClick={() => setExportOpen(false)}>Close</Button>
-                <Button variant="primary" icon="download" disabled title="Arrives with B-23">
-                  Generate {exportFormat.toUpperCase()}
-                </Button>
+                <Link
+                  href={`/design-preview/buyer/reports?qty=${qty}&format=${exportFormat}`}
+                  className={buttonClasses("primary")}
+                >
+                  Continue in Reports
+                </Link>
               </div>
             </div>
           </div>

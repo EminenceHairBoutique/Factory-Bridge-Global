@@ -13,7 +13,9 @@
 import {
   BRIEF_HARD_SPEC,
   BRIEF_SOFT_SPEC,
+  DEMO_FREIGHT_ESTIMATE,
   DEMO_FX,
+  SPEC_LABEL,
   type DemoQuote,
   type LandedLineType,
 } from "./demo-data";
@@ -279,4 +281,34 @@ export function formatMoney(amount: number, currency: "CNY" | "USD", digits = 2)
 
 export function formatQty(n: number): string {
   return new Intl.NumberFormat("en-US").format(n);
+}
+
+/** One sentence per exclusion code; shared by the comparison and the report footer. */
+export function exclusionText(x: Exclusion): string {
+  switch (x.code) {
+    case "expired":
+      return `Expired ${x.date}`;
+    case "below_moq":
+      return `Below MOQ (MOQ ${formatQty(x.moq)})`;
+    case "hard_mismatch":
+      return `Not comparable — specification differs (${x.attributes.map((a) => SPEC_LABEL[a] ?? a).join(", ")})`;
+    case "no_tier_covers_qty":
+      return "No price tier covers this quantity";
+    case "basis_unknown":
+      return "Price basis not stated — request confirmation";
+  }
+}
+
+/** The forwarder's demo freight estimate as `estimated` landed-cost inputs, per quote. */
+export function forwarderOverrides(): LandedOverrides {
+  const out: LandedOverrides = {};
+  for (const [id, lines] of Object.entries(DEMO_FREIGHT_ESTIMATE.perQuoteUsd)) {
+    out[id] = Object.fromEntries(
+      Object.entries(lines).map(([type, amountUsd]) => [
+        type,
+        { amountUsd, status: "estimated" as const, source: DEMO_FREIGHT_ESTIMATE.source },
+      ]),
+    );
+  }
+  return out;
 }
