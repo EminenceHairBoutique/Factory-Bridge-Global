@@ -10,6 +10,7 @@
  * review_status) so the screens exercise the real vocabulary.
  */
 import type { PriceBasis, QuoteType, SourceType } from "@fbg/domain";
+import { LABEL_H_FIELDS } from "./documents";
 
 export const DEMO_AS_OF = "2026-11-07";
 
@@ -563,6 +564,8 @@ export interface ReviewTask {
   assignedTo: string | null;
   status: "pending" | "in_review";
   fields: ExtractedField[];
+  /** Document record behind the task (`demo-data/documents.ts`), when one exists. */
+  documentId?: string;
 }
 
 export const DEMO_REVIEW_QUEUE: ReviewTask[] = [
@@ -575,6 +578,7 @@ export const DEMO_REVIEW_QUEUE: ReviewTask[] = [
     receivedAt: "2026-11-05 14:12",
     assignedTo: "Operator (demo)",
     status: "in_review",
+    documentId: "d_quote_f",
     fields: [
       {
         key: "currency",
@@ -664,7 +668,8 @@ export const DEMO_REVIEW_QUEUE: ReviewTask[] = [
     receivedAt: "2026-11-06 09:05",
     assignedTo: null,
     status: "pending",
-    fields: [],
+    documentId: "d_quote_h",
+    fields: LABEL_H_FIELDS,
   },
   {
     id: "rt_demo_4",

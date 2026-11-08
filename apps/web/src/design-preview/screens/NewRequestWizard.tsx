@@ -6,6 +6,7 @@
  */
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { formatBytes, validateUploads } from "../documents-demo";
 import { AppShell } from "../ui/AppShell";
 import { Icon } from "../ui/icons";
 import {
@@ -232,15 +233,6 @@ const INSPECTION = [
   },
 ];
 
-const ALLOWED_TYPES = new Set([
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "text/csv",
-  "image/png",
-  "image/jpeg",
-]);
-const MAX_BYTES = 25 * 1024 * 1024;
-
 /* ----------------------------------------------------------------------------------------------- */
 /* State                                                                                              */
 /* ----------------------------------------------------------------------------------------------- */
@@ -356,12 +348,6 @@ function requiredForSubmission(b: Brief): string[] {
   return missing;
 }
 
-function formatBytes(n: number): string {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
-}
-
 function kindOf(type: string): Attachment["kind"] {
   if (type === "application/pdf") return "pdf";
   if (type.includes("sheet") || type === "text/csv") return "sheet";
@@ -435,14 +421,18 @@ export function NewRequestWizard() {
 
   const addFiles = (list: FileList | null) => {
     if (!list) return;
-    const accepted: Attachment[] = [];
-    const rejected: string[] = [];
-    Array.from(list).forEach((f, i) => {
-      if (!ALLOWED_TYPES.has(f.type)) rejected.push(`${f.name}: file type not accepted`);
-      else if (f.size > MAX_BYTES) rejected.push(`${f.name}: larger than 25 MB`);
-      else accepted.push({ id: Date.now() + i, name: f.name, size: f.size, kind: kindOf(f.type) });
-    });
-    setFileError(rejected.length ? rejected.join(" · ") : null);
+    const result = validateUploads(Array.from(list));
+    const accepted: Attachment[] = result.accepted.map((f, i) => ({
+      id: Date.now() + i,
+      name: f.name,
+      size: f.size,
+      kind: kindOf(f.type),
+    }));
+    setFileError(
+      result.rejected.length
+        ? result.rejected.map((r) => `${r.name}: ${r.reason}`).join(" · ")
+        : null,
+    );
     if (accepted.length) update("attachments", [...brief.attachments, ...accepted]);
   };
 

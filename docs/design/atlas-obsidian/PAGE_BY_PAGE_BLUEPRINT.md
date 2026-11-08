@@ -58,7 +58,7 @@ Chinese-first form: company, representative, families, trade readiness, allowed 
 | Specification builder | Prototyped (`/design-preview/buyer/brief`) | raw input with highlighted sources, AI proposal with from input / inferred / missing provenance and 中文, per-field Accept / Edit / Not sure / Skip, versioned confirm; see `BRIEF_CONFIRMATION_SCREEN.md` |
 | Supplier options | Specified | allowed attributes only; evidence labels; no ratings |
 | Quote comparison | Prototyped | view filters, compare-selected mode, "What is missing" per card, export dialog with PDF/XLSX states, basis-not-stated quote shown as "Not ranked" |
-| Documents and review | Concept (ops) | buyer variant reuses the split with fewer controls |
+| Documents and review | Prototyped (`/design-preview/buyer/documents`, `/design-preview/buyer/review?doc=`) | document library with pipeline status, who acts next, scan result, extraction flags, linked record, access log, simulated upload, discard with confirmation; buyer review reuses `ui/ReviewSplit.tsx` read-only with flag-for-operator and notes; see `DOCUMENTS_AND_EXTRACTION_REVIEW_SCREENS.md` |
 | Reports | Specified | versioned list, assumptions preview, file name pattern `fbg-comparison-<project>-v<brief>-<date>.<ext>` |
 | Inbox / settings | Specified | approval stages visible on every thread |
 
@@ -66,7 +66,7 @@ Chinese-first form: company, representative, families, trade readiness, allowed 
 
 | Screen | Status | Delta |
 |---|---|---|
-| Review split | Prototyped (concept) | sidebar renamed Reviews; dialogs use 20 px radius; anchors highlighted with the brand accent |
+| Review split | Prototyped (shared `ui/ReviewSplit.tsx`) | sidebar renamed Reviews; dialogs use 20 px radius; anchors highlighted with the brand accent; document source, rights class, scan time and fingerprint in the task header; extraction flags as notices (danger for text addressed to the system); pending tasks read-only until Assign to me |
 | Suppliers (list and record) | Prototyped (`/design-preview/ops/suppliers`, `/design-preview/ops/supplier`) | sortable list with `aria-sort`, filters; record with generated badge preview, stage gate, claimed vs verified, restricted contacts with contact basis and disclosure grants, checks, documents with rights class, source permissions; see `OPS_SUPPLIER_CRM_SCREEN.md` |
 | Work queue + pipeline | Prototyped (`/design-preview/ops/queue`) | SLA-ordered queue with claim, inline outbound approval and reply relay; pipeline board by stage with targets; see `OPS_WORK_QUEUE_SCREEN.md` |
 | Projects, Research, Cases, Admin | Specified | dense tables at 14 px, sortable headers with `aria-sort`, filters in a sticky bar; command palette future |

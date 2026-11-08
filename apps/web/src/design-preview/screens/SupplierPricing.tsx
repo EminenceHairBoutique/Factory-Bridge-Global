@@ -5,8 +5,7 @@
  * Rules: ascending non-overlapping tiers; Incoterm code + 指定地点; colloquial terms never defaulted; validity
  * required for confirmation; visibility is a declared intent — only a recorded grant makes prices visible.
  */
-import { useSearchParams } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   INCOTERM_GLOSS,
   SUPPLIER_PRODUCTS,
@@ -81,17 +80,9 @@ function draftFrom(p: SupplierProduct): Draft {
   };
 }
 
-export function SupplierPricing() {
-  return (
-    <Suspense fallback={null}>
-      <SupplierPricingInner />
-    </Suspense>
-  );
-}
-
-function SupplierPricingInner() {
-  const params = useSearchParams();
-  const initialId = params?.get("product") ?? SUPPLIER_PRODUCTS[0]?.id ?? "";
+/** `productId` comes from the route's `searchParams` on the server, so no Suspense boundary is needed. */
+export function SupplierPricing({ productId }: { productId?: string | undefined }) {
+  const initialId = productId ?? SUPPLIER_PRODUCTS[0]?.id ?? "";
   const [selectedId, setSelectedId] = useState(initialId);
   const [drafts, setDrafts] = useState<Record<string, Draft>>(() =>
     Object.fromEntries(SUPPLIER_PRODUCTS.map((p) => [p.id, draftFrom(p)])),

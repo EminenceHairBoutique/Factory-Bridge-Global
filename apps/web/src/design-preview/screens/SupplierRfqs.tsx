@@ -4,8 +4,7 @@
  * 询价单 inbox + 提交报价 (IA §2.3 `/supplier/rfqs`, `/supplier/rfqs/[id]`). Simplified-Chinese first.
  * Local state only. Replies and quotes go to the platform for review; nothing is sent to a buyer directly.
  */
-import { useSearchParams } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   INCOTERM_GLOSS,
   SUPPLIER_PRODUCTS,
@@ -95,17 +94,9 @@ function prefillFor(rfq: SupplierRfq): QuoteDraft {
   };
 }
 
-export function SupplierRfqs() {
-  return (
-    <Suspense fallback={null}>
-      <SupplierRfqsInner />
-    </Suspense>
-  );
-}
-
-function SupplierRfqsInner() {
-  const params = useSearchParams();
-  const initialId = params?.get("rfq") ?? SUPPLIER_RFQS[0]?.id ?? "";
+/** `rfqId` comes from the route's `searchParams` on the server, so no Suspense boundary is needed. */
+export function SupplierRfqs({ rfqId }: { rfqId?: string | undefined }) {
+  const initialId = rfqId ?? SUPPLIER_RFQS[0]?.id ?? "";
   const [rfqs, setRfqs] = useState<SupplierRfq[]>(SUPPLIER_RFQS);
   const [selectedId, setSelectedId] = useState(initialId);
   const [filter, setFilter] = useState<Filter>("全部");

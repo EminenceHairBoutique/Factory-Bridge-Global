@@ -113,6 +113,18 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-32 (work-items view and outbound-approval endpoint).
 
+## 6h. Session 10 — Documents and extraction review (2026-11-07, same branch)
+
+**Reuse first:** the operator review's document pane, field pane, confidence band and pane toggle were extracted into `ui/ReviewSplit.tsx` with a read-only mode; the operator screen renders it editable and the new buyer review renders it read-only. The wizard's upload type and size check moved into `documents-demo.ts` and the wizard imports it. Source lines moved into `demo-data/documents.ts` keyed by document id, and review tasks now reference a `documentId`.
+
+**Implemented in preview:** `/design-preview/buyer/documents` (`BuyerDocuments.tsx`): library with pipeline status, who acts next, scan result, extraction flags, linked record and access log per document; upload pre-check with a simulated in-browser pipeline and a sample-file button; status tabs and project/kind filters; discard with confirmation and the evidence rule for accepted documents. `/design-preview/buyer/review?doc=` (`BuyerExtractionReview.tsx`): read-only split with flag-for-operator toggles, notes attached to the review task, the accepted variant with the operator's corrections, and an empty state for unknown ids. Operator review refined: document facts in the header, extraction flags as notices including the security notice for text addressed to the system, pending tasks read-only until assigned. Buyer sidebar "Documents" and project-overview links now reach these screens. Details in `DOCUMENTS_AND_EXTRACTION_REVIEW_SCREENS.md`.
+
+**Defect found and fixed while verifying:** the four query-parameter screens (`?id=`, `?product=`, `?rfq=`, and the new `?doc=`) used `useSearchParams` under a Suspense boundary that wrapped the whole page. In the dev server the streamed segment's reveal sometimes never fired, leaving a blank page with the content in a hidden element. The route files now read `searchParams` on the server and pass a prop; repeated loads render and hydrate within 3 seconds.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 248: web 49); `next build` exit 0; production `next start`: `/design-preview/buyer/documents` and `/design-preview/buyer/review?doc=d_quote_h` → 404. Browser: documents interactions (simulated upload to review, signed-link logging, SVG refused, Escape, discard, rejected and accepted actions), buyer review (flags, anchors, notes attached, corrections, empty state), operator review (flags, fingerprint line, pending → assigned → editable); no console errors; no horizontal page overflow at 320 / 375 / 768 / 1440 in both themes.
+
+**Cross-track:** H-33 (documents, access log, signed links, extraction summary, buyer notes, discard rule; server-side `searchParams`).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

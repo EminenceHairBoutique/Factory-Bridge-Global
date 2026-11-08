@@ -632,7 +632,7 @@ export function ProjectOverview() {
                       <Badge tone={DOC_TONE[d.status]}>{DOCUMENT_STATUS_LABEL[d.status]}</Badge>
                       {d.status === "in_review" ? (
                         <Link
-                          href="/design-preview/ops/quote-review"
+                          href="/design-preview/buyer/review?doc=d_quote_h"
                           className={buttonClasses("secondary", "sm")}
                         >
                           Open review
@@ -652,10 +652,16 @@ export function ProjectOverview() {
                 ),
               )}
             </ul>
-            <div className="border-t border-(--fbg-border-subtle) px-5 py-3">
-              <Button icon="upload" size="sm">
+            <div className="flex flex-wrap gap-2 border-t border-(--fbg-border-subtle) px-5 py-3">
+              <Link
+                href="/design-preview/buyer/documents"
+                className={buttonClasses("secondary", "sm")}
+              >
                 Upload a document
-              </Button>
+              </Link>
+              <Link href="/design-preview/buyer/documents" className={buttonClasses("ghost", "sm")}>
+                All documents
+              </Link>
             </div>
           </Panel>
         ) : null}

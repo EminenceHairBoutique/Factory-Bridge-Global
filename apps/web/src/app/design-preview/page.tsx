@@ -34,6 +34,18 @@ const SCREENS = [
     workspace: "Buyer (English)",
   },
   {
+    href: "/design-preview/buyer/documents",
+    title: "Buyer: documents and the upload pipeline",
+    body: "Every uploaded or received document with its pipeline status (uploaded → scanning → parsed → extracted → in review → accepted, or rejected), who acts next, the scan result, extraction flags, the linked quotation and the access log; client-side upload pre-check with a simulated pipeline; discard with confirmation.",
+    workspace: "Buyer",
+  },
+  {
+    href: "/design-preview/buyer/review?doc=d_quote_h",
+    title: "Buyer: extraction review (read-only)",
+    body: "The same review split as operations with fewer controls: proposed values with confidence and anchors into the source lines, extraction flags explained in buyer language, flag-for-operator and notes attached to the review task; the accepted variant shows the operator's corrections.",
+    workspace: "Buyer",
+  },
+  {
     href: "/design-preview/buyer/brief",
     title: "Brief confirmation (AI proposal → your version)",
     body: "Raw input with highlighted sources, the AI proposal with from input / inferred / missing provenance and Chinese translation, your decisions per field, and a versioned confirm.",

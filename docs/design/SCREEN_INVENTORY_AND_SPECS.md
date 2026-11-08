@@ -13,8 +13,8 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 | New sourcing request | `/app/projects/new` | Prototyped | B-15, B-17, B-27 |
 | Project overview | `/app/projects/[id]` | Prototyped (`/design-preview/buyer/project`; see `atlas-obsidian/PROJECT_OVERVIEW_SCREEN.md`) | B-15 |
 | Brief & spec builder (AI proposal confirm) | `/app/projects/[id]/brief` | Prototyped (`/design-preview/buyer/brief`; see `atlas-obsidian/BRIEF_CONFIRMATION_SCREEN.md`) | B-17 |
-| Documents | `/app/projects/[id]/uploads` | Planned | B-10, B-11 |
-| Extraction review (buyer) | `/app/projects/[id]/review/[taskId]` | Same component as ops concept | B-20 |
+| Documents | `/app/projects/[id]/uploads` | Prototyped (`/design-preview/buyer/documents`; see `atlas-obsidian/DOCUMENTS_AND_EXTRACTION_REVIEW_SCREENS.md`) | B-10, B-11 |
+| Extraction review (buyer) | `/app/projects/[id]/review/[taskId]` | Prototyped (`/design-preview/buyer/review?doc=`; shared `ui/ReviewSplit.tsx`, read-only with flag-for-operator) | B-20 |
 | Supplier options | `/app/projects/[id]/options` | Specified §3.3 | B-09 |
 | Quote comparison + landed cost | `/app/projects/[id]/compare`, `/landed-cost` | Prototyped | B-22, B-14, B-21 |
 | Messages / clarifications | `/app/projects/[id]/messages` | Approval modal prototyped | B-24 |
@@ -38,7 +38,7 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 
 | Screen | Route | Status |
 |---|---|---|
-| Quotes awaiting review + review split | `/ops/review`, `/ops/review/[taskId]` | Prototyped (concept) |
+| Quotes awaiting review + review split | `/ops/review`, `/ops/review/[taskId]` | Prototyped (concept, refined onto shared `ui/ReviewSplit.tsx`; document facts, extraction flags incl. the embedded-instruction security notice, pending tasks read-only until assigned) |
 | Pipeline board + work queue | `/ops` | Prototyped (`/design-preview/ops/queue`; see `atlas-obsidian/OPS_WORK_QUEUE_SCREEN.md`) |
 | Supplier CRM + profile | `/ops/suppliers`, `/[id]` | Prototyped (`/design-preview/ops/suppliers`, `/design-preview/ops/supplier?id=`; see `atlas-obsidian/OPS_SUPPLIER_CRM_SCREEN.md`) |
 | Research inbox | `/ops/research` | Specified §5.3 |

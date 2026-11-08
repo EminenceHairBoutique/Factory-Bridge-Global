@@ -118,7 +118,7 @@ const BUYER_NAV: NavItem[] = [
   },
   { label: "Quotes", icon: "compare", href: "/design-preview/buyer/compare" },
   { label: "Messages", short: "Inbox", icon: "message", badge: 1, mobile: true },
-  { label: "Documents", icon: "document" },
+  { label: "Documents", icon: "document", href: "/design-preview/buyer/documents" },
 ];
 
 const BUYER_NAV_BOTTOM: NavItem[] = [

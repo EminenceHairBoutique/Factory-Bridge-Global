@@ -7,8 +7,7 @@
  * Local state only; synthetic data.
  */
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { RightsClass, SourceType } from "@fbg/domain";
 import {
   CHECK_LABEL,
@@ -81,17 +80,10 @@ const RIGHTS_CLASSES: RightsClass[] = [
   "supplier_submitted_private",
 ];
 
-export function OpsSupplierRecord() {
-  return (
-    <Suspense fallback={null}>
-      <OpsSupplierRecordInner />
-    </Suspense>
-  );
-}
+export const DEFAULT_SUPPLIER_ID = "sup_a";
 
-function OpsSupplierRecordInner() {
-  const params = useSearchParams();
-  const id = params?.get("id") ?? "sup_a";
+/** `id` comes from the route's `searchParams` on the server, so no Suspense boundary is needed. */
+export function OpsSupplierRecord({ id }: { id: string }) {
   const base = OPS_SUPPLIERS.find((s) => s.id === id) ?? OPS_SUPPLIERS[0];
   const [supplier, setSupplier] = useState<OpsSupplier | undefined>(base);
   const [tab, setTab] = useState<Tab>("profile");
