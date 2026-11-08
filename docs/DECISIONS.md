@@ -189,6 +189,17 @@ Living document. Append new ADRs; never edit an accepted ADR's substance — sup
 5. `supplier_verification_summary_v` is the only buyer-facing read of verification. It runs as its owner (not `security_invoker`), applies `app.supplier_visible()`, and exposes only check types passed/expired, dates, counts and whether the stage is evidenced — never notes, reviewer ids or evidence ids. Badge text is rendered from these columns and names the checks exactly.
 6. `check_type` joins the enum registry (`packages/domain/src/enums.ts` → regenerated 0001 block). Evidence FKs on `source_permissions` and `supplier_facilities` are `on delete restrict` and validated by `app.evidence_document_fits()`.
 
+## ADR-035 — Assignment makes the operator; the shortlist scopes what they see
+**Status:** accepted 2026-11-07 (B-15)
+**Decision:**
+1. An internal operator is `I.op+` for a project only through an active `project_assignments` row (platform admins are `I.op+` everywhere). Platform admins assign; a project's active **lead** may add/deactivate **support** assignments on that project; nobody self-assigns. `app.is_assigned_to_project()` is the single predicate.
+2. `project_suppliers` (the shortlist) is the link between a buyer project and a supplier. While a row is not `dropped`, that project's assigned operators may read, create and update the supplier's restricted contacts, read its submitted documents, and grant a contact to **that project's buyer org** (not to any other). Dropping the supplier removes the access on the next read. Operators therefore never hold blanket access to contacts (closes the ADR-031 deferral).
+3. `documents.project_id` attaches buyer uploads to a project of the same org (trigger); assigned operators read those (closes the ADR-033 deferral). `app.document_readable()` is replaced with both clauses.
+4. Compliance reviewers read projects and briefs and may change only `compliance_hold` / `compliance_note` (trigger-enforced); `lead_operator_id` is staff-only; `org_id`s are immutable (`app.prevent_owner_change`); Pattern-B children get `org_id` from the parent via the generic `app.assert_same_org(parent_table, fk_column)` trigger, which raises on a supplied mismatch.
+5. Briefs start `draft`; `draft → ready` (buyer), `ready → in_sourcing` (assigned operator only — it precedes outreach, which humans approve), `in_sourcing → closed`, `ready → draft` to reopen. `ai_proposal` is stored as data; `confirmed_spec_id` must be a platform or own-org specification and is set by a person.
+6. A brief item on a `blocked` taxonomy node is refused at insert; on a `review_required` node it is created with `compliance_hold = true`, which only compliance / platform admin may clear.
+7. Not yet: audit-trail reads scoped to assigned projects (matrix `I.op+` AU) — `audit_events` policies are unchanged; RFQs, supplier messages and quote groups (0009) will hang off `project_suppliers`.
+
 ## ADR-016 — No marketplace or messaging automation; connectors gated by the data-rights matrix
 **Status:** accepted
 **Decision:** S2 and S6 in `INTEGRATIONS_AND_PERMISSIONS.md` are permanently blocked. API connectors (S8–S11) require recorded license/scopes and founder approval before design is turned into code.

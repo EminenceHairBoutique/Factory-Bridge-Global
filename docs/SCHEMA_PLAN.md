@@ -48,7 +48,7 @@ Grouped by domain. "Owner" = the column RLS keys on.
 | `memberships` | `org_id, user_id, role, status(invited|active|suspended), invited_by, accepted_at` | `org_id` |
 | `user_profiles` | `user_id (=auth.users.id), full_name, locale('en-US'|'zh-CN'), timezone` | `user_id` |
 | `invites` | `org_id, email, role, token_hash, expires_at, accepted_at` | `org_id` |
-| `project_assignments` | `project_id, operator_user_id, assigned_by, role(lead|support)` | via project's buyer org + internal |
+| `project_assignments` **(0008 ✅)** | `project_id, org_id (denormalized), operator_user_id (active internal member), role(lead|support), active, assigned_by` — one active lead per project | buyer org reads; internal reads; platform admin or the project's lead assigns |
 
 ### 2.2 Suppliers & verification
 
@@ -81,7 +81,7 @@ Attribute values are canonical: dimensions in mm, mass in g, volume in ml, with 
 | `source_systems` **(0005 ✅)** | `code, provider, source_type, capabilities jsonb, status(blocked|manual|active), terms_url, notes` — rows shipped by the migration (`marketplace.1688/taobao/weidian`, `messaging.wechat` = `blocked`); `status` survives re-runs | internal read; platform admin updates |
 | `source_permissions` **(0005 ✅)** | `id, supplier_id nullable, org_id (denormalized), source_system_id nullable (≥1 of the two), rights_class, scope(fields[], images, redistribute, benchmark, buyer_visibility, named_org_ids[]) validated by `app.validate_permission_scope`, evidence_document_id (0007), granted_at, expires_at, revoked_at, revoked_by, revoke_reason, recorded_by` — immutable except revocation | internal; supplier reads own and self-grants catalog rights (owner/admin); buyers read catalog grants naming their org or open to platform buyers |
 | `research_leads` **(0005 ✅)** | `taxonomy_id, source_system_id → source_systems, reference_url, search_term_zh, title_zh, observed_min_price ≤ observed_max_price, currency, observed_moq, observed_unit, observed_at, notes, recorded_by, rights_class = internal_market_observation (CHECK)` | **internal only** |
-| `documents` **(0006 ✅)** | `id, org_id (owning tenant), uploaded_by, source_type, rights_class, source_permission_id, supplier_id, storage_bucket (↔ status CHECK), storage_path (= <org_id>/<id>/<file>, trigger), original_filename, mime (allow-list), bytes (≤ 25 MB), sha256 (required once parsed), status document_status (ADR-033 machine), scan_result jsonb, page_count ≤ 500, rejected_reason, retention_class(standard|forensic_7d|legal_hold)` | `org_id` members read/register/discard; submitting supplier reads own; worker owns transitions; assigned internal from 0008 |
+| `documents` **(0006 ✅, project_id 0008)** | `id, org_id (owning tenant), project_id (own-org project, 0008), uploaded_by, source_type, rights_class, source_permission_id, supplier_id, storage_bucket (↔ status CHECK), storage_path (= <org_id>/<id>/<file>, trigger), original_filename, mime (allow-list), bytes (≤ 25 MB), sha256 (required once parsed), status document_status (ADR-033 machine), scan_result jsonb, page_count ≤ 500, rejected_reason, retention_class(standard|forensic_7d|legal_hold)` | `org_id` members read/register/discard; submitting supplier reads own; worker owns transitions; assigned internal from 0008 |
 | `document_pages` **(0006 ✅)** | `document_id, org_id (denormalized), page_no ≤ 500, text, layout jsonb, ocr_run_id → ai_runs` | follows document; worker-only writes |
 | `document_cells` **(0006 ✅)** | `document_id, org_id (denormalized), sheet, row_no, col_no, raw (cached value, never evaluated), parsed` | follows document; worker-only writes |
 | `document_access_log` **(0003 ✅, FK 0006 ✅)** | `document_id → documents (restrict), user_id, org_id, action(view|download|signed_url), at, ip_hash` — written only by `app.log_document_access()` | internal read |
@@ -92,9 +92,10 @@ Storage buckets **(0006 ✅)**: `quarantine` (write-only for uploaders, worker r
 
 | Table | Key columns | Owner |
 |---|---|---|
-| `sourcing_projects` | `org_id, name, status, destination_country, destination_postal, target_date, target_incoterm, lead_operator_id` | `org_id` |
-| `buyer_briefs` | `project_id, version, raw_input_en, raw_input_zh, ai_proposal jsonb, ai_run_id, confirmed_spec_id, status(draft|ready|in_sourcing|closed)` | via project |
-| `brief_items` | `brief_id, line_no, taxonomy_id, specification_id, quantity numeric, quantity_unit, target_unit_price nullable, notes` | via project |
+| `sourcing_projects` **(0008 ✅)** | `org_id (buyer), name, status(draft|active|on_hold|closed), destination_country, destination_postal, target_date, target_incoterm (default unknown), lead_operator_id (staff-only), compliance_hold + compliance_note (compliance-only)` | `org_id` + assigned operators; compliance reads |
+| `project_suppliers` **(0008 ✅)** | `project_id, org_id (denormalized), supplier_id, status(shortlisted|contacted|quoting|dropped), added_by, reason` — the shortlist; grants assigned operators scoped access to the supplier's contacts/documents (ADR-035) | buyer org reads; assigned operators maintain |
+| `buyer_briefs` **(0008 ✅)** | `project_id, org_id (denormalized), version, raw_input_en, raw_input_zh (≥1), ai_proposal jsonb (data), ai_run_id, confirmed_spec_id (platform/own-org; set by a person), status(draft|ready|in_sourcing|closed)` | via project |
+| `brief_items` **(0008 ✅)** | `brief_id, org_id + project_id (denormalized), line_no, taxonomy_id (blocked → refused), specification_id (same taxonomy, platform/own-org), quantity > 0, quantity_unit, target_unit_price, target_currency, compliance_hold (review_required → true; compliance clears), notes` | via project |
 | `rfqs` (Phase 2) | `project_id, brief_item_ids uuid[], status, approved_by, approved_at, dispatched_at, deadline` | via project |
 | `rfq_recipients` | `rfq_id, supplier_id, channel(portal|email|operator_wechat|operator_phone), sent_at, responded_at, status` | via project + supplier sees own row |
 | `supplier_messages` | `rfq_id nullable, project_id, supplier_id, direction, channel, body_zh, body_en, drafted_by_ai_run_id, approved_by, approved_at, sent_by, sent_at, external_ref` | via project; supplier sees own |
