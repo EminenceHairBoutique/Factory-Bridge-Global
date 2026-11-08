@@ -585,10 +585,10 @@ describe("storage.objects policies", () => {
         )
       ).map((r) => `${r.bucket_id}:${r.name}`);
       expect(names).toEqual([`documents:${path(ORG.a, DOC.a1)}`]);
-      // no update/delete
+      // no update/delete: Supabase Storage's statement-level protect_delete raises before RLS even filters the row
       expect(
         await expectError(db, "delete from storage.objects where name = $1", [path(ORG.a, DOC.a1)]),
-      ).toBeNull(); // RLS: 0 rows, no error
+      ).toMatch(/Direct deletion from storage tables is not allowed/);
     });
     expect(
       await count("select 1 from storage.objects where bucket_id = 'documents' and name = $1", [
