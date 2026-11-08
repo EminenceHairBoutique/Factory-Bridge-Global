@@ -179,6 +179,16 @@ Living document. Append new ADRs; never edit an accepted ADR's substance — sup
 6. CI starts `storage-api` with the local stack: its migrations define the `storage.buckets` columns (`public`, `file_size_limit`, `allowed_mime_types`) the bucket rows depend on. PGlite carries a documented shim of that subset; it proves the SQL, not Supabase Storage.
 **Deferred:** the signed-URL issuance endpoint (needs the web app's auth, B-05); `app.document_project()` (needs 0008).
 
+## ADR-034 — Verification is evidence-gated and stages are earned; badges derive from one summary view
+**Status:** accepted 2026-11-07 (B-08b)
+**Decision:**
+1. `supplier_verification_checks.result = 'pass'` requires an `evidence_document_id` that belongs to that supplier (or is an internal upload) and has passed the scan (`parsed` or later). Checks are immutable except `notes`; a later check of the same type supersedes (latest `reviewed_at` wins). `uscc_matched` cannot pass while the profile has no USCC.
+2. The required check set per qualification stage (QUALITY_ASSURANCE §2) is data: `supplier_stage_requirements (stage, group_no, check_type)` — every group must be satisfied, any check in a group suffices. `app.supplier_stage_evidenced(supplier, stage)` is cumulative (the stage and every stage below it) and re-evaluated at read time, so an expired or superseded check flips it to false without touching `supplier_profiles.stage`; the badge then reads "expired — re-review needed".
+3. A supplier profile is created at `lead_identified` (even by staff); `stage` may only be advanced when `supplier_stage_evidenced` holds for the target and all lower stages (`contact_confirmed` = an active contact with a recorded basis). Demotion is always allowed. The gate trigger is named to fire after 0005's "staff only" check.
+4. `supplier_documents` record what the supplier *claims* a file is; `claimed_by_supplier` stays true and `verified_*` stay null until internal staff set them (trigger-enforced). UI copy for an unverified row is "supplier-provided, unverified" (SECURITY.md T20).
+5. `supplier_verification_summary_v` is the only buyer-facing read of verification. It runs as its owner (not `security_invoker`), applies `app.supplier_visible()`, and exposes only check types passed/expired, dates, counts and whether the stage is evidenced — never notes, reviewer ids or evidence ids. Badge text is rendered from these columns and names the checks exactly.
+6. `check_type` joins the enum registry (`packages/domain/src/enums.ts` → regenerated 0001 block). Evidence FKs on `source_permissions` and `supplier_facilities` are `on delete restrict` and validated by `app.evidence_document_fits()`.
+
 ## ADR-016 — No marketplace or messaging automation; connectors gated by the data-rights matrix
 **Status:** accepted
 **Decision:** S2 and S6 in `INTEGRATIONS_AND_PERMISSIONS.md` are permanently blocked. API connectors (S8–S11) require recorded license/scopes and founder approval before design is turned into code.

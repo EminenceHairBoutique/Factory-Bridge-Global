@@ -100,6 +100,19 @@ export const SUPPLIER_STAGES = [
 ] as const;
 export type SupplierStage = (typeof SUPPLIER_STAGES)[number];
 
+/** Supplier verification check types (QUALITY_ASSURANCE §2; SCHEMA_PLAN §1.1). Badges name these exactly. */
+export const CHECK_TYPES = [
+  "business_license_reviewed",
+  "uscc_matched",
+  "address_corroborated",
+  "video_call_held",
+  "factory_visit",
+  "export_license_seen",
+  "bank_name_matches_entity",
+  "reference_checked",
+] as const;
+export type CheckType = (typeof CHECK_TYPES)[number];
+
 export const COST_LINE_STATUSES = ["sourced", "estimated", "missing", "not_applicable"] as const;
 export type CostLineStatus = (typeof COST_LINE_STATUSES)[number];
 
@@ -119,6 +132,7 @@ export const ENUM_REGISTRY = {
   review_status: REVIEW_STATUSES,
   document_status: DOCUMENT_STATUSES,
   supplier_stage: SUPPLIER_STAGES,
+  check_type: CHECK_TYPES,
   cost_line_status: COST_LINE_STATUSES,
   compliance_state: COMPLIANCE_STATES,
 } as const satisfies Record<string, readonly string[]>;

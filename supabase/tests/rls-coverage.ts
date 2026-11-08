@@ -33,12 +33,16 @@ export const TENANT_TABLES: ReadonlyArray<{ table: string; coveredBy: string }> 
   { table: "documents", coveredBy: "documents.test.ts" },
   { table: "document_pages", coveredBy: "documents.test.ts" },
   { table: "document_cells", coveredBy: "documents.test.ts" },
+  // 0007 supplier_evidence
+  { table: "supplier_verification_checks", coveredBy: "supplier-evidence.test.ts" },
+  { table: "supplier_documents", coveredBy: "supplier-evidence.test.ts" },
 ];
 
 /** Reference tables readable by every signed-in user; still RLS-enabled with an explicit select policy. */
 export const PUBLIC_READ_TABLES: ReadonlyArray<string> = [
   "product_taxonomy",
   "attribute_definitions",
+  "supplier_stage_requirements",
 ];
 
 export type TablePrivilege = "SELECT" | "INSERT" | "UPDATE" | "DELETE";
@@ -86,4 +90,8 @@ export const AUTHENTICATED_MAX_PRIVILEGES: Readonly<Record<string, ReadonlyArray
     documents: ["SELECT", "INSERT", "UPDATE"],
     document_pages: ["SELECT"],
     document_cells: ["SELECT"],
+    // 0007 supplier_evidence — checks are immutable except notes (trigger); requirements are migration-owned data
+    supplier_verification_checks: ["SELECT", "INSERT", "UPDATE"],
+    supplier_documents: ["SELECT", "INSERT", "UPDATE"],
+    supplier_stage_requirements: ["SELECT"],
   };

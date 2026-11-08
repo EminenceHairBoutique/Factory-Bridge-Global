@@ -25,6 +25,8 @@ lead_identified → contact_confirmed → legal_identity_reviewed → capabiliti
 
 Each check is a `supplier_verification_checks` row: `check_type, result, evidence_document_id, reviewed_by, reviewed_at, valid_until`. A state is reached only when its required check set passes; expiry of any required check reverts the badge to "expired — re-review needed", never silently.
 
+*Implemented in migration 0007 (ADR-034): the required sets live in `supplier_stage_requirements` (`legal_identity_reviewed` = business license + USCC + address + bank name; `capabilities_documented` = video call **or** factory visit), `app.supplier_stage_evidenced()` evaluates them cumulatively at read time, the stage gate refuses an advance without evidence, and `supplier_verification_summary_v.stage_evidenced = false` is the "expired — re-review needed" signal.*
+
 **Never shown:** "Verified factory", "Certified supplier", "Gold supplier". **Allowed:** "Identity reviewed (2026-11-20) · Manufacturer status: supplier-claimed, not verified."
 
 ## 3. Product-level states (per product variant / per lot)

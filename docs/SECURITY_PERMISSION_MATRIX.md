@@ -29,7 +29,7 @@ Actions: **R** read, **C** create, **U** update (non-ownership fields), **X** ex
 | Research leads (`internal_market_observation`) | — | — | — | — | — | R C U | R C U | R | R | — |
 | Supplier profile (public fields via `supplier_public_profile_v`) | R | R | R | R U (own) | R (own) | R C U | R | R | R | — |
 | **Supplier contacts (restricted)** | only rows with active `contact_disclosure_grants` | same | — | R U (own org) | R (own org) | R C U | **—** | R | R (audited) | — |
-| Supplier verification checks | summarized status only | same | same | R (own) | R (own) | R C U | R | R C U | R C U | — |
+| Supplier verification checks | summarized status only (`supplier_verification_summary_v`, 0007) | same | same | R (own) | R (own) | R C U(notes) | R C U(notes) *(no assignment scope: checks are supplier-level, not project-level)* | R C U(notes) | R C U(notes) | — |
 | Supplier-authorized catalog (`catalog_public_with_permission`) | R **iff** `catalog_grant_active(supplier, my_org, field)` | same | same | R C U (own) | R (own) | R C U | R | R | R | import |
 | `source_permissions` (grants) | R (grants naming my org) | same | — | R (own) SH RV (own, `owner/admin`) | R | R C(record) RV (with evidence) | R | R | R | — |
 | Negotiated quotation (`customer_private_quote`, buyer-owned) | R X | R X | R | R (own quotes only) | R (own) | R X T | — | — | R (audited) | expiry job |
