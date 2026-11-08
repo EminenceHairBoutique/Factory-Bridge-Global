@@ -17,8 +17,20 @@ const SCREENS = [
   },
   {
     href: "/design-preview/buyer/dashboard",
-    title: "Buyer dashboard",
-    body: "Projects, required actions, quote status, supplier options and evidence indicators.",
+    title: "Buyer overview",
+    body: "What needs your attention (three ranked items, the rest one click away), the three most recent projects with in-row details, and one primary action. Supplier options and activity live inside the project; quote statistics on Quotes.",
+    workspace: "Buyer (English)",
+  },
+  {
+    href: "/design-preview/buyer/projects",
+    title: "Buyer: projects",
+    body: "Searchable, filterable list of every sourcing project — Project · Stage · Next action · Updated — with quantity, quote counts, operator and links behind an in-row disclosure.",
+    workspace: "Buyer (English)",
+  },
+  {
+    href: "/design-preview/buyer/quotes",
+    title: "Buyer: quotes",
+    body: "Organization-wide quote status counts and where each project's quotes stand, linking to the one comparison that exists. States that a cross-project quotation list needs the permissioned query.",
     workspace: "Buyer (English)",
   },
   {

@@ -155,6 +155,7 @@ export const DEMO_ACTIONS: DemoAction[] = [
     detail:
       "Extracted from supplier PDFs on 2026-11-05. Values stay unconfirmed until you accept them.",
     due: "Suggested within 2 days",
+    href: "/design-preview/buyer/documents",
   },
   {
     id: "act_2",
@@ -172,6 +173,7 @@ export const DEMO_ACTIONS: DemoAction[] = [
     title: "Approve clarification to Supplier B",
     detail:
       "Drafted question: is tooling included in the EXW unit price? Nothing is sent until you and an operator approve.",
+    href: "/design-preview/buyer/project?tab=messages",
   },
   {
     id: "act_4",

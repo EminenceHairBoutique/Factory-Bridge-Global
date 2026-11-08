@@ -16,10 +16,21 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Applies the stored appearance (or `?theme=atlas|obsidian`) before the first paint so a dark preference
+ * never flashes Atlas and then animates every colour. Reads one localStorage key, validates it, sets one
+ * attribute; design-preview only (this segment 404s in production). See design-preview.css "Obsidian".
+ */
+const THEME_BOOT =
+  '(function(){try{var p=new URLSearchParams(location.search).get("theme");' +
+  'var v=(p==="atlas"||p==="obsidian")?p:localStorage.getItem("fbg-design-preview-theme");' +
+  'if(v==="atlas"||v==="obsidian"||v==="system"){document.documentElement.setAttribute("data-fbg-theme",v)}}catch(e){}})();';
+
 export default function DesignPreviewLayout({ children }: { children: ReactNode }) {
   if (!isDesignPreviewEnabled(process.env)) notFound();
   return (
     <>
+      <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
       {/* Geist (display), Inter (app), Noto Sans SC (zh-CN). Loaded at runtime so builds stay offline-safe. */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

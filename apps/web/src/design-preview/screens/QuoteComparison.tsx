@@ -152,6 +152,13 @@ export function QuoteComparison() {
   return (
     <AppShell workspace="buyer" title="Quote comparison" rightRail={rightRail}>
       <div className="flex flex-col gap-5">
+        <Link
+          href="/design-preview/buyer/quotes"
+          className="inline-flex w-fit items-center gap-1 text-[13px] font-medium text-(--fbg-text-secondary) hover:text-(--fbg-link)"
+        >
+          <Icon name="chevron-left" size={14} />
+          All quotes
+        </Link>
         <PageHeader
           title={project.name}
           lead="Quotes are compared like for like: same specification, same trade term, tier selected for your quantity, every converted number shows its rate. Nothing is ranked on unit price alone."
