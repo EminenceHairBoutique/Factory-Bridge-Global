@@ -160,6 +160,12 @@ const SCREENS = [
     workspace: "Internal operations",
   },
   {
+    href: "/design-preview/ops/research",
+    title: "Operations: research inbox",
+    body: "Typed observations from manual research (PRD US-O1): fresh-first lead list with staleness after 30 days, each lead's reference, Chinese search term, indicative price range and MOQ labelled internal-only, a record form enforcing the 0005 rules (source register with a blocked entry, required reference, term and date, price and MOQ checks, fixed rights class), dismiss with a reason, and the handoff into supplier creation.",
+    workspace: "Internal operations",
+  },
+  {
     href: "/design-preview/ops/suppliers",
     title: "Operations: supplier CRM",
     body: "Sortable supplier list with stage, checks due, catalog grant and assignment, and the supplier record: claimed vs verified profile, facilities, restricted contacts with contact basis and disclosure grants, checks that generate the buyer badge, documents with rights class, source-permission editor.",
