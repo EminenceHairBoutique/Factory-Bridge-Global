@@ -1,0 +1,57 @@
+# Integration Handoff — Atlas × Obsidian (extends UX-01 handoff)
+
+**Crosswalk:** `docs/design/INTEGRATION_HANDOFF.md` lists H-1…H-13 and the AGENTS.md note. This document adds the items the Atlas × Obsidian refinement introduces. Nothing here has been applied to shared files; every item is a proposal for its owner.
+
+## 1. Files touched by this refinement (all inside the design track's existing paths)
+
+```
+apps/web/src/design-preview/design-preview.css      # semantic token layer (Atlas + Obsidian), legacy mapping
+apps/web/src/design-preview/theme.tsx               # ThemeScope / useTheme / AppearanceSwitch state
+apps/web/src/design-preview/ui/primitives.tsx       # Atlas geometry and type; Tabs, Skeleton, ErrorState, QuoteStatusTag, buttonClasses
+apps/web/src/design-preview/ui/AppShell.tsx         # sidebar order, 4-tab mobile IA, appearance switch, BrandMark
+apps/web/src/design-preview/screens/*.tsx           # token migration; comparison filters, compare mode, export dialog; gallery; marketing home
+apps/web/src/design-preview/demo-data/index.ts      # added basis-not-stated quote (q_demo_f)
+apps/web/src/design-preview/compare-demo.test.ts    # added basis_unknown test
+apps/web/src/app/design-preview/{gallery,marketing}/page.tsx, layout.tsx (Geist font link), page.tsx (index)
+docs/design/atlas-obsidian/*                        # this set
+```
+
+Shared files untouched: `apps/web/src/app/globals.css`, root `layout.tsx`, `/` home page, package manifests, lockfile, `.github`, `supabase`, `packages/*`, `CLAUDE.md`, `docs/{DECISIONS,STATUS,BACKLOG}.md`.
+
+## 2. Proposed cross-track changes
+
+| # | Proposal | Owner | Rationale |
+|---|---|---|---|
+| H-14 | Promote the semantic token layer to `apps/web/src/app/globals.css` as `@theme` variables with a `[data-theme]` override block, replacing the legacy ten tokens. Keep legacy names as aliases for one release. | B-05 (shell) | Lets the production shell render Atlas and Obsidian without the preview scope. Supersedes H-3: light warning text is now `#83520A`. |
+| H-15 | Persist the appearance choice per user (profile setting) in addition to the device, so it follows sign-in across devices. | B-05 | The preview stores it per device only. |
+| H-16 | Self-host Geist (display), Inter and Noto Sans SC via `next/font/local`; Geist only on marketing routes. | B-05 | Replaces the runtime Google Fonts link (also H-2). Licensing: Geist is SIL OFL; Inter SIL OFL; Noto SIL OFL. |
+| H-17 | `/` public home: adopt the marketing preview layout once copy is approved (OQ-02, OQ-04 and PRD §7 constraints). Until then the existing informational page stays. | Founder + B-31 | Copy approval is a business decision. |
+| H-18 | Buyer navigation: sidebar order Overview · Projects · Quotes · Messages · Documents, bottom Organization · Team and account · Appearance; phone tabs Home · Projects · Inbox · Account. Global Quotes and Documents views need RLS-filtered cross-project queries (future). | B-05, B-15 | |
+| H-19 | Comparison DTO: add `exclusion.code = "basis_unknown"` handling and the per-quote `missingLines` list the mobile card needs; export endpoint contract: format `pdf \| xlsx`, file name `fbg-comparison-<project_id>-v<brief_version>-<as_of>.<ext>`. | B-14 / B-22 / B-23 | Mirrors the prototype's export dialog. |
+| H-20 | `@fbg/i18n`: add `nav.*` for the revised sidebar and tabs, `theme.atlas/obsidian/system`, `compare.view.*`, `compare.compare_selected`, `compare.what_is_missing`, `export.*` strings, with zh-CN equivalents. | i18n owner | |
+| H-21 | Dark `border-strong` to `#67747F` (3.5:1) in V1.1 of the tokens. | design track | Contrast gap recorded in the tokens doc. |
+| H-22 | Backlog: `D-03` notification events + `device_tokens` migration design; `D-04` PWA manifest and shell service worker (no data caching). | BACKLOG owner | From the mobile handoff. |
+| H-23 | CI smoke: assert `/design-preview/gallery`, `/design-preview/marketing` and `/design-preview/supplier/*` 404 in the production build job alongside the existing routes (H-13). | B-02 | |
+| H-24 | `@fbg/i18n`: supplier workspace zh-CN keys — navigation (工作台, 企业资料, 产品目录, 阶梯报价, 询价单, 文件与消息, 数据共享设置, 账户, 外观, 跟随系统), RFQ statuses (待回复, 需要澄清, 已报价, 已拒绝), price statuses (已确认, 待确认, 有效期未确认, 即将过期, 已过期, 已暂停, 待平台审核), visibility scopes (仅内部, 平台买家, 指定买家), Incoterm glosses, tier validation messages, submission-gate labels; English equivalents for the EN toggle. | i18n owner | Prototype strings are inline in `screens/Supplier*.tsx` and `supplier-demo.ts`. |
+| H-25 | Supplier-facing DTOs: RFQ view must omit buyer organisation and contacts (label 平台买家 + region) unless a disclosure grant exists; quote submission payload = { currency, unit, basis { code, place }, tiers[{ min_qty, max_qty, unit_price }], fees, lead_time_days, payment_terms, valid_until (required), spec_version_confirmed, notes, visibility_scope fixed to the requesting buyer }; grants list and revocation RPC with audit. | B-18 / B-24 / supplier-portal owner (Phase 2) | Mirrors the forms in `SupplierRfqs.tsx` and `SupplierSharing.tsx`. |
+| H-27 | `brief_spec_v1` (B-17) output per field: `key`, `label`, `label_zh`, `group`, `hard`, `value`, `value_zh`, `provenance ∈ {from_input, inferred, missing}`, `snippet` (verbatim substring of the raw input), `reasoning`, `options` from `attribute_definitions`; confirmation writes a brief version with per-field `{ value, source ∈ {from_input, accepted, edited, unknown, skipped}, previous }`; a hard attribute left `unknown` blocks option requests and raises an operator question (B-24). | B-15 / B-17 / B-24 | Mirrors `demo-data/brief.ts` and `screens/BriefConfirmation.tsx`. |
+| H-28 | Supplier onboarding contract: submission writes claimed profile fields (migration 0005 claimed-vs-verified columns), a representative record with `contact_basis` when a WeChat handle is given (US-O2), documents into quarantine with scan status and a `supplier_provided` provenance label, and an operator review task; verification check rows (B-08b) carry evidence, reviewer, date, expiry and a reviewer note shown to the supplier on 需补充; the client validates the 统一社会信用代码 format and check digit only. | B-08b / supplier-portal owner (Phase 2) | Mirrors `screens/SupplierOnboarding.tsx`, `validateUscc` in `supplier-demo.ts`. |
+| H-29 | Project record DTO: stage, assignment (operator, assigned_at), brief versions, timeline derived from `audit_events` (actor, acting_as, at, entity), documents with `document_status`, source and linked record, message threads with an approval chain (`approvals[{ role, state, at }]`) and `outbound_log` once sent, reports with brief version, FX date, assumptions, exclusions and a staleness flag computed from later quote confirmations. | B-15 / B-24 / B-23 | Mirrors `demo-data/project.ts` and `screens/ProjectOverview.tsx`. |
+| H-30 | Supplier record DTO (B-09 / B-08b): claimed vs verified profile columns with the check id behind each verified value; facilities with `corroborated_by_check`; contacts returned only to assigned operators with `contact_basis` required for WeChat; `contact_disclosure_grants` with reason, expiry, status and compliance approval; verification checks with evidence object, reviewer, date, expiry; documents with `source_type`, `rights_class`, `permission_ref`, `visibility_scope`; `source_permissions` with evidence, expiry, `revoked_at` and reason; a server-side `badges_from_checks` so badge text is identical on every surface. | B-09 / B-08b / B-10 | Mirrors `demo-data/ops-suppliers.ts`, `ops-demo.ts`, `screens/OpsSupplier*.tsx`. |
+| H-31 | Auth and organization setup (B-05): email OTP primary (10-minute code, attempt limit), optional password with a length-first policy, non-enumerating password reset, invitations with role, inviter, 7-day expiry and acceptance by proving the invited address, organization creation through `create_organization` / `create_invite` / `accept_invite` (migration 0002), routing by `org_type`, live membership checks and session revocation on role change; the role table in `auth-demo.ts` (`ROLE_EXPLANATION`) should become the single source for role copy in `@fbg/i18n`. | B-05 / i18n owner | Mirrors `screens/Auth*.tsx`, `OrgSetup.tsx`. |
+| H-32 | Operator work items (B-20 / B-24 / B-25 / B-27 / B-09): a `work_items` view unioning review tasks, outbound drafts awaiting operator approval, supplier replies to relay, check expiries, permission-less intakes, compliance holds, cases and expiring quotes, with kind, references, assignee, created_at and server-computed due_at from agreed targets; claim/complete endpoints that write audit events; an outbound-approval endpoint that records approver, channel, time and text and sends server-side; per-project stage entry timestamps for the pipeline. | ops owner | Mirrors `demo-data/ops-queue.ts`, `queue-demo.ts`, `screens/OpsWorkQueue.tsx`. |
+| H-33 | Documents and extraction review (B-10 / B-11 / B-12 / B-20): `documents` rows with status, `source_type`, `rights_class`, mime, bytes, page_count, sha256, retention_class, `scan_result` with a rejection reason, and a status-event history with actor and detail; `document_access_log` readable by the owning organization for its own documents; a signed-link endpoint that logs issuance and returns a 15-minute URL; the client pre-check (allow-list, 25 MB, extension matches type) mirrored server-side; an extraction summary per document (field count, prompt version, run time, flags with `embedded_instruction_detected` recorded as a security event); buyer notes on the review task; a discard endpoint that refuses documents backing an accepted quotation. Query-parameter screens read `searchParams` in the route file rather than `useSearchParams` under Suspense (blank-page risk observed in dev). | B-10 / B-20 owners | Mirrors `demo-data/documents.ts`, `documents-demo.ts`, `ui/ReviewSplit.tsx`, `screens/BuyerDocuments.tsx`, `screens/BuyerExtractionReview.tsx`. |
+| H-26 | Tier and basis validation parity: the inline rules in `supplier-demo.ts` (ascending, non-overlapping [min, max), open-ended last, place required for port/destination terms, 出厂价 → unknown) must match the `quotation_tiers` exclusion constraint and `packages/domain` so the editor never accepts what the database rejects. Suggest exporting the rule set from `@fbg/domain` once B-14/B-18 land and deleting the mirror. | B-14 / B-18 | |
+
+## 3. Contracts the new UI assumes
+
+- Theme: a `data-theme` attribute on the app root with values `atlas \| obsidian \| system`; `System` resolves via `prefers-color-scheme`.
+- Comparison view state (filters, compare selection, specification-row toggle) is client state; it is never persisted server-side.
+- Export dialog expects a server job that returns a signed URL; the UI shows "Generating" then "Ready" states (not prototyped beyond the disabled Generate button).
+
+## 4. Running
+
+```
+pnpm --filter @fbg/web dev        # http://localhost:3000/design-preview
+pnpm --filter @fbg/web test       # 11 tests: gate ×4, comparison helper ×7
+```
