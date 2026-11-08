@@ -505,7 +505,10 @@ export const DEMO_DOCUMENTS: DemoDocument[] = [
     retentionClass: "project",
     scan: { result: "passed", at: "2026-11-06T11:30:00Z", reason: null },
     extraction: null,
-    linked: { label: "Report v1 — generated from brief v3 and 5 quotations", href: null },
+    linked: {
+      label: "Report v1 — generated from brief v3 and 4 quotation versions",
+      href: "/design-preview/buyer/report?id=rep_1",
+    },
     events: [
       {
         status: "accepted",
