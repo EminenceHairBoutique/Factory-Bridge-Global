@@ -261,8 +261,13 @@ export function SupplierDashboard() {
           {/* 即将过期报价 */}
           <Panel
             title="即将过期报价"
-            description="到期后价格将标注为“报价已过期”，并从买家的比较中移除。"
+            description="到期后价格将标注为“报价已过期”，并从买家的比较中移除。针对询价提交的报价及其版本见“我的报价”。"
             padded={false}
+            actions={
+              <Link href="/design-preview/supplier/quotes" className={buttonClasses("ghost", "sm")}>
+                我的报价
+              </Link>
+            }
           >
             {expiring.length === 0 ? (
               <p className="px-5 py-6 text-sm text-(--fbg-text-secondary)">
