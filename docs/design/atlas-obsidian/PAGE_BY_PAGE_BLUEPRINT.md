@@ -49,8 +49,8 @@ Chinese-first form: company, representative, families, trade readiness, allowed 
 
 | Screen | Status | Delta from UX-01 spec |
 |---|---|---|
-| Login / invitation / forgot password | Specified | Atlas card 420 px on canvas; Obsidian follows system; passwordless OTP primary, password secondary; invitation screen names the organization and role with a one-line explanation of the role |
-| Organization onboarding + invitations | Specified | 3 steps: company, destination and categories, invite team (roles explained inline: owner, admin, member, viewer) |
+| Login / invitation / forgot password | Prototyped (`/design-preview/auth`, `/auth/invite`; see `AUTH_AND_ORG_SETUP_SCREENS.md`) | Atlas card 420 px on canvas; Obsidian follows system; passwordless OTP primary, password secondary; invitation screen names the organization and role with a one-line explanation of the role |
+| Organization onboarding + invitations | Prototyped (`/design-preview/auth/org-setup`) | 3 steps: company, destination and categories, invite team (roles explained inline: owner, admin, member, viewer) |
 | Overview | Prototyped | sidebar order; "New sourcing request" primary on Home; no charts |
 | Project list | Partially prototyped | search field and saved views to add in B-15; cards below 768 px |
 | Create sourcing brief | Prototyped | five steps kept as Product → Quantity and destination → Specification and quality → Documents → Review (equivalent to the brief's Product → Specifications → Quantity → References → Review; the order keeps required fields earliest) |

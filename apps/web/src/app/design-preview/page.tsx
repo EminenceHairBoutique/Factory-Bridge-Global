@@ -10,6 +10,12 @@ const SCREENS = [
     workspace: "Public site",
   },
   {
+    href: "/design-preview/auth",
+    title: "Sign in, invitation and organization setup",
+    body: "One-time code first with password second and no account enumeration (EN / 中文); invitation that names the organization and explains the role; three-step buyer organization setup with inline role explanations. Also /auth/invite and /auth/org-setup.",
+    workspace: "Access (both)",
+  },
+  {
     href: "/design-preview/buyer/dashboard",
     title: "Buyer dashboard",
     body: "Projects, required actions, quote status, supplier options and evidence indicators.",

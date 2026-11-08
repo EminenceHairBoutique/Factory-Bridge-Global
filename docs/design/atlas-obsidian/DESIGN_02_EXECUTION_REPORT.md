@@ -97,6 +97,14 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-30 (supplier record DTO and server-side badge generation).
 
+## 6f. Session 8 — Sign-in, invitation and organization setup (2026-11-07, same branch)
+
+**Implemented in preview:** `AuthFrame`; `/design-preview/auth` (email one-time code first, password second, forgot-password without account enumeration, EN / 中文 copy, signed-in state), `/design-preview/auth/invite` (organization, inviter, role with can/cannot, accept by proving the address, expired scenario), `/design-preview/auth/org-setup` (company → destination and categories → invite your team with inline role cards → created). `auth-demo.ts` (role table, OTP / password / invite / ZIP validators) with 4 new test groups. Marketing "Sign in" links to it; index entry. Details in `AUTH_AND_ORG_SETUP_SCREENS.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 235: web 36); `next build` exit 0; production `next start`: all three routes → 404. Browser: sign-in email error, code step, short-code rejection, success, 中文 toggle; password and forgot paths; invitation review, join, expired; organization setup validation, own-address rejection, creation with one invitation; no console errors; no horizontal overflow at 320 / 375 / 768 px in Obsidian.
+
+**Cross-track:** H-31 (auth and organization-setup contract; role copy to i18n).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

@@ -152,7 +152,7 @@ function MarketingBody() {
               <AppearanceSwitch />
             </span>
             <Link
-              href="/design-preview/buyer/dashboard"
+              href="/design-preview/auth"
               className={cx(buttonClasses("ghost", "sm"), "hidden sm:inline-flex")}
             >
               Sign in

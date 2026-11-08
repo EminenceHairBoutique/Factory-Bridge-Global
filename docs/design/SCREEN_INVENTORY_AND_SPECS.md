@@ -21,6 +21,7 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 | Reports | `/app/projects/[id]/reports` | Planned | B-23 |
 | Supplier public profile | `/app/suppliers/[id]` | Specified §3.4 | B-08b |
 | Settings | `/app/settings/*` | Planned | B-05 |
+| Sign-in, invitation, organization setup | `/sign-in`, `/invite/[token]`, `/app/onboarding` | Prototyped (`/design-preview/auth`, `/auth/invite`, `/auth/org-setup`; see `atlas-obsidian/AUTH_AND_ORG_SETUP_SCREENS.md`) | B-05 |
 
 ### 1.2 Supplier workspace (简体中文 default)
 
