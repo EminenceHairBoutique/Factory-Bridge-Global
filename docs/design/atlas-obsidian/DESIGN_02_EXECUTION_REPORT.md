@@ -135,6 +135,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-34 (reports table, server-side status derivation, generation job, five tables with reproducibility columns).
 
+## 6j. Session 12 — Messages and approvals (2026-11-07, same branch)
+
+**Reuse first:** the approval chain that the project overview, the comparison's clarification dialog and the operator work queue each drew by hand is now one shared chip component (`ui/ApprovalChain.tsx`) fed by one helper (`approvalChain` in `messages-demo.ts`); the overview's own thread records were replaced by `demo-data/messages.ts`, and its Messages tab, the comparison dialog ("Review in Messages") and the dashboard's "Review draft" action now open the inbox thread.
+
+**Implemented in preview:** `/design-preview/buyer/messages?thread=` (`BuyerMessages.tsx`): needs-you-first list with status filters and a project filter; the thread with every message in both languages and its translation provenance (AI-drafted and not yet checked, or checked by the operator); the approval chain You → Operator → Sent via <channel> on every outbound message with Approve wording, Edit wording (the Chinese is re-drafted and both approvals reset) and Withdraw draft; a composer that counts as the buyer's approval and submits to the operator queue, offering WeChat relay only where the CRM recorded a contact basis and warning when the text looks like contact details; inbound flags shown as notices (text addressed to the software, contact details removed, links not opened); attachments linking to the document review; the evidence drawer with who can see the thread, the allowed channels and the outbound log (channel, both approvers, time, reference). `messages-demo.ts` with 10 tests. Details in `BUYER_MESSAGES_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 287: web 69); `next build` exit 0; production `next start`: `/design-preview/buyer/messages` → 404. Browser: ordering and counts, edit → approvals reset, approve → with the operator, composer warning and submission over WeChat relay, revalidation prefill, platform-only channel without a recorded basis, inbound flags and attachment link, closed sample thread, project filter, unknown thread id fallback, overview tab and dashboard links; no console errors; no horizontal page overflow at 375 and 1440 in both themes (320 and 768 could not be held: the browser pane was in use while the checks ran).
+
+**Cross-track:** H-35 (supplier_messages approval record, channel eligibility from contact basis, inbound flags as data, outbound log).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

@@ -58,6 +58,12 @@ const SCREENS = [
     workspace: "Buyer",
   },
   {
+    href: "/design-preview/buyer/messages?thread=th_tooling",
+    title: "Buyer: messages and approvals",
+    body: "Inbox with needs-you-first ordering and status filters; threads in both languages with translation provenance; the approval chain You → Operator → Sent on every outbound message with approve, edit (approvals reset) and withdraw; a composer that submits to the operator queue over the channels the supplier's recorded contact basis allows; inbound flags (text addressed to the software, contacts removed, links not opened); outbound log with channel, approvers, time and reference.",
+    workspace: "Buyer",
+  },
+  {
     href: "/design-preview/buyer/brief",
     title: "Brief confirmation (AI proposal → your version)",
     body: "Raw input with highlighted sources, the AI proposal with from input / inferred / missing provenance and Chinese translation, your decisions per field, and a versioned confirm.",

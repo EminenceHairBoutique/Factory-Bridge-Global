@@ -170,69 +170,6 @@ export const DOCUMENT_STATUS_LABEL: Record<DocumentStatus, string> = {
   discarded: "Discarded",
 };
 
-export type ApprovalStep = {
-  who: string;
-  state: "done" | "waiting" | "pending";
-  at?: string | undefined;
-};
-
-export interface MessageThread {
-  id: string;
-  subject: string;
-  counterpart: string;
-  kind: "clarification" | "notice" | "sample";
-  updatedAt: string;
-  status: "awaiting_your_approval" | "awaiting_operator_approval" | "sent" | "replied" | "info";
-  chain: ApprovalStep[];
-  preview: string;
-  previewZh?: string | undefined;
-}
-
-export const PROJECT_MESSAGES: MessageThread[] = [
-  {
-    id: "msg_1",
-    subject: "Is tooling included in the EXW unit price?",
-    counterpart: "Supplier B (demo)",
-    kind: "clarification",
-    updatedAt: "2026-11-06",
-    status: "awaiting_your_approval",
-    chain: [
-      { who: "You", state: "waiting" },
-      { who: "Operator (demo)", state: "pending" },
-      { who: "Sent via platform", state: "pending" },
-    ],
-    preview:
-      "Is tooling included in the quoted EXW unit price, and does the price hold for 10,000 pcs?",
-    previewZh: "请确认：EXW 单价是否已包含模具费？该价格是否适用于 10,000 件？",
-  },
-  {
-    id: "msg_2",
-    subject: "Golden sample approved for 50 × 76 mm matte BOPP",
-    counterpart: "Supplier A (demo)",
-    kind: "sample",
-    updatedAt: "2026-10-28",
-    status: "replied",
-    chain: [
-      { who: "You", state: "done", at: "2026-10-28" },
-      { who: "Operator (demo)", state: "done", at: "2026-10-28" },
-      { who: "Sent via platform", state: "done", at: "2026-10-28" },
-    ],
-    preview:
-      "Sample approved by Demo Buyer Co.; check record created (Sample approved for variant).",
-  },
-  {
-    id: "msg_3",
-    subject: "Quote from Supplier D expired on 2026-10-31",
-    counterpart: "System",
-    kind: "notice",
-    updatedAt: "2026-10-31",
-    status: "info",
-    chain: [],
-    preview:
-      "Expired quotes are excluded from ranking. Ask for revalidation if you still want this supplier in the comparison.",
-  },
-];
-
 export interface ActivityEvent {
   id: string;
   at: string;
