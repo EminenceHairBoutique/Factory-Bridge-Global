@@ -159,8 +159,9 @@ Lifecycle, transition authorizations, concurrency and supersession semantics: `M
 |---|---|
 | `audit_events` (append-only) | `id, at, actor_user_id, actor_org_id, entity_org_id, acting_as(member|internal|platform_admin|system), entity_table, entity_id, action, before_hash, after_hash, diff jsonb (redacted for restricted tables), request_id, ip_hash` — `actor_org_id`/`entity_org_id` are **not** FKs (the log must outlive deleted rows) |
 | `security_events` | `kind(rls_denied|rate_limited|scan_rejected|webhook_sig_fail|injection_flag|auth_anomaly|privileged_access|ai_budget_exceeded|ai_canary_leak), actor_user_id, org_id, details jsonb, at` |
-| `notifications` | `user_id, org_id, kind, payload, read_at, delivered_via` |
-| `jobs_dead_letter` | `queue, msg, error, attempts, first_failed_at` |
+| `notifications` **(0012 ✅)** | `user_id, org_id, kind (CHECK list), payload, dedupe_key (unique), delivered_via, email_sent_at, read_at` — written by the worker / `app.notify()`; recipient sets `read_at` only | own rows |
+| `jobs_dead_letter` **(0012 ✅)** | `queue, msg_id, idempotency_key, message, error, attempts, first/last_failed_at, resolved_at/by, resolution(requeued|discarded|fixed_manually)` | internal read; platform admin resolves |
+| `job_executions` **(0012 ✅)** | `queue, idempotency_key (unique per queue), msg_id, payload_hash, status(running|succeeded|failed), attempts, worker_id, started/finished_at, error` — the worker's idempotency ledger | worker; platform admin reads |
 
 `audit_events` has `REVOKE UPDATE, DELETE` for all roles including service role (only `postgres` superuser retains, for legal erasure under a documented procedure).
 

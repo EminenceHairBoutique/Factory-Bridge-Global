@@ -55,6 +55,10 @@ export const TENANT_TABLES: ReadonlyArray<{ table: string; coveredBy: string }> 
   { table: "duty_assumptions", coveredBy: "landed-cost.test.ts" },
   { table: "comparison_snapshots", coveredBy: "landed-cost.test.ts" },
   { table: "landed_cost_scenarios", coveredBy: "landed-cost.test.ts" },
+  // 0012 jobs_notifications
+  { table: "job_executions", coveredBy: "jobs.test.ts" },
+  { table: "jobs_dead_letter", coveredBy: "jobs.test.ts" },
+  { table: "notifications", coveredBy: "jobs.test.ts" },
 ];
 
 /** Reference tables readable by every signed-in user; still RLS-enabled with an explicit select policy. */
@@ -134,4 +138,8 @@ export const AUTHENTICATED_MAX_PRIVILEGES: Readonly<Record<string, ReadonlyArray
     duty_assumptions: ["SELECT", "INSERT", "UPDATE"],
     comparison_snapshots: ["SELECT", "INSERT"],
     landed_cost_scenarios: ["SELECT", "INSERT"],
+    // 0012 jobs_notifications — worker writes; users read own notifications and set read_at; admins resolve dead letters
+    job_executions: ["SELECT"],
+    jobs_dead_letter: ["SELECT", "UPDATE"],
+    notifications: ["SELECT", "UPDATE"],
   };
