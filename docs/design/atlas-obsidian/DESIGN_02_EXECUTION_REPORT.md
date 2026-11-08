@@ -89,6 +89,14 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-29 (project record DTO).
 
+## 6e. Session 7 — Operations supplier CRM (2026-11-07, same branch)
+
+**Implemented in preview:** `/design-preview/ops/suppliers` (`OpsSupplierList.tsx`: sortable table with `aria-sort`, search, stage and family filters, checks-due and assigned-to-me toggles, phone cards) and `/design-preview/ops/supplier?id=` (`OpsSupplierRecord.tsx`: generated badge preview, stage gate with requirement list, View-as switch, tabs Profile (claimed vs verified) · Facilities · Contacts (restricted; contact-basis rule; disclosure grant drafts) · Checks (record a check updates the badge) · Documents (rights class; permission required for buyer-visible catalogs) · Permissions (record with evidence; revoke with reason); evidence drawer with assignment and audit). `demo-data/ops-suppliers.ts`; `ops-demo.ts` with 7 new tests. Ops sidebar "Suppliers" and index entry link to it. Details in `OPS_SUPPLIER_CRM_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 231: web 32); `next build` exit 0; production `next start`: both routes → 404. Browser: sorting toggles `aria-sort` and reorders; checks-due filter narrows; badge preview and stage gate render from records; contacts visible as assigned and "Hidden by policy" as unassigned; WeChat handle without basis refused, saved with basis and audited; no console errors; no horizontal overflow at 320 / 375 / 768 px.
+
+**Cross-track:** H-30 (supplier record DTO and server-side badge generation).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

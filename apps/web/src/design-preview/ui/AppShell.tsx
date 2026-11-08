@@ -130,7 +130,7 @@ const OPS_NAV: NavItem[] = [
   { label: "Work queue", short: "Queue", icon: "list", mobile: true },
   { label: "Projects", icon: "folder", mobile: true },
   { label: "Research", icon: "search" },
-  { label: "Suppliers", icon: "building" },
+  { label: "Suppliers", icon: "building", href: "/design-preview/ops/suppliers" },
   {
     label: "Reviews",
     icon: "eye",

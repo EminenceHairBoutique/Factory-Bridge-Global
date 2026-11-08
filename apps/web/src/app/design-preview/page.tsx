@@ -76,6 +76,12 @@ const SCREENS = [
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/ops/suppliers",
+    title: "Operations: supplier CRM",
+    body: "Sortable supplier list with stage, checks due, catalog grant and assignment, and the supplier record: claimed vs verified profile, facilities, restricted contacts with contact basis and disclosure grants, checks that generate the buyer badge, documents with rights class, source-permission editor.",
+    workspace: "Internal operations",
+  },
+  {
     href: "/design-preview/gallery",
     title: "Component gallery",
     body: "Every primitive in Atlas and Obsidian side by side: buttons, inputs, badges with evidence, stepper, quote status tags, tabs, notices, empty / loading / error states.",
