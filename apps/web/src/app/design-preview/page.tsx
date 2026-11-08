@@ -130,6 +130,12 @@ const SCREENS = [
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/supplier/quotes",
+    title: "我的报价 (My quotations: versions and lifecycle)",
+    body: "One thread per RFQ with its versions and the fixed statuses 待审核 / 已确认 / 即将过期 / 已过期 / 已更新 / 已撤回 (migration 0009, ADR-021); the current version's terms and tiers read-only; actions by state: 撤销提交 while under review, 撤回报价 with a reason, 更新报价 as a new version that enters review while the previous stays visible to the buyer; version history with field diffs and the status events.",
+    workspace: "供应商（zh-CN）",
+  },
+  {
     href: "/design-preview/supplier/rfqs",
     title: "询价单 / 提交报价 (RFQ inbox and quote form)",
     body: "Buyer-confirmed specification read-only in both languages, clarification thread via the platform, structured quote form with a submission gate, decline flow.",
