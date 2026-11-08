@@ -47,6 +47,7 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 | Supplier CRM + profile | `/ops/suppliers`, `/[id]` | Prototyped (`/design-preview/ops/suppliers`, `/design-preview/ops/supplier?id=`; see `atlas-obsidian/OPS_SUPPLIER_CRM_SCREEN.md`) |
 | Compliance holds | `/ops/compliance` | Prototyped (`/design-preview/ops/compliance?hold=`; see `atlas-obsidian/OPS_COMPLIANCE_REVIEW_SCREEN.md`) |
 | Quality verification | `/ops/quality` | Prototyped (`/design-preview/ops/quality?track=`; see `atlas-obsidian/OPS_QUALITY_VERIFICATION_SCREEN.md`; Phase 3 tables) |
+| Buyer cases | `/ops/cases` | Prototyped (`/design-preview/ops/cases?case=`; see `atlas-obsidian/OPS_BUYER_CASES_SCREEN.md`) |
 | Research inbox | `/ops/research` | Prototyped (`/design-preview/ops/research?lead=`; see `atlas-obsidian/OPS_SUPPLIER_CRM_SCREEN.md` §2b) |
 | Outreach approval queue | `/ops/outreach` | Specified §5.4 |
 | Compliance holds, audit explorer, intake | `/ops/compliance`, `/ops/audit`, `/ops/intake` | Planned |
