@@ -85,13 +85,27 @@ The supplier's document library (IA `/supplier/documents`). Route `/design-previ
 
 **Verified in the browser:** Atlas 1440: counts (9 files, 1 需补充, 1 待平台审核, 1 即将到期); the checklist shows 已拒绝 for 生产场地证明 with the rejected archive and its scan reason first in the list, 待平台审核 for 出口资质, 已核验 for the licence, identity and ISO files; the ISO certificate carries 即将到期（23 天）and the relayed quotation reads 已转达; the licence record refuses 删除 with the evidence reason and shows its check id; 下载链接 is logged; 重新上传 from the checklist pre-selects 企业资质 and 生产场地证明 and focuses the picker; a ZIP is refused in Chinese while a JPG beside it is added and walks 已上传 → 扫描中 → 已解析 → 待平台审核, after which 需补充 reads 0 and the checklist item follows; 替换 on the ISO certificate creates v2 as a fresh upload and marks the old file 已作废; 删除 on the file under review warns that the review is withdrawn, Escape closes, confirming removes it and the checklist item returns to 待上传; the 产品资料 tab shows two files with the spec linking to its product; 工作台 and the onboarding document step link into the library. Obsidian 375: facts below the list and the selected certificate with its expiry; 320 and 768: no horizontal page overflow. No console errors from the preview.
 
+### 3.8 我的报价 — `SupplierQuotes.tsx` (added 2026-11-08, session 21)
+
+Route `/design-preview/supplier/quotes?group=<id>`. One thread per RFQ (`quote_groups`) with its immutable versions (`quotations`) and lifecycle (`quotation_states`, migration 0009 / ADR-021); a submission under review is a review task, shown as 待审核.
+
+- **Header**: counts 待审核 / 即将过期 / 已过期 / 已确认; 查看询价单.
+- **List** (left, 18 rem at `xl`; filters 全部 / 待审核 / 有效 / 已过期 / 已结束): status chip from the fixed set 待审核 · 审核未通过 · 已确认 · 即将过期 (≤ 7 days) · 已过期 · 已更新 · 已撤回 · 已撤销提交; "n 个版本" when more than one; product, RFQ ref, quantity, validity text (有效期至 … 剩余 n 天 / 已于 … 过期 / 有效期未注明).
+- **Thread detail**: product in both languages, RFQ ref, anonymised buyer label, quantity, spec version; status notice with the one-sentence explanation (`statusExplanation`) and, while a new version is under review, which version the buyer still sees; **报价内容** read-only (交易条款 with the Incoterm gloss, 货币 / 单位, 有效期, 交期, 付款方式, 模具费, 可见范围 仅此买家, 提交 / 确认 dates, 备注) and the tier table.
+- **Actions by state**: 待审核 → 撤销提交 (reason ≥ 3 chars); 已确认 / 即将过期 → 更新报价（新版本） and 撤回报价 (reason ≥ 3 chars; the buyer sees 报价已撤回; irreversible); 已过期 → 更新报价 only; 已更新 / 已撤回 → none. No new version while one is under review.
+- **更新报价** form reuses `TierTable`, the basis validator and the RFQ submission gate, plus: validity after today, an 更新原因, and at least one difference from the previous version (the diff is shown live). Submitting creates v(n+1) as 待审核; the previous version stays the one the buyer sees until the platform confirms and marks it 已更新.
+- **版本历史**: each version with status, 买家可见的版本 chip, submitted / confirmed / validity, the field diff against the previous version, and the status events (提交 → 平台确认 → 已过期 → 已被新版本替代 / 已撤回) with actor and reason.
+- Right rail: the status and version rules in Chinese; session log.
+
+Rules in `supplier-quotes-demo.ts` (7 tests): `zhStatus`, `validityText`, `canWithdraw` (current confirmed or expiring only), `canCancelSubmission`, `canUpdate` (confirmed, expiring or expired; never while a version is under review), `withdrawReasonError`, `diffVersions`, `newVersionGate`, `applyWithdraw` / `applyCancelSubmission` / `applyNewVersion`, `quotesSummary`, `sortGroups`. The RFQ screen's review notice now links here and states the real rule (审核期间可撤销提交；已转达的报价可撤回，或通过新版本更新); the dashboard's 即将过期报价 panel links here.
+
 ## 4. Validation module
 
 `supplier-demo.ts` (11 tests): `validateTiers` (ascending, non-overlapping [min, max), open-ended must be last, gap and non-monotonic warnings), `validateBasis` (unknown → warning, place required for FCA/FOB/CFR/CIF/DAP/DPU/DDP, recommended for EXW), `quoteSubmissionGate`, zh-CN formatters. Display-only; the authoritative checks are the `quotation_tiers` exclusion constraint (B-18) and `packages/domain` (B-14).
 
 ## 5. Not built / limitations
 
-- 企业资料, 产品目录 (list and 批量导入), 文件与消息, 账户 are navigation entries only.
+- 账户 is a navigation entry only; 我的报价 exists at `/design-preview/supplier/quotes` but the sidebar entry belongs to the shell (UX-03; wire 我的报价 → `/design-preview/supplier/quotes`).
 - EN toggle is visual; a real bilingual supplier UI needs the zh-CN catalog keys (handoff H-24).
 - No real upload, scan, review or audit write; "确认有效" and "撤销授权" change local state only.
 - Buyer identity masking is a UI convention here; the real control is RLS plus `contact_disclosure_grants` / `source_permissions`.
