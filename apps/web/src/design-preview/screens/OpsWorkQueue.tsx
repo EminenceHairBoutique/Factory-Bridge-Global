@@ -425,7 +425,11 @@ export function OpsWorkQueue() {
           <div className="flex flex-col gap-3">
             <Notice tone="neutral" icon="info" title="Stage targets apply to operator steps only">
               Brief drafting, the comparison decision and the final approval run on the buyer's
-              clock; those columns show days in stage without a target.
+              clock; those columns show days in stage without a target.{" "}
+              <Link href="/design-preview/ops/pipeline" className="underline">
+                Open the full pipeline board
+              </Link>{" "}
+              for what each stage needs, who owes it, and operator load.
             </Notice>
             <div className="fbg-scrollbar-thin -mx-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
               <div className="flex min-w-max gap-3">
