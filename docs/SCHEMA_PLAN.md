@@ -120,11 +120,11 @@ Lifecycle, transition authorizations, concurrency and supersession semantics: `M
 |---|---|---|
 | `ai_runs` (**0003b**, append-only) | `id, org_id, at, purpose(extract|translate|normalize|match|draft|flag), provider, model, prompt_template_id, prompt_version (sha256 of template), input_hash, status(ok|schema_invalid|provider_error|budget_exceeded|canary_leak|budget_refused), error, input_tokens, output_tokens, cache_read_input_tokens, cache_creation_input_tokens, cost_nano_usd bigint, cost_usd numeric(12,6) generated, latency_ms, attempts, flags text[], triggered_by, job_id (unique per org), request_id` | `org_id` owner/admin read; compliance + platform admin read; written only by `app.record_ai_run` (service_role) |
 | `ai_budgets` (**0003b**) | `org_id pk, monthly_cap_nano_usd bigint (0 = AI disabled), alert_threshold_pct, note, updated_by, created_at, updated_at` — absent row → platform default (`AI_MONTHLY_BUDGET_USD_DEFAULT`) | owner/admin read own; platform admin sets via `app.set_ai_budget` (audited); no delete |
-| `ai_extractions` | `ai_run_id, document_id, schema_name, schema_version, raw_output jsonb, validated_output jsonb, validation_errors jsonb, field_confidence jsonb, anchors jsonb, flags text[]` | via document |
-| `review_tasks` | `id, org_id, kind(extraction|translation|spec|match), subject_id, status review_status, assigned_to, due_at, resolved_by, resolved_at` | `org_id` + assigned internal |
-| `human_corrections` | `review_task_id, field_path, before jsonb, after jsonb, reason, corrected_by, at` | via review task |
+| `ai_extractions` **(0010 ✅, immutable)** | `document_id, org_id (= document's), ai_run_id (extract run with output), prompt_template_id, schema_name, schema_version, raw_output, validated_output (null ⇒ validation_errors non-empty), validation_errors, field_confidence, anchors, flags` | readable with the document or via a visible review task; worker writes |
+| `review_tasks` **(0010 ✅)** | `org_id + project_id (from the document), kind(extraction|translation|spec|match), subject_id (unique per kind), document_id, brief_item_id, supplier_id, status review_status, assigned_to, due_at, resolved_by/at, resolution_reason, result_quotation_id, accept_idempotency_key` — status only via review functions | buyer org (viewer R; owner/admin/member decide) + assigned operators + platform admin |
+| `human_corrections` **(0010 ✅, append-only)** | `review_task_id, field_path, before, after (≠ before), reason, corrected_by (= auth.uid()), at` — only while the task is open | via review task |
 | `ai_eval_cases` | `fixture_ref, schema_name, expected jsonb, tags text[], locale` | internal |
-| `prompt_templates` | `id, purpose, version, body_hash, active bool` | internal |
+| `prompt_templates` **(0010 ✅)** | `template_id, version (sha256), purpose, active (one per template), created_at` — immutable except `active` | internal read; worker writes |
 
 ### 2.8 Comparison, FX, landed cost
 

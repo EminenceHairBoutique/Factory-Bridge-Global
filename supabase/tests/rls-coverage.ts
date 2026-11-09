@@ -59,6 +59,11 @@ export const TENANT_TABLES: ReadonlyArray<{ table: string; coveredBy: string }> 
   { table: "job_executions", coveredBy: "jobs.test.ts" },
   { table: "jobs_dead_letter", coveredBy: "jobs.test.ts" },
   { table: "notifications", coveredBy: "jobs.test.ts" },
+  // 0010 ai_review
+  { table: "prompt_templates", coveredBy: "ai-review.test.ts" },
+  { table: "ai_extractions", coveredBy: "ai-review.test.ts" },
+  { table: "review_tasks", coveredBy: "ai-review.test.ts" },
+  { table: "human_corrections", coveredBy: "ai-review.test.ts" },
 ];
 
 /** Reference tables readable by every signed-in user; still RLS-enabled with an explicit select policy. */
@@ -142,4 +147,10 @@ export const AUTHENTICATED_MAX_PRIVILEGES: Readonly<Record<string, ReadonlyArray
     job_executions: ["SELECT"],
     jobs_dead_letter: ["SELECT", "UPDATE"],
     notifications: ["SELECT", "UPDATE"],
+    // 0010 ai_review — extractions/templates/tasks are worker-written; task status moves only through review functions;
+    // corrections are append-only
+    prompt_templates: ["SELECT"],
+    ai_extractions: ["SELECT"],
+    review_tasks: ["SELECT"],
+    human_corrections: ["SELECT", "INSERT"],
   };
