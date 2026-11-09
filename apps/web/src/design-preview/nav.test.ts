@@ -30,6 +30,8 @@ describe("primary navigation active state (UX-03 defect 1)", () => {
     ["/design-preview/buyer/compare", "Quotes"],
     ["/design-preview/buyer/documents", "Documents"],
     ["/design-preview/buyer/review", "Documents"],
+    ["/design-preview/buyer/messages", "Inbox"],
+    ["/design-preview/buyer/messages?thread=th_tooling", "Inbox"],
   ])("%s lights exactly one buyer destination: %s", (pathname, label) => {
     expect(activeNavItem(buyerItems, pathname)?.label).toBe(label);
     expect(activeCount(buyerItems, pathname)).toBe(1);
@@ -79,6 +81,14 @@ describe("phone tab bar", () => {
   it("keeps four buyer tabs: Home, Projects, Inbox and Account", () => {
     const tabs = mobileTabs(BUYER_NAV, BUYER_NAV_BOTTOM);
     expect(tabs.map((t) => t.short ?? t.label)).toEqual(["Home", "Projects", "Inbox", "Account"]);
+  });
+
+  it("lights one supplier destination for the catalog and its import screen", () => {
+    const items = [...NAV.supplier.main, ...NAV.supplier.bottom];
+    expect(activeNavItem(items, "/design-preview/supplier/catalog")?.label).toBe("产品目录");
+    expect(activeNavItem(items, "/design-preview/supplier/catalog/import")?.label).toBe("产品目录");
+    expect(activeNavItem(items, "/design-preview/supplier/messages")?.label).toBe("消息");
+    expect(activeCount(items, "/design-preview/supplier/catalog/import")).toBe(1);
   });
 
   it("keeps four tabs in every workspace", () => {

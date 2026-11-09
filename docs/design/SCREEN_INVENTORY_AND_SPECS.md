@@ -17,7 +17,7 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 | Extraction review (buyer) | `/app/projects/[id]/review/[taskId]` | Prototyped (`/design-preview/buyer/review?doc=`; shared `ui/ReviewSplit.tsx`, read-only with flag-for-operator) | B-20 |
 | Supplier options | `/app/projects/[id]/options` | Specified §3.3 | B-09 |
 | Quote comparison + landed cost | `/app/projects/[id]/compare`, `/landed-cost` | Prototyped | B-22, B-14, B-21 |
-| Messages / clarifications | `/app/projects/[id]/messages` | Approval modal prototyped | B-24 |
+| Messages / clarifications | `/app/projects/[id]/messages` | Prototyped (`/design-preview/buyer/messages?thread=`; see `atlas-obsidian/BUYER_MESSAGES_SCREEN.md`) | B-24 |
 | Reports | `/app/projects/[id]/reports` | Prototyped (`/design-preview/buyer/reports`, `/design-preview/buyer/report?id=`; see `atlas-obsidian/BUYER_REPORTS_SCREENS.md`) | B-23 |
 | Supplier public profile | `/app/suppliers/[id]` | Specified §3.4 | B-08b |
 | Settings | `/app/settings/*` | Planned | B-05 |
@@ -29,10 +29,11 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 |---|---|---|
 | 工作台 Dashboard | `/supplier` | Prototyped (`/design-preview/supplier/dashboard`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md`) |
 | 企业认证 Onboarding | `/supplier/onboarding` | Prototyped (`/design-preview/supplier/onboarding`; see `atlas-obsidian/SUPPLIER_ONBOARDING_SCREEN.md`) |
-| 产品目录 / 批量导入 | `/supplier/catalog`, `/import` | Specified §4.3 |
+| 产品目录 / 批量导入 | `/supplier/catalog`, `/import` | Prototyped (`/design-preview/supplier/catalog`, `/design-preview/supplier/catalog/import`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md` §3.6) |
 | 价格梯度 editor | `/supplier/catalog/[id]/pricing` | Prototyped (`/design-preview/supplier/pricing`) |
 | 询价单 / 提交报价 | `/supplier/rfqs`, `/[id]` | Prototyped (`/design-preview/supplier/rfqs`; Phase 2 feature) |
 | 数据共享设置 | `/supplier/settings/data-sharing` | Prototyped (`/design-preview/supplier/sharing`) |
+| 消息 | `/supplier/messages` | Prototyped (`/design-preview/supplier/messages?thread=`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md` §3.5) |
 
 ### 1.3 Internal operations
 

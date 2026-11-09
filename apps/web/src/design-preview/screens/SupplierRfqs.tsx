@@ -4,6 +4,7 @@
  * 询价单 inbox + 提交报价 (IA §2.3 `/supplier/rfqs`, `/supplier/rfqs/[id]`). Simplified-Chinese first.
  * Local state only. Replies and quotes go to the platform for review; nothing is sent to a buyer directly.
  */
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   INCOTERM_GLOSS,
@@ -20,7 +21,9 @@ import { Icon } from "../ui/icons";
 import {
   Badge,
   Button,
+  buttonClasses,
   Checkbox,
+  cx,
   Field,
   Notice,
   PageHeader,
@@ -29,7 +32,6 @@ import {
   Select,
   TextArea,
   TextInput,
-  cx,
   type Tone,
 } from "../ui/primitives";
 import { TierTable } from "../ui/TierTable";
@@ -328,6 +330,14 @@ export function SupplierRfqs({ rfqId }: { rfqId?: string | undefined }) {
                 tone="warn"
                 icon="message"
                 title={`平台澄清请求（${formatZhDate(rfq.clarification.askedAt)}）`}
+                action={
+                  <Link
+                    href={`/design-preview/supplier/messages?thread=sm_${rfq.id}`}
+                    className={buttonClasses("secondary", "sm")}
+                  >
+                    在消息中回复
+                  </Link>
+                }
               >
                 <p className="text-(--fbg-text-primary)">{rfq.clarification.question}</p>
                 <p className="mt-1 text-xs" lang="en-US">
