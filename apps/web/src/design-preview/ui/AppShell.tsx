@@ -117,7 +117,14 @@ const BUYER_NAV: NavItem[] = [
     mobile: true,
   },
   { label: "Quotes", icon: "compare", href: "/design-preview/buyer/compare" },
-  { label: "Messages", short: "Inbox", icon: "message", badge: 1, mobile: true },
+  {
+    label: "Messages",
+    short: "Inbox",
+    icon: "message",
+    href: "/design-preview/buyer/messages",
+    badge: 1,
+    mobile: true,
+  },
   { label: "Documents", icon: "document", href: "/design-preview/buyer/documents" },
 ];
 
@@ -173,7 +180,8 @@ const SUPPLIER_NAV: NavItem[] = [
     mobile: true,
     mobileOrder: 1,
   },
-  { label: "文件与消息", icon: "message", badge: 1 },
+  { label: "消息", icon: "message", href: "/design-preview/supplier/messages", badge: 1 },
+  { label: "文件资料", icon: "upload" },
   { label: "数据共享设置", icon: "lock", href: "/design-preview/supplier/sharing" },
 ];
 
