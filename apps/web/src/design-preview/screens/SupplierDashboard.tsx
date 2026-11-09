@@ -191,13 +191,21 @@ export function SupplierDashboard() {
                 </li>
               ))}
             </ul>
-            <Link
-              href="/design-preview/supplier/onboarding"
-              className={cx(buttonClasses("primary"), "mt-3 w-full")}
-            >
-              <Icon name="upload" size={16} />
-              上传生产场地证明
-            </Link>
+            <div className="mt-3 flex flex-col gap-2">
+              <Link
+                href="/design-preview/supplier/documents?upload=premises"
+                className={cx(buttonClasses("primary"), "w-full")}
+              >
+                <Icon name="upload" size={16} />
+                上传生产场地证明
+              </Link>
+              <Link
+                href="/design-preview/supplier/documents"
+                className={cx(buttonClasses("ghost", "sm"), "w-full")}
+              >
+                文件资料
+              </Link>
+            </div>
           </Panel>
         </div>
 
