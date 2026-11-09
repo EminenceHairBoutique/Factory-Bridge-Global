@@ -19,6 +19,7 @@ import {
   type ProjectDocument,
 } from "../demo-data/project";
 import { compareQuotes, formatQty } from "../compare-demo";
+import type { ProjectTab } from "../projects-demo";
 import { DEMO_REPORTS } from "../demo-data/reports";
 import { DEMO_THREADS, THREAD_KIND_LABEL } from "../demo-data/messages";
 import {
@@ -55,16 +56,8 @@ import {
   type Tone,
 } from "../ui/primitives";
 
-type Tab =
-  | "overview"
-  | "brief"
-  | "options"
-  | "compare"
-  | "documents"
-  | "messages"
-  | "reports"
-  | "quality"
-  | "activity";
+/** Tab ids are shared with the route's `?tab=` deep link (projects-demo.ts). */
+type Tab = ProjectTab;
 
 const DOC_TONE: Record<ProjectDocument["status"], Tone> = {
   uploaded: "neutral",
@@ -107,7 +100,7 @@ const ACTING_TONE: Record<string, Tone> = {
   platform_admin: "brand",
 };
 
-export function ProjectOverview() {
+export function ProjectOverview({ initialTab = "overview" }: { initialTab?: ProjectTab }) {
   const project = DEMO_PROJECTS[0] ?? {
     name: "Sourcing project",
     family: "Labels",
@@ -122,7 +115,7 @@ export function ProjectOverview() {
     nextAction: "",
     id: "prj_demo_labels",
   };
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [docFilter, setDocFilter] = useState<"all" | "quote" | "artwork" | "logistics" | "report">(
     "all",
   );
@@ -230,7 +223,13 @@ export function ProjectOverview() {
           }
           actions={
             <>
-              <Button icon="upload">Upload a quote</Button>
+              <Link
+                href="/design-preview/buyer/documents#upload"
+                className={buttonClasses("secondary")}
+              >
+                <Icon name="upload" size={16} />
+                Upload a quote
+              </Link>
               <Link href="/design-preview/buyer/compare" className={buttonClasses("primary")}>
                 <Icon name="compare" size={16} />
                 Open comparison
