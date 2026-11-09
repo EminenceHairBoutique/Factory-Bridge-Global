@@ -6,7 +6,7 @@ const SCREENS = [
   {
     href: "/design-preview/marketing",
     title: "Marketing home (Obsidian hero)",
-    body: "Proposed public home page: Obsidian hero with the bridge mark, then Atlas value, process, categories and evidence sections. Copy subject to approval.",
+    body: "Proposed public home page: Obsidian hero with the drawn bridge figure, then Atlas sections for How it works, Services, Categories, Quality process and About, and a Contact band. Seven anchored destinations, appearance switch in the footer. Copy subject to approval.",
     workspace: "Public site",
   },
   {
@@ -48,7 +48,7 @@ const SCREENS = [
   {
     href: "/design-preview/buyer/documents",
     title: "Buyer: documents and the upload pipeline",
-    body: "Every uploaded or received document with its pipeline status (uploaded → scanning → parsed → extracted → in review → accepted, or rejected), who acts next, the scan result, extraction flags, the linked quotation and the access log; client-side upload pre-check with a simulated pipeline; discard with confirmation.",
+    body: "List first — file, project, type, status, date, next action — with the record inspector (scan result, flags, provenance, pipeline, linked quotation, access log) opening on demand as a rail or drawer; the upload intake collapsed until asked for (#upload opens it); client-side pre-check with a simulated pipeline; discard with confirmation.",
     workspace: "Buyer",
   },
   {
@@ -84,7 +84,7 @@ const SCREENS = [
   {
     href: "/design-preview/buyer/compare",
     title: "Supplier quotation comparison",
-    body: "Price-basis groups, tiers and MOQ, FX provenance, landed-cost line status, freshness and verification evidence.",
+    body: "Three presentations of the same evaluated quotes — Summary cards, Compare (decision rows side by side within each trade-term group), Full details (every specification, tier, source, check record and landed line) — with price-basis groups, FX provenance and what is missing never hidden. ?mode= opens a presentation directly.",
     workspace: "Buyer (English)",
   },
   {
