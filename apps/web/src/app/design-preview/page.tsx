@@ -124,6 +124,12 @@ const SCREENS = [
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/supplier/production",
+    title: "生产与质检 (Production and inspection)",
+    body: "The supplier's own orders only: production milestones with 已发生 / 预计 / 承诺 dates and evidence through the shared upload pre-check, progress that never goes backwards, a reason and a 交期变更 flag for moved committed dates; the inspection schedule with readiness conditions, confirmation (which commits the packing date) or a reschedule request; inspection results in the fixed Chinese wording with corrective action per major finding; the agreed quality standard and samples in Chinese. Updates go to the platform and reach the buyer as supplier-reported.",
+    workspace: "供应商（zh-CN）",
+  },
+  {
     href: "/design-preview/supplier/quotes",
     title: "我的报价 (My quotations: versions and lifecycle)",
     body: "One thread per RFQ with its versions and the fixed statuses 待审核 / 已确认 / 即将过期 / 已过期 / 已更新 / 已撤回 (migration 0009, ADR-021); the current version's terms and tiers read-only; actions by state: 撤销提交 while under review, 撤回报价 with a reason, 更新报价 as a new version that enters review while the previous stays visible to the buyer; version history with field diffs and the status events.",
