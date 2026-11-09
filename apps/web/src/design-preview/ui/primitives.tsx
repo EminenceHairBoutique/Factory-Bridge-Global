@@ -48,8 +48,8 @@ const BUTTON_VARIANT: Record<ButtonVariant, string> = {
 };
 
 const BUTTON_SIZE: Record<ButtonSize, string> = {
-  sm: "h-(--fbg-control-h-sm) px-3.5 text-sm gap-1.5",
-  md: "h-(--fbg-control-h) px-5 text-[15px] gap-2",
+  sm: "h-(--fbg-control-h-sm) px-3 text-[13px] gap-1.5",
+  md: "h-(--fbg-control-h) px-4 text-sm gap-2",
   lg: "h-12 px-6 text-base gap-2",
 };
 
@@ -316,6 +316,7 @@ export function EvidenceBadge({
 /* ------------------------------------------------------------------------------------------------ */
 
 export function Panel({
+  id,
   title,
   description,
   actions,
@@ -324,6 +325,8 @@ export function Panel({
   padded = true,
   raised = false,
 }: {
+  /** Anchor target for in-page links (e.g. /buyer/documents#upload). */
+  id?: string | undefined;
   title?: ReactNode;
   description?: ReactNode;
   actions?: ReactNode;
@@ -334,6 +337,7 @@ export function Panel({
 }) {
   return (
     <section
+      id={id}
       className={cx(
         "min-w-0 rounded-(--fbg-radius-card) border border-(--fbg-border-subtle) bg-(--fbg-bg-surface)",
         raised && "fbg-raised",
@@ -341,13 +345,15 @@ export function Panel({
       )}
     >
       {title || actions ? (
-        <header className="flex flex-wrap items-start justify-between gap-2 border-b border-(--fbg-border-subtle) px-5 py-3.5">
+        <header className="flex flex-wrap items-start justify-between gap-2 border-b border-(--fbg-border-divider) px-5 py-3">
           <div className="min-w-0">
             {title ? (
-              <h2 className="text-lg font-semibold text-(--fbg-text-primary)">{title}</h2>
+              <h2 className="text-[17px] leading-6 font-semibold text-(--fbg-text-primary)">
+                {title}
+              </h2>
             ) : null}
             {description ? (
-              <p className="mt-0.5 text-sm text-(--fbg-text-secondary)">{description}</p>
+              <p className="mt-0.5 text-[13px] text-(--fbg-text-secondary)">{description}</p>
             ) : null}
           </div>
           {actions ? (
@@ -371,18 +377,27 @@ export function PageHeader({
   meta?: ReactNode;
   actions?: ReactNode;
 }) {
+  // One page title per screen (the shell renders none): 26 / 28 px, one-line lead at most.
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
       <div className="min-w-0">
-        <h1 className="text-[28px] leading-tight font-semibold tracking-[-0.015em] text-(--fbg-text-primary) md:text-4xl">
+        <h1 className="text-[26px] leading-[1.15] font-semibold tracking-[-0.015em] text-(--fbg-text-primary) md:text-[28px]">
           {title}
         </h1>
         {lead ? (
-          <p className="mt-2 max-w-2xl text-base text-(--fbg-text-secondary)">{lead}</p>
+          <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-(--fbg-text-secondary)">
+            {lead}
+          </p>
         ) : null}
-        {meta ? <div className="mt-3 flex flex-wrap items-center gap-2">{meta}</div> : null}
+        {meta ? (
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-(--fbg-text-secondary)">
+            {meta}
+          </div>
+        ) : null}
       </div>
-      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+      {actions ? (
+        <div className="flex shrink-0 flex-wrap items-center gap-2 lg:pt-0.5">{actions}</div>
+      ) : null}
     </div>
   );
 }
@@ -390,11 +405,53 @@ export function PageHeader({
 export function SectionTitle({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
   return (
     <div>
-      <h2 className="text-[22px] leading-snug font-semibold tracking-[-0.01em] text-(--fbg-text-primary) md:text-[26px]">
+      <h2 className="text-[20px] leading-snug font-semibold tracking-[-0.01em] text-(--fbg-text-primary) md:text-[22px]">
         {children}
       </h2>
-      {sub ? <p className="mt-1 max-w-2xl text-base text-(--fbg-text-secondary)">{sub}</p> : null}
+      {sub ? <p className="mt-1 max-w-2xl text-[15px] text-(--fbg-text-secondary)">{sub}</p> : null}
     </div>
+  );
+}
+
+/**
+ * A content region: heading (18 px) and optional one-line description sit on the canvas, the content below
+ * (usually one card). Regions are separated by spacing, not by nested boxes (UX-03 §4).
+ */
+export function Section({
+  id,
+  title,
+  description,
+  action,
+  children,
+  className,
+}: {
+  id: string;
+  title: ReactNode;
+  description?: ReactNode;
+  /** Quiet right-hand control, e.g. a "View all" link or a disclosure toggle. */
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string | undefined;
+}) {
+  const headingId = `${id}-heading`;
+  return (
+    <section id={id} aria-labelledby={headingId} className={cx("min-w-0", className)}>
+      <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <div className="min-w-0">
+          <h2
+            id={headingId}
+            className="text-[18px] leading-6 font-semibold tracking-[-0.01em] text-(--fbg-text-primary)"
+          >
+            {title}
+          </h2>
+          {description ? (
+            <p className="mt-0.5 text-[13px] text-(--fbg-text-secondary)">{description}</p>
+          ) : null}
+        </div>
+        {action ? <div className="flex items-center gap-2 text-[13px]">{action}</div> : null}
+      </div>
+      {children}
+    </section>
   );
 }
 
