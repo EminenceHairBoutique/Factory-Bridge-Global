@@ -1,23 +1,27 @@
 "use client";
 
 /**
- * AppShell — Atlas × Obsidian V1 (IA §3; docs/design/atlas-obsidian/INFORMATION_ARCHITECTURE.md).
- * Desktop/tablet: collapsible left rail (248 px), top bar with org switcher, locale and notifications; the rail's
- * bottom area holds organization, appearance and account. Phone: top bar with a navigation sheet and a four-tab
- * bottom bar (Home · Projects · Inbox · Account); "New request" is a prominent action on Home, not a tab.
+ * AppShell — Atlas × Obsidian, UX-03 clarity pass.
  *
- * Prototype only: links point at other design-preview screens; destinations that do not exist yet render as
- * disabled entries labelled "Planned" so the navigation model is visible without pretending they work.
+ * Desktop/tablet: 224 px rail (collapsible to 64 px) with one active destination, an account button at the
+ * bottom and nothing else; a 56 px top bar that carries only the organization label, the planned
+ * notifications entry and the account button. The page itself renders the single h1 (PageHeader), so the
+ * shell never repeats the title. Phone: top bar with the brand and a navigation sheet, four bottom tabs
+ * (Home · Projects · Inbox · Account) where Account opens the account-and-appearance sheet.
+ *
+ * Navigation data and the active-state rule live in ../nav.ts (unit tested). Planned destinations render
+ * disabled with a "Planned" label and no count; nothing here pretends to work.
  */
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { NAV, activeNavItem, mobileTabs, type NavItem, type Workspace } from "../nav";
 import { THEME_OPTIONS, ThemeScope, useTheme } from "../theme";
-import { Icon, type IconName } from "./icons";
+import { Icon } from "./icons";
 import { SegmentedControl, cx } from "./primitives";
 import { useEscapeKey } from "./useEscapeKey";
 
-export type Workspace = "buyer" | "ops" | "supplier";
+export type { Workspace } from "../nav";
 export type ShellLocale = "en-US" | "zh-CN";
 
 /** Shell chrome strings. Supplier workspace is Simplified-Chinese first (IA §2.3). */
@@ -31,15 +35,19 @@ const CHROME: Record<
     expandNav: string;
     collapseNav: string;
     openNav: string;
-    orgSwitcher: string;
-    notifications: string;
+    orgCurrent: string;
+    notificationsPlanned: string;
+    account: string;
+    language: string;
+    languageNote: string;
     signedIn: string;
     primaryNav: string;
     mobileNav: string;
     navigation: string;
     closeNav: string;
     close: string;
-    stripe: string;
+    noticeStrong: string;
+    noticeRest: string;
     themeLabels: readonly [string, string, string];
   }
 > = {
@@ -51,15 +59,20 @@ const CHROME: Record<
     expandNav: "Expand navigation",
     collapseNav: "Collapse navigation",
     openNav: "Open navigation",
-    orgSwitcher: "Organization switcher (prototype)",
-    notifications: "Notifications, 3 unread",
-    signedIn: "Signed in as Demo Buyer",
+    orgCurrent: "Current organization. Switching organizations is not in this prototype.",
+    notificationsPlanned: "Notifications — planned, not in this prototype",
+    account: "Account and appearance",
+    language: "Interface language",
+    languageNote:
+      "English. A Chinese buyer interface is planned; the supplier workspace is Chinese-first.",
+    signedIn: "Signed in as",
     primaryNav: "Primary",
     mobileNav: "Primary (mobile)",
     navigation: "Navigation",
     closeNav: "Close navigation",
     close: "Close",
-    stripe: "DEMO DATA — NOT REAL SUPPLIER QUOTATIONS. Synthetic records for design review only.",
+    noticeStrong: "DEMO DATA — NOT REAL SUPPLIER QUOTATIONS",
+    noticeRest: "Development preview with synthetic records only.",
     themeLabels: ["Atlas", "Obsidian", "System"],
   },
   "zh-CN": {
@@ -70,15 +83,19 @@ const CHROME: Record<
     expandNav: "展开导航",
     collapseNav: "收起导航",
     openNav: "打开导航",
-    orgSwitcher: "切换企业（原型）",
-    notifications: "通知，3 条未读",
-    signedIn: "当前登录：演示供应商A",
+    orgCurrent: "当前企业。原型中不支持切换企业。",
+    notificationsPlanned: "通知 — 规划中，原型中暂未提供",
+    account: "账户与外观",
+    language: "界面语言",
+    languageNote: "简体中文。英文供应商界面规划中。",
+    signedIn: "当前登录",
     primaryNav: "主导航",
     mobileNav: "主导航（手机）",
     navigation: "导航",
     closeNav: "关闭导航",
     close: "关闭",
-    stripe: "演示数据 — 非真实供应商报价。DEMO DATA — NOT REAL SUPPLIER QUOTATIONS.",
+    noticeStrong: "演示数据 — 非真实供应商报价",
+    noticeRest: "DEMO DATA — NOT REAL SUPPLIER QUOTATIONS · 开发预览，仅含合成记录。",
     themeLabels: ["Atlas", "Obsidian", "跟随系统"],
   },
 };
@@ -89,124 +106,50 @@ const WORKSPACE_LOCALE: Record<Workspace, ShellLocale> = {
   supplier: "zh-CN",
 };
 
-interface NavItem {
-  label: string;
-  /** Shorter label for the phone tab bar. */
-  short?: string;
-  icon: IconName;
-  href?: string;
-  badge?: number;
-  /** One of the four phone tabs. */
-  mobile?: boolean;
-  /** Order in the phone tab bar when it differs from the sidebar order. */
-  mobileOrder?: number;
-}
-
-const BUYER_NAV: NavItem[] = [
-  {
-    label: "Overview",
-    short: "Home",
-    icon: "home",
-    href: "/design-preview/buyer/dashboard",
-    mobile: true,
+const WORKSPACE_META: Record<
+  Workspace,
+  { name: string; org: string; user: string; avatar: string; accountRows: readonly string[] }
+> = {
+  buyer: {
+    name: "Buyer workspace",
+    org: "Demo Buyer Co.",
+    user: "Demo Buyer",
+    avatar: "DB",
+    accountRows: ["Organization", "Team and account"],
   },
-  {
-    label: "Projects",
-    icon: "folder",
-    href: "/design-preview/buyer/dashboard#projects",
-    mobile: true,
+  ops: {
+    name: "Sourcing operations",
+    org: "Factory Bridge Global · internal",
+    user: "Demo Operator",
+    avatar: "DO",
+    accountRows: ["Account settings"],
   },
-  { label: "Quotes", icon: "compare", href: "/design-preview/buyer/compare" },
-  {
-    label: "Messages",
-    short: "Inbox",
-    icon: "message",
-    href: "/design-preview/buyer/messages",
-    badge: 1,
-    mobile: true,
+  supplier: {
+    name: "供应商工作台",
+    org: "演示供应商A（Supplier A, demo）",
+    user: "演示供应商A",
+    avatar: "演",
+    accountRows: ["账户设置"],
   },
-  { label: "Documents", icon: "document", href: "/design-preview/buyer/documents" },
-];
-
-const BUYER_NAV_BOTTOM: NavItem[] = [
-  { label: "Organization", icon: "building" },
-  { label: "Team and account", short: "Account", icon: "user", mobile: true },
-];
-
-const OPS_NAV: NavItem[] = [
-  {
-    label: "Work queue",
-    short: "Queue",
-    icon: "list",
-    href: "/design-preview/ops/queue",
-    mobile: true,
-  },
-  { label: "Projects", icon: "folder", mobile: true },
-  { label: "Research", icon: "search" },
-  { label: "Suppliers", icon: "building", href: "/design-preview/ops/suppliers" },
-  {
-    label: "Reviews",
-    icon: "eye",
-    href: "/design-preview/ops/quote-review",
-    badge: 4,
-    mobile: true,
-  },
-  { label: "Cases", icon: "flag" },
-  { label: "Admin", icon: "lock" },
-];
-
-const OPS_NAV_BOTTOM: NavItem[] = [
-  { label: "Outreach approvals", icon: "message", badge: 2 },
-  { label: "Account", icon: "user", mobile: true },
-];
-
-const SUPPLIER_NAV: NavItem[] = [
-  { label: "工作台", icon: "home", href: "/design-preview/supplier/dashboard", mobile: true },
-  { label: "企业资料", icon: "building", href: "/design-preview/supplier/onboarding" },
-  { label: "产品目录", icon: "list" },
-  {
-    label: "阶梯报价",
-    short: "报价",
-    icon: "compare",
-    href: "/design-preview/supplier/pricing",
-    mobile: true,
-    mobileOrder: 2,
-  },
-  {
-    label: "询价单",
-    icon: "document",
-    href: "/design-preview/supplier/rfqs",
-    badge: 2,
-    mobile: true,
-    mobileOrder: 1,
-  },
-  { label: "消息", icon: "message", href: "/design-preview/supplier/messages", badge: 1 },
-  { label: "文件资料", icon: "upload" },
-  { label: "数据共享设置", icon: "lock", href: "/design-preview/supplier/sharing" },
-];
-
-const SUPPLIER_NAV_BOTTOM: NavItem[] = [{ label: "账户", icon: "user", mobile: true }];
-
-const WORKSPACE_META: Record<Workspace, { name: string; org: string; avatar: string }> = {
-  buyer: { name: "Buyer workspace", org: "Demo Buyer Co.", avatar: "DB" },
-  ops: { name: "Sourcing operations", org: "Factory Bridge Global · internal", avatar: "DB" },
-  supplier: { name: "供应商工作台", org: "演示供应商A（Supplier A, demo）", avatar: "演" },
 };
 
-const NAV: Record<Workspace, { main: NavItem[]; bottom: NavItem[] }> = {
-  buyer: { main: BUYER_NAV, bottom: BUYER_NAV_BOTTOM },
-  ops: { main: OPS_NAV, bottom: OPS_NAV_BOTTOM },
-  supplier: { main: SUPPLIER_NAV, bottom: SUPPLIER_NAV_BOTTOM },
-};
-
+/**
+ * Demo-data notice. Always rendered above every preview screen; slender and neutral but unmistakable
+ * (warning marker, bold statement), and it cannot be dismissed.
+ */
 export function DemoStripe({ locale = "en-US" }: { locale?: ShellLocale }) {
+  const t = CHROME[locale];
   return (
     <div
       role="status"
       lang={locale}
-      className="fbg-demo-stripe border-b border-(--fbg-status-warning)/40 px-4 py-1.5 text-center text-xs font-semibold tracking-wide text-(--fbg-text-primary)"
+      className="fbg-demo-notice flex items-center justify-center gap-2 px-4 py-1.5 text-center text-[12px] leading-4 text-(--fbg-text-secondary) md:sticky md:top-0 md:z-40"
     >
-      {CHROME[locale].stripe}
+      <Icon name="alert" size={13} className="shrink-0 text-(--fbg-status-warning)" />
+      <span>
+        <strong className="font-semibold text-(--fbg-text-primary)">{t.noticeStrong}</strong>
+        <span className="hidden sm:inline"> · {t.noticeRest}</span>
+      </span>
     </div>
   );
 }
@@ -260,6 +203,7 @@ export function AppShell({
   rightRail,
 }: {
   workspace: Workspace;
+  /** Names the main landmark for assistive tech. The visible h1 is rendered by the page (PageHeader). */
   title: string;
   children: ReactNode;
   /** Optional "Evidence drawer" content (IA §3). Shown as a column on xl screens, a panel below otherwise. */
@@ -273,6 +217,8 @@ export function AppShell({
     </ThemeScope>
   );
 }
+
+type AccountAnchor = "rail" | "top" | "tabs";
 
 function ShellInner({
   workspace,
@@ -288,45 +234,43 @@ function ShellInner({
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [account, setAccount] = useState<AccountAnchor | null>(null);
   const nav = NAV[workspace].main;
   const navBottom = NAV[workspace].bottom;
   const meta = WORKSPACE_META[workspace];
   const locale = WORKSPACE_LOCALE[workspace];
   const t = CHROME[locale];
-  const mobileTabs = [...nav, ...navBottom]
-    .map((item, index) => ({ item, index }))
-    .filter(({ item }) => item.mobile)
-    .sort((a, b) => (a.item.mobileOrder ?? a.index) - (b.item.mobileOrder ?? b.index))
-    .map(({ item }) => item)
-    .slice(0, 4);
+  const tabs = mobileTabs(nav, navBottom);
+  const activeItem = activeNavItem([...nav, ...navBottom], pathname);
 
   useEffect(() => {
     setSheetOpen(false);
+    setAccount(null);
   }, [pathname]);
   useEscapeKey(sheetOpen, () => setSheetOpen(false));
 
-  const isActive = (item: NavItem) =>
-    item.href !== undefined && pathname !== null && item.href.split("#")[0] === pathname;
+  const toggleAccount = (anchor: AccountAnchor) =>
+    setAccount((current) => (current === anchor ? null : anchor));
 
   const railItem = (item: NavItem) => {
-    const active = isActive(item);
+    const active = item === activeItem;
     const base = cx(
-      "flex items-center gap-3 rounded-(--fbg-radius-control) px-3 py-2.5 text-sm",
+      "relative flex h-10 items-center gap-3 rounded-(--fbg-radius-control) px-3 text-sm",
       collapsed && "justify-center px-0",
-      active ? "bg-white/12 text-white" : "text-white/72",
-      item.href ? "hover:bg-white/8 hover:text-white" : "cursor-default opacity-60",
+      active ? "fbg-nav-active bg-white/12 font-medium text-white" : "text-white/70",
+      item.href ? "hover:bg-white/8 hover:text-white" : "cursor-default opacity-55",
     );
     const inner = (
       <>
         <Icon name={item.icon} size={18} className="shrink-0" />
         {!collapsed ? <span className="flex-1 truncate">{item.label}</span> : null}
         {!collapsed && item.badge ? (
-          <span className="fbg-num rounded-full bg-(--fbg-action-primary) px-1.5 text-[11px] font-semibold text-(--fbg-action-on-primary)">
+          <span className="fbg-num rounded-full bg-white/14 px-1.5 text-[11px] font-semibold text-white">
             {item.badge}
           </span>
         ) : null}
         {!collapsed && !item.href ? (
-          <span className="text-[11px] text-white/50">{t.planned}</span>
+          <span className="text-[11px] text-white/55">{t.planned}</span>
         ) : null}
       </>
     );
@@ -355,20 +299,15 @@ function ShellInner({
   return (
     <div lang={locale} className="min-h-dvh bg-(--fbg-bg-canvas) text-(--fbg-text-primary)">
       <DemoStripe locale={locale} />
-      <div className="flex min-h-[calc(100dvh-33px)]">
+      <div className="flex min-h-[calc(100dvh-var(--fbg-notice-h))]">
         {/* Left rail (tablet and up) */}
         <aside
           className={cx(
-            "hidden shrink-0 flex-col bg-(--fbg-rail-bg) text-(--fbg-rail-fg) md:flex",
-            collapsed ? "w-16" : "w-(--fbg-rail-w)",
+            "hidden shrink-0 flex-col border-r border-white/8 bg-(--fbg-rail-bg) text-(--fbg-rail-fg) md:sticky md:top-(--fbg-notice-h) md:flex md:h-[calc(100dvh-var(--fbg-notice-h))] md:self-start",
+            collapsed ? "w-(--fbg-rail-w-collapsed)" : "w-(--fbg-rail-w)",
           )}
         >
-          <div
-            className={cx(
-              "flex h-16 items-center border-b border-white/10",
-              collapsed ? "justify-center" : "px-4",
-            )}
-          >
+          <div className={cx("flex h-14 items-center", collapsed ? "justify-center" : "px-4")}>
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-(--fbg-radius-chip) bg-(--fbg-action-primary) text-(--fbg-action-on-primary)">
               <BrandMark size={22} />
             </span>
@@ -377,7 +316,7 @@ function ShellInner({
                 <span className="block truncate text-sm font-semibold leading-4">
                   Factory Bridge Global
                 </span>
-                <span className="block truncate text-[11px] leading-4 text-white/60">
+                <span className="block truncate text-[11px] leading-4 text-white/55">
                   {meta.name}
                 </span>
               </span>
@@ -385,22 +324,39 @@ function ShellInner({
           </div>
           <nav
             aria-label={t.primaryNav}
-            className="fbg-no-scrollbar flex-1 space-y-0.5 overflow-y-auto p-2"
+            className="fbg-no-scrollbar flex-1 space-y-0.5 overflow-y-auto px-2 pt-2"
           >
             {nav.map(railItem)}
           </nav>
-          <div className="space-y-0.5 border-t border-white/10 p-2">
-            {navBottom.map(railItem)}
-            {!collapsed ? (
-              <div className="px-3 pt-2 pb-1">
-                <p className="mb-1.5 text-[11px] text-white/50">{t.appearance}</p>
-                <AppearanceSwitch locale={locale} />
-              </div>
-            ) : null}
+          <div className="space-y-1 border-t border-white/10 p-2">
+            <button
+              type="button"
+              onClick={() => toggleAccount("rail")}
+              aria-haspopup="dialog"
+              aria-expanded={account === "rail"}
+              title={collapsed ? t.account : undefined}
+              className={cx(
+                "flex w-full items-center gap-3 rounded-(--fbg-radius-control) px-2 py-2 text-left hover:bg-white/8",
+                collapsed && "justify-center px-0",
+              )}
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/14 text-[11px] font-semibold">
+                {meta.avatar}
+              </span>
+              {!collapsed ? (
+                <>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-medium">{meta.user}</span>
+                    <span className="block truncate text-[11px] text-white/55">{meta.org}</span>
+                  </span>
+                  <Icon name="settings" size={16} className="shrink-0 text-white/55" />
+                </>
+              ) : null}
+            </button>
             <button
               type="button"
               onClick={() => setCollapsed((v) => !v)}
-              className="flex w-full items-center justify-center gap-2 rounded-(--fbg-radius-control) px-3 py-2 text-xs text-white/70 hover:bg-white/8 hover:text-white"
+              className="flex h-8 w-full items-center justify-center gap-2 rounded-(--fbg-radius-control) text-[12px] text-white/55 hover:bg-white/8 hover:text-white"
               aria-pressed={collapsed}
               aria-label={collapsed ? t.expandNav : t.collapseNav}
             >
@@ -412,54 +368,54 @@ function ShellInner({
 
         {/* Main column */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-(--fbg-border-subtle) bg-(--fbg-bg-canvas)/92 px-3 backdrop-blur sm:px-5">
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-(--fbg-border-subtle) bg-(--fbg-bg-canvas)/92 px-3 backdrop-blur sm:px-5 md:top-(--fbg-notice-h) lg:px-8 xl:px-10">
             <button
               type="button"
-              className="rounded-(--fbg-radius-control) p-2.5 text-(--fbg-text-primary) hover:bg-(--fbg-hover) md:hidden"
+              className="-ml-1 rounded-(--fbg-radius-control) p-2.5 text-(--fbg-text-primary) hover:bg-(--fbg-hover) md:hidden"
               onClick={() => setSheetOpen(true)}
               aria-label={t.openNav}
             >
               <Icon name="menu" size={20} />
             </button>
-            <div className="min-w-0 flex-1">
-              <p className="hidden text-xs text-(--fbg-text-secondary) sm:block">{meta.name}</p>
-              <h1 className="truncate text-base font-semibold text-(--fbg-text-primary)">
-                {title}
-              </h1>
-            </div>
+            <span className="flex min-w-0 items-center gap-2 md:hidden">
+              <BrandMark size={20} className="shrink-0 text-(--fbg-action-primary)" />
+              <span className="truncate text-sm font-semibold">Factory Bridge Global</span>
+            </span>
+            <div className="min-w-0 flex-1" />
             <div className="flex items-center gap-1 sm:gap-2">
-              <button
-                type="button"
-                className="hidden h-10 items-center gap-2 rounded-(--fbg-radius-control) border border-(--fbg-border-subtle) bg-(--fbg-bg-surface) px-3 text-sm text-(--fbg-text-primary) hover:border-(--fbg-border-strong) lg:inline-flex"
-                aria-haspopup="listbox"
-                title={t.orgSwitcher}
+              <span
+                className="hidden items-center gap-1.5 pr-1 text-[13px] text-(--fbg-text-secondary) lg:inline-flex"
+                title={t.orgCurrent}
               >
-                <Icon name="building" size={14} className="text-(--fbg-text-secondary)" />
-                <span className="max-w-44 truncate">{meta.org}</span>
-                <Icon name="chevron-down" size={14} className="text-(--fbg-text-secondary)" />
-              </button>
-              <LocaleToggle initial={locale} />
-              <button
-                type="button"
-                className="relative rounded-(--fbg-radius-control) p-2.5 text-(--fbg-text-primary) hover:bg-(--fbg-hover)"
-                aria-label={t.notifications}
+                <Icon name="building" size={14} />
+                <span className="max-w-48 truncate">{meta.org}</span>
+              </span>
+              <span
+                role="img"
+                aria-label={t.notificationsPlanned}
+                title={t.notificationsPlanned}
+                className="hidden h-9 w-9 items-center justify-center rounded-(--fbg-radius-control) text-(--fbg-text-muted) md:inline-flex"
               >
                 <Icon name="bell" size={18} />
-                <span className="fbg-num absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-(--fbg-brand-accent) px-1 text-[10px] font-semibold text-(--fbg-text-inverse)">
-                  3
-                </span>
-              </button>
-              <span
-                className="hidden h-9 w-9 items-center justify-center rounded-full bg-(--fbg-action-primary) text-xs font-semibold text-(--fbg-action-on-primary) sm:flex"
-                aria-label={t.signedIn}
+              </span>
+              <button
+                type="button"
+                onClick={() => toggleAccount("top")}
+                aria-haspopup="dialog"
+                aria-expanded={account === "top"}
+                aria-label={t.account}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-(--fbg-action-primary) text-xs font-semibold text-(--fbg-action-on-primary) hover:bg-(--fbg-action-primary-hover)"
               >
                 {meta.avatar}
-              </span>
+              </button>
             </div>
           </header>
 
           <div className="flex min-w-0 flex-1">
-            <main className="min-w-0 flex-1 px-4 pt-6 pb-28 sm:px-6 md:pb-10 lg:px-8 xl:px-10">
+            <main
+              aria-label={title}
+              className="min-w-0 flex-1 px-4 pt-5 pb-28 sm:px-6 md:pb-10 lg:px-8 xl:px-10"
+            >
               {children}
             </main>
             {rightRail ? (
@@ -471,17 +427,19 @@ function ShellInner({
         </div>
       </div>
 
-      {/* Phone bottom tab bar: four destinations */}
+      {/* Phone bottom tab bar: four destinations, the last opens the account sheet */}
       <nav
         aria-label={t.mobileNav}
         className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-(--fbg-border-subtle) bg-(--fbg-bg-surface) pb-[env(safe-area-inset-bottom)] md:hidden"
       >
-        {mobileTabs.map((item) => {
-          const active = isActive(item);
+        {tabs.map((item) => {
+          const active = item === activeItem;
           const cls = cx(
             "flex min-h-14 min-w-0 flex-col items-center justify-center gap-0.5 py-2 text-[11px]",
-            active ? "text-(--fbg-action-primary)" : "text-(--fbg-text-secondary)",
-            !item.href && "opacity-50",
+            active
+              ? "font-medium text-(--fbg-action-primary)"
+              : "text-(--fbg-text-secondary) hover:text-(--fbg-text-primary)",
+            !item.href && !item.action && "opacity-50",
           );
           const inner = (
             <>
@@ -496,6 +454,20 @@ function ShellInner({
               <span className="max-w-full truncate px-0.5">{item.short ?? item.label}</span>
             </>
           );
+          if (item.action === "account") {
+            return (
+              <button
+                key={item.label}
+                type="button"
+                className={cx(cls, account === "tabs" && "text-(--fbg-text-primary)")}
+                onClick={() => toggleAccount("tabs")}
+                aria-haspopup="dialog"
+                aria-expanded={account === "tabs"}
+              >
+                {inner}
+              </button>
+            );
+          }
           return item.href ? (
             <Link
               key={item.label}
@@ -545,14 +517,15 @@ function ShellInner({
               </button>
             </div>
             <ul className="space-y-0.5">
-              {[...nav, ...navBottom].map((item) => (
+              {nav.map((item) => (
                 <li key={item.label}>
                   {item.href ? (
                     <Link
                       href={item.href}
+                      aria-current={item === activeItem ? "page" : undefined}
                       className={cx(
                         "flex min-h-11 items-center gap-3 rounded-(--fbg-radius-control) px-3 py-2.5 text-[15px]",
-                        isActive(item)
+                        item === activeItem
                           ? "bg-(--fbg-selected) font-medium text-(--fbg-text-primary)"
                           : "text-(--fbg-text-primary) hover:bg-(--fbg-hover)",
                       )}
@@ -560,7 +533,7 @@ function ShellInner({
                       <Icon name={item.icon} size={18} className="text-(--fbg-text-secondary)" />
                       <span className="flex-1">{item.label}</span>
                       {item.badge ? (
-                        <span className="fbg-num rounded-full bg-(--fbg-action-primary) px-1.5 text-[11px] font-semibold text-(--fbg-action-on-primary)">
+                        <span className="fbg-num rounded-full bg-(--fbg-hover) px-1.5 text-[11px] font-semibold text-(--fbg-text-primary)">
                           {item.badge}
                         </span>
                       ) : null}
@@ -574,50 +547,115 @@ function ShellInner({
                   )}
                 </li>
               ))}
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSheetOpen(false);
+                    setAccount("tabs");
+                  }}
+                  className="flex min-h-11 w-full items-center gap-3 rounded-(--fbg-radius-control) px-3 py-2.5 text-left text-[15px] text-(--fbg-text-primary) hover:bg-(--fbg-hover)"
+                >
+                  <Icon name="user" size={18} className="text-(--fbg-text-secondary)" />
+                  <span className="flex-1">{t.account}</span>
+                  <Icon name="chevron-right" size={16} className="text-(--fbg-text-muted)" />
+                </button>
+              </li>
             </ul>
-            <div className="mt-3 border-t border-(--fbg-border-subtle) px-1 pt-3">
-              <p className="mb-1.5 text-xs text-(--fbg-text-secondary)">{t.appearance}</p>
-              <AppearanceSwitch size="md" locale={locale} />
-            </div>
           </div>
         </div>
+      ) : null}
+
+      {account ? (
+        <AccountSheet
+          locale={locale}
+          meta={meta}
+          anchor={account}
+          onClose={() => setAccount(null)}
+        />
       ) : null}
     </div>
   );
 }
 
-function LocaleToggle({ initial }: { initial: ShellLocale }) {
-  const [locale, setLocale] = useState<ShellLocale>(initial);
+/**
+ * Account and appearance: who is signed in, the organization, the appearance switch, the interface
+ * language (stated, not switchable) and the planned account destinations. Bottom sheet on phones, a
+ * popover next to its trigger on wider screens.
+ */
+function AccountSheet({
+  locale,
+  meta,
+  anchor,
+  onClose,
+}: {
+  locale: ShellLocale;
+  meta: (typeof WORKSPACE_META)[Workspace];
+  anchor: AccountAnchor;
+  onClose: () => void;
+}) {
+  const t = CHROME[locale];
+  useEscapeKey(true, onClose);
   return (
-    <div
-      role="radiogroup"
-      aria-label="Interface language"
-      className="inline-flex rounded-(--fbg-radius-control) border border-(--fbg-border-subtle) bg-(--fbg-bg-surface) p-0.5"
-    >
-      {(
-        [
-          { value: "en-US", label: "EN" },
-          { value: "zh-CN", label: "中文" },
-        ] as const
-      ).map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          role="radio"
-          aria-checked={locale === o.value}
-          onClick={() => setLocale(o.value)}
-          lang={o.value}
-          className={cx(
-            "h-8 rounded-[7px] px-2.5 text-xs font-medium",
-            locale === o.value
-              ? "bg-(--fbg-bg-inverse) text-(--fbg-text-inverse)"
-              : "text-(--fbg-text-secondary) hover:text-(--fbg-text-primary)",
-          )}
-          title="Locale switch is visual only in this prototype; buyer screens are English."
-        >
-          {o.label}
-        </button>
-      ))}
+    <div role="dialog" aria-modal="true" aria-label={t.account} className="fixed inset-0 z-50">
+      <button
+        type="button"
+        className="absolute inset-0 bg-(--fbg-overlay) md:bg-transparent"
+        aria-label={t.close}
+        onClick={onClose}
+      />
+      <div
+        className={cx(
+          "fbg-raised absolute inset-x-0 bottom-0 flex flex-col gap-4 rounded-t-(--fbg-radius-dialog) border border-(--fbg-border-subtle) p-4 pb-[max(env(safe-area-inset-bottom),16px)]",
+          "md:inset-x-auto md:w-80 md:rounded-(--fbg-radius-card) md:pb-4",
+          anchor === "rail" ? "md:bottom-3 md:left-3" : "md:top-14 md:right-4 md:bottom-auto",
+        )}
+      >
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-(--fbg-action-primary) text-xs font-semibold text-(--fbg-action-on-primary)">
+            {meta.avatar}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] text-(--fbg-text-secondary)">{t.signedIn}</p>
+            <p className="truncate text-sm font-medium text-(--fbg-text-primary)">{meta.user}</p>
+            <p className="truncate text-[13px] text-(--fbg-text-secondary)">{meta.org}</p>
+          </div>
+          <button
+            type="button"
+            autoFocus
+            className="-mt-1 -mr-1 rounded-(--fbg-radius-control) p-2 text-(--fbg-text-secondary) hover:bg-(--fbg-hover)"
+            onClick={onClose}
+            aria-label={t.close}
+          >
+            <Icon name="x" size={18} />
+          </button>
+        </div>
+        <div>
+          <p className="mb-1.5 text-[12px] font-medium text-(--fbg-text-secondary)">
+            {t.appearance}
+          </p>
+          <AppearanceSwitch size="md" locale={locale} />
+        </div>
+        <div>
+          <p className="mb-0.5 text-[12px] font-medium text-(--fbg-text-secondary)">{t.language}</p>
+          <p className="text-[13px] text-(--fbg-text-primary)">{t.languageNote}</p>
+        </div>
+        <ul className="-mx-1 border-t border-(--fbg-border-divider) pt-2">
+          {meta.accountRows.map((row) => (
+            <li key={row}>
+              <span
+                aria-disabled
+                title={`${row} — ${t.notInPrototype}`}
+                className="flex min-h-10 items-center gap-3 rounded-(--fbg-radius-control) px-2 text-[14px] text-(--fbg-text-muted)"
+              >
+                <Icon name={row === "Organization" ? "building" : "user"} size={16} />
+                <span className="flex-1">{row}</span>
+                <span className="text-[11px]">{t.planned}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
