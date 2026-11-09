@@ -327,8 +327,10 @@ export function BuyerDocuments() {
           }
         />
 
-        {/* Upload */}
+        {/* Upload — the Overview's "Upload a quote" link lands here */}
         <Panel
+          id="upload"
+          className="scroll-mt-20"
           title="Add documents"
           description="PDF, XLSX, CSV, PNG, JPG or WebP, up to 25 MB each. The server re-checks the file signature, scans for malware and enforces page caps before anything is read."
         >
