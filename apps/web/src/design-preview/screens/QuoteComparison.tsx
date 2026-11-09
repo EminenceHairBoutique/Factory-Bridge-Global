@@ -5,7 +5,7 @@
  * All arithmetic comes from `compare-demo.ts`, a display-only mirror of QUOTE_ENGINE_SPEC §2. Local state only.
  */
 import Link from "next/link";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   BRIEF_HARD_SPEC,
   BRIEF_SOFT_SPEC,
@@ -27,6 +27,7 @@ import {
   forwarderOverrides,
   type LandedOverrides,
 } from "../compare-demo";
+import { COMPARE_MODES, rowVisible, summaryFacts, type CompareMode } from "../compare-modes";
 import { AppShell } from "../ui/AppShell";
 import { Icon } from "../ui/icons";
 import { useEscapeKey } from "../ui/useEscapeKey";
@@ -80,7 +81,12 @@ export function QuoteComparison() {
   const [compareMode, setCompareMode] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState<"pdf" | "xlsx">("pdf");
-  const [showSpec, setShowSpec] = useState(true);
+  const [mode, setMode] = useState<CompareMode>("summary");
+  // `?mode=summary|compare|details` opens the page in that presentation (review links, screenshots).
+  useEffect(() => {
+    const m = new URLSearchParams(window.location.search).get("mode");
+    if (m === "summary" || m === "compare" || m === "details") setMode(m);
+  }, []);
 
   useEscapeKey(exportOpen || clarification !== null, () => {
     setExportOpen(false);
@@ -152,59 +158,56 @@ export function QuoteComparison() {
   return (
     <AppShell workspace="buyer" title="Quote comparison" rightRail={rightRail}>
       <div className="flex flex-col gap-5">
+        <Link
+          href="/design-preview/buyer/quotes"
+          className="inline-flex w-fit items-center gap-1 text-[13px] font-medium text-(--fbg-text-secondary) hover:text-(--fbg-link)"
+        >
+          <Icon name="chevron-left" size={14} />
+          All quotes
+        </Link>
         <PageHeader
           title={project.name}
-          lead="Quotes are compared like for like: same specification, same trade term, tier selected for your quantity, every converted number shows its rate. Nothing is ranked on unit price alone."
+          lead="Like for like: same specification, same trade term, the tier for your quantity. Nothing is ranked on unit price alone."
           meta={
             <>
-              <Badge tone="teal" icon="check" className="fbg-num">
+              <span className="fbg-num inline-flex items-center gap-1">
+                <Icon name="check" size={12} className="text-(--fbg-status-success)" />
                 Brief v{project.briefVersion} confirmed 2026-11-04
-              </Badge>
-              <Badge tone="neutral" icon="clock" className="fbg-num">
-                As of {DEMO_AS_OF}
-              </Badge>
-              <Badge tone="neutral" icon="globe" className="fbg-num" title="FX row id fx_demo_0001">
-                {usdRateLabel()}
-              </Badge>
+              </span>
+              <span className="fbg-num">As of {DEMO_AS_OF}</span>
+              <span className="fbg-num" title={`${usdRateLabel()} · FX row id fx_demo_0001`}>
+                FX {(1 / DEMO_FX.rate).toFixed(2)} CNY/USD · {DEMO_FX.rateDate}
+              </span>
             </>
           }
           actions={
-            <>
-              <SegmentedControl
-                label="Quantity to price"
-                value={String(qty)}
-                onChange={(v) => setQty(Number(v) as Qty)}
-                options={QUANTITIES.map((q) => ({
-                  value: String(q),
-                  label: `${formatQty(q)} pcs`,
-                }))}
-              />
-              <Button icon="download" onClick={() => setExportOpen(true)}>
-                Export report
-              </Button>
-            </>
+            <Button variant="primary" icon="download" onClick={() => setExportOpen(true)}>
+              Export report
+            </Button>
           }
         />
 
-        {/* View filters and compare mode */}
-        <div className="flex flex-wrap items-center gap-3">
-          <SegmentedControl
-            label="Show"
-            size="sm"
-            options={VIEWS}
-            value={view}
-            onChange={setView}
-          />
-          <label className="flex items-center gap-2 text-sm text-(--fbg-text-secondary)">
-            <input
-              type="checkbox"
-              className="h-4 w-4 accent-(--fbg-action-primary)"
-              checked={showSpec}
-              onChange={(e) => setShowSpec(e.target.checked)}
+        {/* Presentation mode, view filter and the compare selection */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            <SegmentedControl
+              label="Presentation"
+              options={COMPARE_MODES}
+              value={mode}
+              onChange={setMode}
             />
-            Show specification rows
-          </label>
-          <div className="ml-auto flex items-center gap-2">
+            <p className="text-[13px] text-(--fbg-text-secondary)">
+              {COMPARE_MODES.find((m) => m.value === mode)?.hint}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <SegmentedControl
+              label="Show"
+              size="sm"
+              options={VIEWS}
+              value={view}
+              onChange={setView}
+            />
             {compareSet.size > 0 ? (
               <>
                 <Button
@@ -229,22 +232,120 @@ export function QuoteComparison() {
                   Clear
                 </Button>
               </>
-            ) : (
-              <span className="text-xs text-(--fbg-text-secondary)">
-                Tick “Compare” on two or more quotes to view them side by side.
-              </span>
-            )}
+            ) : null}
           </div>
         </div>
 
-        {/* The argument: why groups */}
+        {/* Quantity, landed-cost inputs, the ranking status, and the grouping rationale on demand */}
         <Panel padded={false}>
-          <div className="grid gap-0 lg:grid-cols-[1.2fr_1fr]">
-            <div className="p-4 lg:border-r lg:border-line">
-              <h2 className="text-[15px] font-semibold text-ink">
-                Why these quotes are shown in groups
-              </h2>
-              <p className="mt-1 text-sm text-slate">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-(--fbg-border-divider) px-4 py-3">
+            <span className="text-sm font-medium text-(--fbg-text-primary)">Quantity to price</span>
+            <SegmentedControl
+              label="Quantity to price"
+              size="sm"
+              value={String(qty)}
+              onChange={(v) => setQty(Number(v) as Qty)}
+              options={QUANTITIES.map((q) => ({
+                value: String(q),
+                label: `${formatQty(q)} pcs`,
+              }))}
+            />
+            <span className="text-[13px] text-(--fbg-text-secondary)">
+              Tiers, goods cost and landed lines below follow this quantity.
+            </span>
+          </div>
+          <div className="flex flex-col gap-4 p-4 lg:flex-row lg:gap-8">
+            <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 accent-(--fbg-action-primary)"
+                checked={applyForwarder}
+                onChange={(e) => setApplyForwarder(e.target.checked)}
+              />
+              <span className="min-w-0">
+                <span className="block text-sm font-medium text-(--fbg-text-primary)">
+                  Apply the forwarder estimate as estimated lines
+                </span>
+                <span className="block text-[13px] text-(--fbg-text-secondary)">
+                  {DEMO_FREIGHT_ESTIMATE.source}: freight, insurance, brokerage and delivery to NJ
+                  07102 per trade term. Lines stay marked <em>estimated</em>.
+                </span>
+              </span>
+            </label>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-(--fbg-text-primary)">
+                Duty and tax assumption
+              </p>
+              <p className="text-[13px] text-(--fbg-text-secondary)">
+                Your rate and its source. Classification advice comes from a licensed customs
+                broker; nothing fills this in for you.
+              </p>
+              <div className="mt-2 grid grid-cols-[6rem_1fr] gap-2">
+                <label className="sr-only" htmlFor="dutyRate">
+                  Duty rate percent
+                </label>
+                <div className="relative">
+                  <TextInput
+                    id="dutyRate"
+                    inputMode="decimal"
+                    value={dutyRate}
+                    onChange={(e) => setDutyRate(e.target.value)}
+                    placeholder="0"
+                    className="fbg-num pr-7"
+                  />
+                  <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-slate">
+                    %
+                  </span>
+                </div>
+                <label className="sr-only" htmlFor="dutySource">
+                  Source of the duty assumption
+                </label>
+                <TextInput
+                  id="dutySource"
+                  value={dutySource}
+                  onChange={(e) => setDutySource(e.target.value)}
+                  placeholder="Source, e.g. broker email 2026-11-06"
+                />
+              </div>
+            </div>
+          </div>
+          <p
+            className={cx(
+              "flex items-start gap-2 border-t border-(--fbg-border-divider) px-4 py-2.5 text-[13px]",
+              result.landedRanking ? "text-(--fbg-status-success)" : "text-(--fbg-status-warning)",
+            )}
+          >
+            <Icon
+              name={result.landedRanking ? "check" : "alert"}
+              size={14}
+              className="mt-0.5 shrink-0"
+            />
+            {result.landedRanking ? (
+              <span>
+                Lowest estimated landed cost with every input present:{" "}
+                {result.landedRanking[0]?.quote.supplier} at{" "}
+                <span className="fbg-num">
+                  {formatMoney(result.landedRanking[0]?.landedTotalUsd ?? 0, "USD")}
+                </span>{" "}
+                for {formatQty(qty)} pcs. Estimated lines are labelled; the report lists each
+                assumption.
+              </span>
+            ) : (
+              <span>
+                Cross-group ranking unavailable:{" "}
+                {includedCount < 2
+                  ? "only one quote is eligible at this quantity."
+                  : `required landed-cost lines are still missing for ${result.landedRankingBlockedBy.join(", ")}.`}
+              </span>
+            )}
+          </p>
+          <details className="border-t border-(--fbg-border-divider)">
+            <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 px-4 text-[13px] font-medium text-(--fbg-text-secondary) hover:text-(--fbg-text-primary) [&::-webkit-details-marker]:hidden">
+              <Icon name="info" size={14} />
+              Why quotes are grouped by trade term, and what sourced, estimated and missing mean
+            </summary>
+            <div className="px-4 pb-4 text-sm text-(--fbg-text-secondary)">
+              <p>
                 A trade term says how much of the journey the price includes. An EXW price stops at
                 the factory door; an FOB price already covers inland transport and export clearance
                 to the port. Comparing them on goods price would reward the quote that leaves more
@@ -252,91 +353,22 @@ export function QuoteComparison() {
                 place. Groups are ranked against each other only when every landed-cost line needed
                 to normalise them is present, as sourced or estimated.
               </p>
-              <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                <span className="fbg-line-sourced pl-2 text-slate">
-                  <span className="text-ink">Sourced</span> · from a quote or confirmed logistics
-                  quote
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs">
+                <span className="fbg-line-sourced pl-2">
+                  <span className="text-(--fbg-text-primary)">Sourced</span> · from a quote or a
+                  confirmed logistics quote
                 </span>
-                <span className="fbg-line-estimated pl-2 text-slate">
-                  <span className="text-ink">Estimated</span> · recorded assumption with a source
+                <span className="fbg-line-estimated pl-2">
+                  <span className="text-(--fbg-text-primary)">Estimated</span> · a recorded
+                  assumption with its source
                 </span>
-                <span className="fbg-line-missing pl-2 text-slate">
-                  <span className="text-ink">Missing</span> · nothing on file, total stays partial
+                <span className="fbg-line-missing pl-2">
+                  <span className="text-(--fbg-text-primary)">Missing</span> · nothing on file, the
+                  total stays partial
                 </span>
               </div>
             </div>
-            <div className="flex flex-col gap-3 p-4">
-              <p className="text-sm font-medium text-ink">Landed-cost inputs for this comparison</p>
-              <label className="flex cursor-pointer items-start gap-3 rounded-(--fbg-radius-control) border border-line p-3 hover:border-ink/30">
-                <input
-                  type="checkbox"
-                  className="mt-0.5 accent-teal"
-                  checked={applyForwarder}
-                  onChange={(e) => setApplyForwarder(e.target.checked)}
-                />
-                <span className="min-w-0">
-                  <span className="block text-sm text-ink">
-                    Apply forwarder estimate as estimated lines
-                  </span>
-                  <span className="block text-xs text-slate">
-                    {DEMO_FREIGHT_ESTIMATE.source}: freight, insurance, brokerage and delivery to NJ
-                    07102 for each trade term. Lines stay marked <em>estimated</em>.
-                  </span>
-                </span>
-              </label>
-              <div className="rounded-(--fbg-radius-control) border border-line p-3">
-                <p className="text-sm text-ink">Duty and tax assumption</p>
-                <p className="text-xs text-slate">
-                  Enter a rate with its source. Classification and duty advice should come from a
-                  licensed customs broker; this field records your assumption, nothing fills it for
-                  you.
-                </p>
-                <div className="mt-2 grid grid-cols-[6rem_1fr] gap-2">
-                  <label className="sr-only" htmlFor="dutyRate">
-                    Duty rate percent
-                  </label>
-                  <div className="relative">
-                    <TextInput
-                      id="dutyRate"
-                      inputMode="decimal"
-                      value={dutyRate}
-                      onChange={(e) => setDutyRate(e.target.value)}
-                      placeholder="0"
-                      className="fbg-num pr-7"
-                    />
-                    <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-slate">
-                      %
-                    </span>
-                  </div>
-                  <label className="sr-only" htmlFor="dutySource">
-                    Source of the duty assumption
-                  </label>
-                  <TextInput
-                    id="dutySource"
-                    value={dutySource}
-                    onChange={(e) => setDutySource(e.target.value)}
-                    placeholder="Source, e.g. broker email 2026-11-06"
-                  />
-                </div>
-              </div>
-              {result.landedRanking ? (
-                <Notice tone="ok" title="Lowest estimated landed cost (all inputs present)">
-                  {result.landedRanking[0]?.quote.supplier} at{" "}
-                  <span className="fbg-num">
-                    {formatMoney(result.landedRanking[0]?.landedTotalUsd ?? 0, "USD")}
-                  </span>{" "}
-                  for {formatQty(qty)} pcs. Every estimated line is labelled in the table; the
-                  report lists each assumption.
-                </Notice>
-              ) : (
-                <Notice tone="warn" title="Cross-group ranking unavailable">
-                  {includedCount < 2
-                    ? "Only one quote is eligible at this quantity."
-                    : `Required lines are still missing for ${result.landedRankingBlockedBy.join(", ")}.`}
-                </Notice>
-              )}
-            </div>
-          </div>
+          </details>
         </Panel>
 
         {/* Groups */}
@@ -388,35 +420,59 @@ export function QuoteComparison() {
               )}
             </div>
 
-            {/* Desktop matrix */}
-            <div className="hidden overflow-x-auto rounded-(--fbg-radius-card) border border-line bg-surface lg:block">
-              <Matrix
-                quotes={group.quotes}
-                qty={qty}
-                showSpec={showSpec}
-                compareSet={compareSet}
-                onToggleCompare={toggleCompare}
-                excluded={group.kind === "excluded"}
-                selectedId={selected?.quote.id}
-                onSelect={setSelectedId}
-              />
-            </div>
-            {/* Mobile / tablet carousel */}
-            <div className="fbg-snap-x fbg-scrollbar-thin -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 lg:hidden">
-              {group.quotes.map((e) => (
-                <QuoteCard
-                  key={e.quote.id}
-                  evaluated={e}
-                  qty={qty}
-                  excluded={group.kind === "excluded"}
-                  selected={selected?.quote.id === e.quote.id}
-                  onSelect={() => setSelectedId(e.quote.id)}
-                  showSpec={showSpec}
-                  compared={compareSet.has(e.quote.id)}
-                  onToggleCompare={() => toggleCompare(e.quote.id)}
-                />
-              ))}
-            </div>
+            {mode === "summary" ? (
+              <ul className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+                {group.quotes.map((e) => (
+                  <SummaryCard
+                    key={e.quote.id}
+                    evaluated={e}
+                    qty={qty}
+                    excluded={group.kind === "excluded"}
+                    lowest={group.lowestComparableId === e.quote.id}
+                    selected={selected?.quote.id === e.quote.id}
+                    onSelect={() => setSelectedId(e.quote.id)}
+                    compared={compareSet.has(e.quote.id)}
+                    onToggleCompare={() => toggleCompare(e.quote.id)}
+                    onDetails={() => {
+                      setSelectedId(e.quote.id);
+                      setMode("details");
+                    }}
+                  />
+                ))}
+              </ul>
+            ) : (
+              <>
+                {/* Desktop matrix */}
+                <div className="hidden overflow-x-auto rounded-(--fbg-radius-card) border border-line bg-surface lg:block">
+                  <Matrix
+                    quotes={group.quotes}
+                    qty={qty}
+                    mode={mode}
+                    compareSet={compareSet}
+                    onToggleCompare={toggleCompare}
+                    excluded={group.kind === "excluded"}
+                    selectedId={selected?.quote.id}
+                    onSelect={setSelectedId}
+                  />
+                </div>
+                {/* Mobile / tablet carousel */}
+                <div className="fbg-snap-x fbg-scrollbar-thin -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 lg:hidden">
+                  {group.quotes.map((e) => (
+                    <QuoteCard
+                      key={e.quote.id}
+                      evaluated={e}
+                      qty={qty}
+                      excluded={group.kind === "excluded"}
+                      selected={selected?.quote.id === e.quote.id}
+                      onSelect={() => setSelectedId(e.quote.id)}
+                      mode={mode}
+                      compared={compareSet.has(e.quote.id)}
+                      onToggleCompare={() => toggleCompare(e.quote.id)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </section>
         ))}
 
@@ -880,13 +936,22 @@ const SECTION_LABEL: Record<NonNullable<RowDef["section"]>, string> = {
   landed: "Landed cost to NJ 07102",
 };
 
+/** Rows a mode shows; not-ranked groups only ever show the quote, specification and tier rows. */
+function rowsForMode(mode: CompareMode, excluded: boolean): RowDef[] {
+  return (
+    excluded
+      ? ROWS.filter((r) => r.section === "quote" || r.section === "spec" || r.key === "tier")
+      : ROWS
+  ).filter((r) => r.section !== undefined && rowVisible(mode, r.key, r.section));
+}
+
 function Matrix({
   quotes,
   qty,
   excluded,
   selectedId,
   onSelect,
-  showSpec,
+  mode,
   compareSet,
   onToggleCompare,
 }: {
@@ -895,15 +960,11 @@ function Matrix({
   excluded: boolean;
   selectedId: string | undefined;
   onSelect: (id: string) => void;
-  showSpec: boolean;
+  mode: CompareMode;
   compareSet: ReadonlySet<string>;
   onToggleCompare: (id: string) => void;
 }) {
-  const rows = (
-    excluded
-      ? ROWS.filter((r) => r.section === "quote" || r.section === "spec" || r.key === "tier")
-      : ROWS
-  ).filter((r) => showSpec || r.section !== "spec");
+  const rows = rowsForMode(mode, excluded);
   const sections = Array.from(new Set(rows.map((r) => r.section)));
   return (
     <table className="w-full border-collapse text-sm">
@@ -987,9 +1048,12 @@ function Matrix({
                 className="border-t border-line bg-paper px-4 py-1.5 text-left text-xs font-medium text-slate"
               >
                 {SECTION_LABEL.landed}
+                {mode === "compare" ? (
+                  <span className="font-normal"> · totals only; Full details lists every line</span>
+                ) : null}
               </th>
             </tr>
-            {LANDED_ROWS.map((type) => (
+            {(mode === "details" ? LANDED_ROWS : []).map((type) => (
               <tr key={type} className="border-t border-line/70">
                 <th
                   scope="row"
@@ -1093,7 +1157,7 @@ function QuoteCard({
   excluded,
   selected,
   onSelect,
-  showSpec,
+  mode,
   compared,
   onToggleCompare,
 }: {
@@ -1102,15 +1166,11 @@ function QuoteCard({
   excluded: boolean;
   selected: boolean;
   onSelect: () => void;
-  showSpec: boolean;
+  mode: CompareMode;
   compared: boolean;
   onToggleCompare: () => void;
 }) {
-  const rows = (
-    excluded
-      ? ROWS.filter((r) => r.section === "quote" || r.section === "spec" || r.key === "tier")
-      : ROWS
-  ).filter((r) => showSpec || r.section !== "spec");
+  const rows = rowsForMode(mode, excluded);
   const missing = e.exclusion
     ? [exclusionText(e.exclusion)]
     : e.missingLines.map((m) => LANDED_LINE_LABEL[m]);
@@ -1164,7 +1224,7 @@ function QuoteCard({
           </label>
         </div>
       </header>
-      <details className="group" open={selected}>
+      <details className="group" open={selected || mode === "details"}>
         <summary className="flex min-h-11 cursor-pointer items-center justify-between px-3 text-sm font-medium text-(--fbg-link) [&::-webkit-details-marker]:hidden">
           <span className="group-open:hidden">Show details</span>
           <span className="hidden group-open:inline">Hide details</span>
@@ -1183,7 +1243,7 @@ function QuoteCard({
                 <dd className="min-w-0 text-sm">{row.render(e, qty)}</dd>
               </div>
             ))}
-          {!excluded
+          {!excluded && mode === "details"
             ? LANDED_ROWS.map((type) => (
                 <div key={type} className="grid grid-cols-[7.5rem_1fr] gap-2 px-3 py-2">
                   <dt className="text-xs text-slate">{LANDED_LINE_LABEL[type]}</dt>
@@ -1202,6 +1262,174 @@ function QuoteCard({
         </footer>
       ) : null}
     </article>
+  );
+}
+
+/**
+ * Summary mode: one card per quote with the decision facts and, always, what is missing or why the quote is
+ * not ranked. Facts come from compare-modes.ts (tested); money from compare-demo.ts.
+ */
+function SummaryCard({
+  evaluated: e,
+  qty,
+  excluded,
+  lowest,
+  selected,
+  onSelect,
+  compared,
+  onToggleCompare,
+  onDetails,
+}: {
+  evaluated: EvaluatedQuote;
+  qty: number;
+  excluded: boolean;
+  lowest: boolean;
+  selected: boolean;
+  onSelect: () => void;
+  compared: boolean;
+  onToggleCompare: () => void;
+  onDetails: () => void;
+}) {
+  const f = summaryFacts(e);
+  return (
+    <li className="min-w-0">
+      <article
+        className={cx(
+          "flex h-full flex-col rounded-(--fbg-radius-card) border bg-(--fbg-bg-surface) p-4",
+          selected ? "border-(--fbg-action-primary)" : "border-(--fbg-border-subtle)",
+        )}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <button
+            type="button"
+            onClick={onSelect}
+            aria-pressed={selected}
+            className="min-w-0 text-left"
+            title="Show this supplier's evidence"
+          >
+            <span
+              className={cx(
+                "block truncate text-[15px] font-semibold",
+                excluded ? "text-(--fbg-text-secondary)" : "text-(--fbg-text-primary)",
+              )}
+            >
+              {e.quote.supplier}
+            </span>
+            <span className="block text-[13px] text-(--fbg-text-secondary)">
+              {e.quote.city} ·{" "}
+              {e.quote.priceBasis === "unknown"
+                ? "basis not stated"
+                : `${e.quote.priceBasis} ${e.quote.basisPlace}`}{" "}
+              · {e.quote.currency}
+            </span>
+          </button>
+          {lowest ? (
+            <Badge tone="teal" icon="check">
+              Lowest in group
+            </Badge>
+          ) : null}
+        </div>
+
+        <div className="mt-3">
+          {f.headline ? (
+            <>
+              <p className="fbg-num text-[22px] leading-7 font-semibold text-(--fbg-text-primary)">
+                {f.headline}
+              </p>
+              <p className="fbg-num text-[12px] text-(--fbg-text-secondary)">
+                comparable goods cost for {formatQty(qty)} pcs
+                {f.unit ? ` · ${f.unit} per unit, ${f.tier}` : ""}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm font-semibold text-(--fbg-status-danger)">Not ranked</p>
+          )}
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          <Badge tone="teal" icon="check">
+            {QUOTE_TYPE_LABEL[e.quote.quoteType] ?? e.quote.quoteType}
+          </Badge>
+          <Badge
+            tone={f.validity.tone}
+            icon={f.validity.tone === "neutral" ? "clock" : "alert"}
+            className="fbg-num"
+          >
+            {f.validity.label}
+          </Badge>
+          {f.evidenceCount === 0 ? (
+            <Badge tone="neutral" icon="info">
+              No verification record
+            </Badge>
+          ) : (
+            <Badge tone="ok" icon="shield">
+              {f.evidenceCount} {f.evidenceCount === 1 ? "check" : "checks"} on file
+            </Badge>
+          )}
+        </div>
+
+        <dl className="mt-3 grid grid-cols-[6.5rem_1fr] gap-x-3 gap-y-1 text-[13px]">
+          <dt className="text-(--fbg-text-secondary)">Lead time</dt>
+          <dd className="fbg-num text-(--fbg-text-primary)">
+            {e.quote.leadTimeDays !== null ? `${e.quote.leadTimeDays} days` : "Not stated"}
+          </dd>
+          <dt className="text-(--fbg-text-secondary)">Payment</dt>
+          <dd className="truncate text-(--fbg-text-primary)">
+            {e.quote.paymentTerms ?? "Not stated"}
+          </dd>
+          {!excluded ? (
+            <>
+              <dt className="text-(--fbg-text-secondary)">Landed total</dt>
+              <dd className="fbg-num text-(--fbg-text-primary)">
+                {f.landed.total ??
+                  `Partial · ${f.landed.missingCount} ${f.landed.missingCount === 1 ? "line" : "lines"} missing`}
+                {f.landed.estimatedCount > 0 ? (
+                  <span className="text-(--fbg-text-secondary)">
+                    {" "}
+                    · {f.landed.estimatedCount} estimated
+                  </span>
+                ) : null}
+              </dd>
+            </>
+          ) : null}
+        </dl>
+
+        <p className="mt-3 text-[13px] leading-5">
+          <span className="font-medium text-(--fbg-text-primary)">
+            {excluded ? "Why not ranked: " : "Missing: "}
+          </span>
+          {f.missing.length === 0 ? (
+            <span className="text-(--fbg-status-success)">nothing, all inputs present</span>
+          ) : (
+            <span
+              className={excluded ? "text-(--fbg-status-danger)" : "text-(--fbg-status-warning)"}
+            >
+              {f.missing.join(", ")}
+            </span>
+          )}
+        </p>
+
+        <div className="mt-4 flex items-center justify-between gap-2 border-t border-(--fbg-border-divider) pt-3">
+          <label className="flex items-center gap-2 text-[13px] text-(--fbg-text-secondary)">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-(--fbg-action-primary)"
+              checked={compared}
+              onChange={onToggleCompare}
+            />
+            Compare
+          </label>
+          <button
+            type="button"
+            onClick={onDetails}
+            className="inline-flex items-center gap-0.5 text-[13px] font-medium text-(--fbg-link) hover:underline"
+          >
+            Full details
+            <Icon name="chevron-right" size={14} />
+          </button>
+        </div>
+      </article>
+    </li>
   );
 }
 

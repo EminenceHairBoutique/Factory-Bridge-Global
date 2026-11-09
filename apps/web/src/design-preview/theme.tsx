@@ -4,9 +4,11 @@
  * Appearance (theme) scope for the design preview: Atlas (light), Obsidian (dark) or System.
  * The choice is a per-viewer convenience stored in localStorage; every read/write is guarded because storage
  * may be unavailable (private windows, blocked site data). The first render always uses Atlas so server and
- * client markup match; the stored choice is applied after mount.
+ * client markup match; the stored choice is applied after mount. `?theme=atlas|obsidian` forces one page load
+ * for design-review links and screenshots without touching the stored choice.
  */
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { parseThemeParam } from "./theme-param";
 
 export type ThemeChoice = "atlas" | "obsidian" | "system";
 
@@ -42,9 +44,16 @@ export function ThemeScope({
   initial?: ThemeChoice | undefined;
 }) {
   const [theme, setThemeState] = useState<ThemeChoice>(initial ?? "atlas");
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    setHydrated(true);
     if (initial) return;
+    const forced = parseThemeParam(window.location.search);
+    if (forced) {
+      setThemeState(forced);
+      return;
+    }
     const stored = readStored();
     if (stored) setThemeState(stored);
   }, [initial]);
@@ -60,7 +69,13 @@ export function ThemeScope({
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
-      <div className={["fbg-dp min-w-0", className].filter(Boolean).join(" ")} data-theme={theme}>
+      <div
+        className={["fbg-dp min-w-0", hydrated && "fbg-hydrated", className]
+          .filter(Boolean)
+          .join(" ")}
+        data-theme={theme}
+        data-theme-fixed={initial ? "" : undefined}
+      >
         {children}
       </div>
     </ThemeContext.Provider>

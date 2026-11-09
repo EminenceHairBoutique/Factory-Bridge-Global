@@ -50,6 +50,7 @@
   --fbg-overlay: rgba(15, 27, 45, 0.45);
   --fbg-rail-bg: #0f1b2d;
   --fbg-rail-fg: #f3f7f5;
+  --fbg-notice-bg: #f1ede4;
   --fbg-chart-1: #1f6f78;
   --fbg-chart-2: #b3613a;
   --fbg-chart-3: #3a4a5e;
@@ -60,13 +61,16 @@
 
   /* ---- Geometry, density, motion -------------------------------------------------------------- */
   --fbg-radius-chip: 6px;
-  --fbg-radius-control: 10px;
+  --fbg-radius-control: 8px;
   --fbg-radius-card: 12px;
-  --fbg-radius-dialog: 20px;
+  --fbg-radius-dialog: 16px;
+  /* Phone-first control heights; tightened at md+ (see the density block below). */
   --fbg-control-h: 44px;
   --fbg-control-h-sm: 36px;
-  --fbg-rail-w: 248px;
+  --fbg-rail-w: 224px;
+  --fbg-rail-w-collapsed: 64px;
   --fbg-drawer-w: 384px;
+  --fbg-notice-h: 32px;
   --fbg-motion: 180ms;
 
   /* ---- Legacy token mapping (shared Tailwind theme → semantic) ------------------------------- */
@@ -102,12 +106,20 @@
 }
 
 /* ---- Obsidian (dark) ----------------------------------------------------------------------------- */
+/*
+ * `<meta name="fbg-theme">` is added to <head> by a pre-hydration script in app/design-preview/layout.tsx
+ * from the stored choice (or `?theme=`), so a dark preference paints dark on the first frame instead of
+ * flashing Atlas and animating every colour 180 ms later. Only unhydrated scopes read it; once React has
+ * applied the stored choice the scope's own data-theme governs. Scopes with a fixed theme (gallery) opt out.
+ */
 .fbg-dp[data-theme="obsidian"],
 .fbg-dp [data-theme="obsidian"],
-.fbg-dp .fbg-obsidian {
+.fbg-dp .fbg-obsidian,
+html:has(meta[name="fbg-theme"][content="obsidian"])
+  .fbg-dp:not([data-theme-fixed]):not(.fbg-hydrated) {
   --fbg-bg-canvas: #0d1118;
   --fbg-bg-surface: #161e29;
-  --fbg-bg-raised: #1c2530;
+  --fbg-bg-raised: #1d2733;
   --fbg-bg-sunken: #0a0e14;
   --fbg-bg-inverse: #f3f7f5;
   --fbg-text-primary: #f3f7f5;
@@ -116,7 +128,7 @@
   --fbg-text-inverse: #0d1118;
   --fbg-border-subtle: #36414b;
   --fbg-border-divider: #273039;
-  --fbg-border-strong: #5b6873;
+  --fbg-border-strong: #67747f; /* UX-03: 3.5:1 on surface (was #5b6873, 2.9:1; DESIGN_TOKENS_V1 §2 gap) */
   --fbg-accent-subtle: #1b2f33;
   --fbg-action-primary: #72d0c3;
   --fbg-action-primary-hover: #86dbd0;
@@ -144,6 +156,7 @@
   --fbg-overlay: rgba(5, 8, 12, 0.65);
   --fbg-rail-bg: #0a0e14;
   --fbg-rail-fg: #f3f7f5;
+  --fbg-notice-bg: #141b25;
   --fbg-chart-1: #72d0c3;
   --fbg-chart-2: #c7ad78;
   --fbg-chart-3: #a9b9c8;
@@ -157,10 +170,12 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .fbg-dp[data-theme="system"] {
+  .fbg-dp[data-theme="system"],
+  html:has(meta[name="fbg-theme"][content="system"])
+    .fbg-dp:not([data-theme-fixed]):not(.fbg-hydrated) {
     --fbg-bg-canvas: #0d1118;
     --fbg-bg-surface: #161e29;
-    --fbg-bg-raised: #1c2530;
+    --fbg-bg-raised: #1d2733;
     --fbg-bg-sunken: #0a0e14;
     --fbg-bg-inverse: #f3f7f5;
     --fbg-text-primary: #f3f7f5;
@@ -169,7 +184,7 @@
     --fbg-text-inverse: #0d1118;
     --fbg-border-subtle: #36414b;
     --fbg-border-divider: #273039;
-    --fbg-border-strong: #5b6873;
+    --fbg-border-strong: #67747f;
     --fbg-accent-subtle: #1b2f33;
     --fbg-action-primary: #72d0c3;
     --fbg-action-primary-hover: #86dbd0;
@@ -197,6 +212,7 @@
     --fbg-overlay: rgba(5, 8, 12, 0.65);
     --fbg-rail-bg: #0a0e14;
     --fbg-rail-fg: #f3f7f5;
+    --fbg-notice-bg: #141b25;
     --fbg-chart-1: #72d0c3;
     --fbg-chart-2: #c7ad78;
     --fbg-chart-3: #a9b9c8;
@@ -248,8 +264,44 @@
   .fbg-dp *::after {
     transition-duration: 0ms !important;
     animation-duration: 0ms !important;
+    animation-delay: 0ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Marketing hero: one orchestrated entrance on load (rise in three beats, the arc drawn once), then still. */
+@keyframes fbg-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fbg-dp .fbg-rise {
+  animation: fbg-rise 560ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.fbg-dp .fbg-rise-2 {
+  animation-delay: 120ms;
+}
+.fbg-dp .fbg-rise-3 {
+  animation-delay: 240ms;
+}
+@keyframes fbg-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+/* Requires pathLength="1" on the path. */
+.fbg-dp .fbg-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: fbg-draw 1100ms 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* ---- Surfaces ---------------------------------------------------------------------------------- */
@@ -258,14 +310,36 @@
   box-shadow: var(--fbg-shadow-raised);
 }
 
-.fbg-dp .fbg-demo-stripe {
-  background: repeating-linear-gradient(
-    -45deg,
-    color-mix(in oklab, var(--fbg-status-warning) 16%, var(--fbg-bg-canvas)),
-    color-mix(in oklab, var(--fbg-status-warning) 16%, var(--fbg-bg-canvas)) 12px,
-    var(--fbg-bg-canvas) 12px,
-    var(--fbg-bg-canvas) 24px
-  );
+/*
+ * Demo-data notice (UX-03): slender and neutral, but always present and never concealable. It replaces the
+ * black/yellow stripe; the meaning "DEMO DATA — NOT REAL SUPPLIER QUOTATIONS" is unchanged and the warning
+ * marker keeps it from reading as ordinary chrome.
+ */
+.fbg-dp .fbg-demo-notice {
+  min-height: var(--fbg-notice-h);
+  background: var(--fbg-notice-bg);
+  border-bottom: 1px solid var(--fbg-border-subtle);
+  box-shadow: inset 3px 0 0 var(--fbg-status-warning);
+}
+
+/* Sidebar: the single active destination gets a fill and a 3 px action-colour bar; nothing else is tinted. */
+.fbg-dp .fbg-nav-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--fbg-action-primary);
+}
+
+/* Density: 44 px controls stay on phones (touch targets); desktop and tablet tighten to 40 / 32 px. */
+@media (min-width: 768px) {
+  .fbg-dp {
+    --fbg-control-h: 40px;
+    --fbg-control-h-sm: 32px;
+  }
 }
 
 /* Cost-line status markers (IA §3 StatusLine): solid / dashed / double / thin. */
