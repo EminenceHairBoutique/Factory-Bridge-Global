@@ -205,6 +205,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-40 (research inbox and supplier creation contract); Research nav entry for UX-03.
 
+## 6q. Session 19 — Buyer landed-cost scenarios (2026-11-08, branch `design/ux04-landed-cost`, stacked on PR #22)
+
+**Reuse first:** the lines come from the comparison helper's `evaluateQuote` (now taking an optional FX rate, defaulting to the demo reference rate so the comparison and reports are unchanged); status chips reuse `StatusChip`; the list–detail layout and right rail follow the compliance and research screens; the data mirrors migration 0011 rather than inventing fields.
+
+**Implemented in preview:** `/design-preview/buyer/landed-cost?snapshot=` (`BuyerLandedCost.tsx`): three saved snapshots (an October one citing an expired written sea quote and a buyer duty rate, a 25,000-piece one with no inputs, and the current forwarder + broker-reviewed one), a new-scenario panel (quantity, as-of with the resolved FX line, freight estimate, duty assumption; errors block save, warnings shown), the ranking notice, the per-quotation lines table (cards on phones), the explanation list, and the immutable snapshot panel with FX rows and inputs hash. `landed-cost-demo.ts` with 10 tests. Details in `BUYER_LANDED_COST_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 333: web 115); `next build` exit 0; production `next start`: `/design-preview/buyer/landed-cost` → 404. Browser (built-in, dev server on :3100): Atlas 1440 — no overflow or console errors; the current snapshot shows A and B complete with "USD @ 7.2000 CNY per USD (…, 2026-11-06; 1 day before as-of)", fx_1106 cited and the ranking A $790.71 then B $862.27; new scenario: partial totals listing the excluded lines, as-of 2026-11-10 → missing_fx hint and "No USD total" for the CNY quotation while the USD one stays computable, the expired October estimate → error and Save disabled, manual air + unverified duty → two warnings and "Partial — excludes: duties and taxes", forwarder + broker → Save produced snapshot sn_new_4 with its log line; `?snapshot=sn_nov_partial` opens the partial snapshot (three eligible columns, 17 missing chips, ranking blocked by A, B and E); the project overview's Compare tab links here. Obsidian 375 / 320 / 768 — no horizontal overflow; cards replace the table below `md`; the table scrolls inside its panel at 768.
+
+**Cross-track:** H-41 (landed-cost scenarios contract).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).
