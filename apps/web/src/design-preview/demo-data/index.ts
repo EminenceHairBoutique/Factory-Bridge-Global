@@ -172,6 +172,7 @@ export const DEMO_ACTIONS: DemoAction[] = [
     title: "Approve clarification to Supplier B",
     detail:
       "Drafted question: is tooling included in the EXW unit price? Nothing is sent until you and an operator approve.",
+    href: "/design-preview/buyer/messages?thread=th_tooling",
   },
   {
     id: "act_4",

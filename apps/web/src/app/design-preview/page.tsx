@@ -6,7 +6,7 @@ const SCREENS = [
   {
     href: "/design-preview/marketing",
     title: "Marketing home (Obsidian hero)",
-    body: "Proposed public home page: Obsidian hero with the bridge mark, then Atlas value, process, categories and evidence sections. Copy subject to approval.",
+    body: "Proposed public home page: Obsidian hero with the drawn bridge figure, then Atlas sections for How it works, Services, Categories, Quality process and About, and a Contact band. Seven anchored destinations, appearance switch in the footer. Copy subject to approval.",
     workspace: "Public site",
   },
   {
@@ -17,8 +17,20 @@ const SCREENS = [
   },
   {
     href: "/design-preview/buyer/dashboard",
-    title: "Buyer dashboard",
-    body: "Projects, required actions, quote status, supplier options and evidence indicators.",
+    title: "Buyer overview",
+    body: "What needs your attention (three ranked items, the rest one click away), the three most recent projects with in-row details, and one primary action. Supplier options and activity live inside the project; quote statistics on Quotes.",
+    workspace: "Buyer (English)",
+  },
+  {
+    href: "/design-preview/buyer/projects",
+    title: "Buyer: projects",
+    body: "Searchable, filterable list of every sourcing project — Project · Stage · Next action · Updated — with quantity, quote counts, operator and links behind an in-row disclosure.",
+    workspace: "Buyer (English)",
+  },
+  {
+    href: "/design-preview/buyer/quotes",
+    title: "Buyer: quotes",
+    body: "Organization-wide quote status counts and where each project's quotes stand, linking to the one comparison that exists. States that a cross-project quotation list needs the permissioned query.",
     workspace: "Buyer (English)",
   },
   {
@@ -36,7 +48,7 @@ const SCREENS = [
   {
     href: "/design-preview/buyer/documents",
     title: "Buyer: documents and the upload pipeline",
-    body: "Every uploaded or received document with its pipeline status (uploaded → scanning → parsed → extracted → in review → accepted, or rejected), who acts next, the scan result, extraction flags, the linked quotation and the access log; client-side upload pre-check with a simulated pipeline; discard with confirmation.",
+    body: "List first — file, project, type, status, date, next action — with the record inspector (scan result, flags, provenance, pipeline, linked quotation, access log) opening on demand as a rail or drawer; the upload intake collapsed until asked for (#upload opens it); client-side pre-check with a simulated pipeline; discard with confirmation.",
     workspace: "Buyer",
   },
   {
@@ -58,6 +70,12 @@ const SCREENS = [
     workspace: "Buyer",
   },
   {
+    href: "/design-preview/buyer/messages?thread=th_tooling",
+    title: "Buyer: messages and approvals",
+    body: "Inbox with needs-you-first ordering and status filters; threads in both languages with translation provenance; the approval chain You → Operator → Sent on every outbound message with approve, edit (approvals reset) and withdraw; a composer that submits to the operator queue over the channels the supplier's recorded contact basis allows; inbound flags (text addressed to the software, contacts removed, links not opened); outbound log with channel, approvers, time and reference.",
+    workspace: "Buyer",
+  },
+  {
     href: "/design-preview/buyer/brief",
     title: "Brief confirmation (AI proposal → your version)",
     body: "Raw input with highlighted sources, the AI proposal with from input / inferred / missing provenance and Chinese translation, your decisions per field, and a versioned confirm.",
@@ -66,7 +84,7 @@ const SCREENS = [
   {
     href: "/design-preview/buyer/compare",
     title: "Supplier quotation comparison",
-    body: "Price-basis groups, tiers and MOQ, FX provenance, landed-cost line status, freshness and verification evidence.",
+    body: "Three presentations of the same evaluated quotes — Summary cards, Compare (decision rows side by side within each trade-term group), Full details (every specification, tier, source, check record and landed line) — with price-basis groups, FX provenance and what is missing never hidden. ?mode= opens a presentation directly.",
     workspace: "Buyer (English)",
   },
   {
@@ -88,6 +106,18 @@ const SCREENS = [
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/supplier/catalog",
+    title: "供应商：产品目录 (supplier catalog, zh-CN)",
+    body: "Products with price state and visibility, counts, status tabs and a visibility filter; 新增产品 creates a priced-later product as 待确认; 暂停 / 恢复; the 依据 drawer explains what each visibility means and that unconfirmed prices never reach a buyer.",
+    workspace: "Supplier",
+  },
+  {
+    href: "/design-preview/supplier/catalog/import",
+    title: "供应商：批量导入 (catalog import, zh-CN)",
+    body: "Template download (CSV, UTF-8 with BOM, one row per tier), file or pasted CSV or sample files, a per-product preview with row-numbered Chinese errors and warnings (colloquial trade terms, missing places, overlapping tiers, bad currency, expired dates, invalid scope) and the diff against the catalog, then import of the clean rows as 待确认.",
+    workspace: "Supplier",
+  },
+  {
     href: "/design-preview/supplier/pricing",
     title: "阶梯报价 (Price tier editor)",
     body: "Ascending non-overlapping tiers with inline validation, Incoterm code plus 指定地点, colloquial 出厂价 never defaulted to EXW, validity required, visibility intent.",
@@ -98,6 +128,12 @@ const SCREENS = [
     title: "询价单 / 提交报价 (RFQ inbox and quote form)",
     body: "Buyer-confirmed specification read-only in both languages, clarification thread via the platform, structured quote form with a submission gate, decline flow.",
     workspace: "供应商（zh-CN）",
+  },
+  {
+    href: "/design-preview/supplier/messages",
+    title: "供应商：消息 (supplier inbox, zh-CN)",
+    body: "The supplier's side of the threads: buyer questions in Chinese with the English original and translation provenance, the supplier's replies with their relay state (待平台转达 → 已转达), platform notices, an anonymized buyer label, a reply composer that warns on contact details and prices and routes attachments through the upload pipeline, and the relay log.",
+    workspace: "Supplier",
   },
   {
     href: "/design-preview/supplier/sharing",

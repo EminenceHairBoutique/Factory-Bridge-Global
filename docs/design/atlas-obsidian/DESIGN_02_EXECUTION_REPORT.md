@@ -135,6 +135,46 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-34 (reports table, server-side status derivation, generation job, five tables with reproducibility columns).
 
+## 6j. Session 12 — Messages and approvals (2026-11-07, same branch)
+
+**Reuse first:** the approval chain that the project overview, the comparison's clarification dialog and the operator work queue each drew by hand is now one shared chip component (`ui/ApprovalChain.tsx`) fed by one helper (`approvalChain` in `messages-demo.ts`); the overview's own thread records were replaced by `demo-data/messages.ts`, and its Messages tab, the comparison dialog ("Review in Messages") and the dashboard's "Review draft" action now open the inbox thread.
+
+**Implemented in preview:** `/design-preview/buyer/messages?thread=` (`BuyerMessages.tsx`): needs-you-first list with status filters and a project filter; the thread with every message in both languages and its translation provenance (AI-drafted and not yet checked, or checked by the operator); the approval chain You → Operator → Sent via <channel> on every outbound message with Approve wording, Edit wording (the Chinese is re-drafted and both approvals reset) and Withdraw draft; a composer that counts as the buyer's approval and submits to the operator queue, offering WeChat relay only where the CRM recorded a contact basis and warning when the text looks like contact details; inbound flags shown as notices (text addressed to the software, contact details removed, links not opened); attachments linking to the document review; the evidence drawer with who can see the thread, the allowed channels and the outbound log (channel, both approvers, time, reference). `messages-demo.ts` with 10 tests. Details in `BUYER_MESSAGES_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 287: web 69); `next build` exit 0; production `next start`: `/design-preview/buyer/messages` → 404. Browser: ordering and counts, edit → approvals reset, approve → with the operator, composer warning and submission over WeChat relay, revalidation prefill, platform-only channel without a recorded basis, inbound flags and attachment link, closed sample thread, project filter, unknown thread id fallback, overview tab and dashboard links; no console errors; no horizontal page overflow at 375 and 1440 in both themes (320 and 768 could not be held: the browser pane was in use while the checks ran).
+
+**Cross-track:** H-35 (supplier_messages approval record, channel eligibility from contact basis, inbound flags as data, outbound log).
+
+## 6k. Session 13 — Supplier 消息 inbox (2026-11-07, same branch)
+
+**Reuse first:** the supplier inbox is the other side of the buyer threads already in the preview (Supplier A's MOQ and sample conversations) plus the 询价单 clarification the RFQ screen already showed; it reuses the shared upload pre-check (`validateUploads`) with Chinese reasons, the AppShell supplier chrome, and the list-then-thread layout of the buyer inbox.
+
+**Implemented in preview:** `/design-preview/supplier/messages?thread=` (`SupplierMessages.tsx`): 待回复-first list with status tabs and unread marks; threads with buyer questions in Chinese plus the English original and provenance, supplier replies with relay state and the platform's translation once relayed, platform notes, a 平台说明 where contact details were removed, anonymized buyer labels; a reply composer with contact and price warnings, attachments through the upload pipeline, simulated relay; the 依据 drawer with channel and visibility rules and the 转达记录. 工作台 notice, sidebar 消息 and the 询价单 clarification link wired. `supplier-messages-demo.ts` with 6 tests. Details in `SUPPLIER_ZH_CN_SCREENS.md` §3.5.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 293: web 75); `next build` exit 0; production `next start`: `/design-preview/supplier/messages` → 404. Browser: ordering and counts, warnings, attachment rejection in Chinese, submit → 待平台转达 → 已转达 with the relay log row and the 询价单 note, contact-removed notice and English translation on the relayed reply, notice and closed threads blocking the composer, unread count dropping on open, 工作台 and 询价单 links; no console errors from the preview; no horizontal page overflow at 320 / 375 / 768 / 1440 in both themes.
+
+**Cross-track:** H-36 (supplier-side message visibility, relay state, anonymized buyer, attachments through the pipeline, free-text prices are not quotations).
+
+## 6l. Session 14 — Supplier 产品目录 and 批量导入 (2026-11-07, same branch)
+
+**Reuse first:** the catalog lists the same `SUPPLIER_PRODUCTS` the 阶梯报价 editor and 工作台 already use; import validation reuses `validateTiers` and `validateBasis` from `supplier-demo.ts` so a row fails for exactly the reasons the editor would show, and the upload pre-check and its Chinese reasons come from the documents and messages helpers. The AppShell was deliberately left untouched: the UX-03 session is rewriting it and owns the nav wiring (`nav.ts`), so 产品目录 is reached from the 工作台 header and the preview index until that lands.
+
+**Implemented in preview:** `/design-preview/supplier/catalog` (`SupplierCatalog.tsx`) and `/design-preview/supplier/catalog/import` (`SupplierCatalogImport.tsx`) as described in `SUPPLIER_ZH_CN_SCREENS.md` §3.6; `demo-data/supplier-import.ts` (template columns, two sample files); `supplier-catalog-demo.ts` with 8 tests; index entries; 工作台 header link.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 301: web 83); `next build` exit 0; production `next start`: both routes → 404. Browser: catalog counts, tabs and visibility filter, 新增产品 validation and creation notice, 暂停 / 恢复 with the drawer warning; import template download, the valid sample previewing 更新 / 未变化 / 新增 with the labels diff, the error sample showing every row-numbered message, an SVG refused in Chinese, an XLSX explained as server-parsed, pasted CSV, import of the clean rows as 待确认 with the confirm links; no console errors from the preview; widths as recorded in the commit message.
+
+**Cross-track:** H-37 (catalog import contract). Coordination: UX-03 owns AppShell / primitives / BuyerDashboard / design-preview.css; #15 merges first; nav entries for 消息 and 产品目录 handed over.
+
+## 6m. Session 15 — Conversation-first inboxes (2026-11-08, branch `design/ux04-conversation-inbox`, stacked on PR #15)
+
+**Brief (UX-04, relayed by the UX-03 session):** Messages screens conversation-first: compact thread list, spacious conversation panel, supplier info / evidence / approval history in an on-demand drawer, buyer and operator approval requirements still visible and functional.
+
+**Implemented in preview:** `ui/ConversationShell.tsx` (compact list column, conversation column with a sticky composer, Details control opening an overlay drawer with Escape and focus handling, phone list → conversation → back) and `ThreadRow` (status dot, subject + time, meta + status), used by both inboxes. `BuyerMessages.tsx`: approval strip pinned above the conversation (needs your approval with Approve / Edit; returned with the operator's note; with the operator), right-aligned outbound and left-aligned inbound at a 72-character measure, chain and actions kept on every draft, drawer with supplier facts, channels, visibility, outbound log, approval history and the session log. `SupplierMessages.tsx`: status strip with 回复 focusing the composer, the same conversation treatment, 详情 drawer with 买家, 渠道, 可见范围, 转达记录 and the session log. Helpers and tests unchanged (the rules did not move). The AppShell, primitives and stylesheet were not touched (UX-03 owns them); the shell's right rail is simply not used by these two screens any more.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 301: web 83); `next build` exit 0; production `next start`: both inbox routes → 404. Browser: Atlas 1440: list column 304 px, conversation 792 px, 54 px rows; the tooling draft opens with the approval strip and its Approve / Edit; Edit from the strip opens the editor on the draft; Approve from the strip moves the thread to "With the operator", removes the Approve control everywhere and the row updates; Details opens a 384 px drawer with Supplier, Channels, Who can see it, Outbound log, Approval history and the session log, focus moves inside and Escape closes; the Supplier A thread has no strip, a sticky composer, submission adds a second outbound card and the drawer's approval history shows two chains. Supplier: the 出厂价 thread opens with the 待回复 strip, 回复 focuses the composer, 详情 opens the drawer with 买家 · 渠道 · 可见范围 · 转达记录 · 本次操作记录, a reply goes 待平台转达 → 已转达 with the strip following. Obsidian 375: list → conversation → back, the drawer at full width, the sticky composer 56 px above the viewport bottom clearing the tab bar; 320 and 768: no horizontal page overflow on either inbox with the drawer open. No console errors from the preview.
+
+**Cross-track:** none new; H-35 and H-36 unchanged.
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

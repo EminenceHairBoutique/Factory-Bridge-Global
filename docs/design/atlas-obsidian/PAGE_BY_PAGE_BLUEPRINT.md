@@ -60,7 +60,8 @@ Chinese-first form: company, representative, families, trade readiness, allowed 
 | Quote comparison | Prototyped | view filters, compare-selected mode, "What is missing" per card, export dialog with PDF/XLSX states, basis-not-stated quote shown as "Not ranked" |
 | Documents and review | Prototyped (`/design-preview/buyer/documents`, `/design-preview/buyer/review?doc=`) | document library with pipeline status, who acts next, scan result, extraction flags, linked record, access log, simulated upload, discard with confirmation; buyer review reuses `ui/ReviewSplit.tsx` read-only with flag-for-operator and notes; see `DOCUMENTS_AND_EXTRACTION_REVIEW_SCREENS.md` |
 | Reports | Prototyped (`/design-preview/buyer/reports`, `/design-preview/buyer/report?id=`) | versioned list with current / stale / superseded derived from recorded inputs, generate panel that lists the next version's content before it exists, file name pattern `fbg-comparison-<project>-v<brief>-<date>.<ext>` (CSV as ZIP), viewer rendered per QUOTE_ENGINE_SPEC §5 with the five ADR-024 tables and a CSV preview; see `BUYER_REPORTS_SCREENS.md` |
-| Inbox / settings | Specified | approval stages visible on every thread |
+| Inbox | Prototyped (`/design-preview/buyer/messages`), conversation-first per UX-04 | compact needs-you-first list; spacious conversation with the approval requirement pinned above it; sticky composer; supplier, evidence and approval history in an on-demand drawer; threads in both languages with translation provenance; approval chain You → Operator → Sent on every outbound message with approve, edit (approvals reset) and withdraw; composer submitting to the operator queue over the channels the recorded contact basis allows; inbound flags; outbound log; see `BUYER_MESSAGES_SCREEN.md` |
+| Settings | Specified | organization, team and account |
 
 ## 3. Operations deltas
 
@@ -77,10 +78,11 @@ Chinese-first form: company, representative, families, trade readiness, allowed 
 |---|---|
 | 工作台 | 待处理询价 · 待确认价格 · 即将过期报价 · 认证状态 |
 | 企业资料 / 企业认证 | **Prototyped** (`/design-preview/supplier/onboarding`): five-step 企业认证 with check-digit-validated 统一社会信用代码, contact basis, documents labelled 供应商提供，未核验 until reviewed, trade readiness, consent; opens in the 需补充 state; see `SUPPLIER_ONBOARDING_SCREEN.md` |
-| 产品目录 | list, 新增产品, 批量导入 with preview and per-row errors |
+| 产品目录 / 批量导入 | **Prototyped** (`/design-preview/supplier/catalog`, `/design-preview/supplier/catalog/import`): list with price state and visibility, 新增产品 (priced later, 待确认), 暂停 / 恢复; import with template download (CSV, UTF-8 with BOM, one row per tier), file or pasted CSV or sample files, per-product preview with row-numbered Chinese errors and warnings and the diff against the catalog, import of clean rows as 待确认; see `SUPPLIER_ZH_CN_SCREENS.md` §3.6 |
 | 阶梯报价 | 起订量 · 数量区间 · 单价 · 货币 · 单位 · 交易条款 (code + 指定地点 required; 出厂价 alone is stored as unknown) · 有效期 · 规格版本; actions 确认有效 · 更新报价 · 暂停产品 |
 | 询价单 | accept / decline / 需要澄清; structured quote form mirroring the quote schema; buyer specification shown read-only in both languages |
-| 文件与消息 | documents with provenance; messages with approval states |
+| 消息 | **Prototyped** (`/design-preview/supplier/messages?thread=`), conversation-first per UX-04 (compact list, status strip, sticky composer, 详情 drawer): buyer questions relayed in Chinese with the English original and translation provenance; the supplier's replies with their relay state (待平台转达 → 已转达); platform notices; anonymized buyer label; reply composer that warns on contact details and prices and routes attachments through the upload pipeline; relay log; see `SUPPLIER_ZH_CN_SCREENS.md` §3.5 |
+| 文件资料 | documents with provenance (specified) |
 | 数据共享设置 | per-field 仅内部 / 平台买家 / 指定买家; 撤销授权 with its effect explained |
 
 Formats: dates 2026年11月7日, ¥ with `CNY` code, tabular numerals, Incoterms in Latin letters.
