@@ -225,6 +225,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-42; Quality nav entry for UX-03.
 
+## 6s. Session 21 — Supplier 我的报价 (2026-11-08, branch `design/ux04-supplier-quotes`, stacked on PR #24)
+
+**Reuse first:** the update form reuses `TierTable`, the basis validator and the RFQ submission gate; statuses and transitions come from migration 0009 and ADR-021 rather than a new vocabulary; the list–detail layout and right rail follow the other zh-CN screens.
+
+**Implemented in preview:** `/design-preview/supplier/quotes?group=` (`SupplierQuotes.tsx`): five threads (one under review, one expiring in 5 days, one expired, one confirmed with a superseded earlier version, one withdrawn); status chips and explanations; read-only terms and tiers; 撤销提交, 撤回报价 and 更新报价 by state with their gates; version history with diffs and events. `supplier-quotes-demo.ts` with 7 tests. Details in `SUPPLIER_ZH_CN_SCREENS.md` §3.8.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 350: web 132); `next build` exit 0; production `next start`: `/design-preview/supplier/quotes` → 404. Browser (built-in, dev server on :3100): Atlas 1440 — no overflow or console errors; list ordered 待审核 → 即将过期 → 已过期 → 已确认 (2 个版本) → 已撤回; the expiring thread offered 更新报价 and 撤回报价, a one-character withdraw reason kept 确认撤回 disabled with the 至少 3 个字 message; the update form listed 报价有效期、确认已按买家规格版本报价、更新原因 as missing, a validity of 2026-12-31 plus a reason cleared the gate and showed the diff 有效期：2026年11月12日 → 2026年12月31日, submitting produced v2 待审核 with the notice that the buyer still sees v1 and the log line; 撤销提交 on the pending thread recorded 提交已撤销. Obsidian 375 / 320 / 768 — no horizontal overflow with the thread view and the update form open; the English "(optional)" suffix on optional fields was replaced by （可选） to match the other supplier screens after the 768 screenshot.
+
+**Cross-track:** H-43; 我的报价 nav entry for UX-03.
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

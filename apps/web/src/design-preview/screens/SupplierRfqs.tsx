@@ -353,7 +353,10 @@ export function SupplierRfqs({ rfqId }: { rfqId?: string | undefined }) {
                 icon="check"
                 title={`报价已提交，待平台审核（${formatZhDate(rfq.submittedAt ?? TODAY)}）`}
               >
-                平台运营核对后转达买家。审核期间您可以撤回报价；已转达的报价只能通过新版本更新。
+                平台运营核对后转达买家。审核期间可撤销提交；已转达的报价可撤回，或通过新版本更新。{" "}
+                <Link href="/design-preview/supplier/quotes?group=qg_sleeve" className="underline">
+                  在“我的报价”中查看
+                </Link>
               </Notice>
             ) : null}
             {rfq.status === "已拒绝" ? (
