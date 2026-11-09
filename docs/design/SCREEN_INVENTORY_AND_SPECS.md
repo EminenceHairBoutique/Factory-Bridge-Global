@@ -43,6 +43,7 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 | Quotes awaiting review + review split | `/ops/review`, `/ops/review/[taskId]` | Prototyped (concept, refined onto shared `ui/ReviewSplit.tsx`; document facts, extraction flags incl. the embedded-instruction security notice, pending tasks read-only until assigned) |
 | Pipeline board + work queue | `/ops` | Prototyped (`/design-preview/ops/queue`; see `atlas-obsidian/OPS_WORK_QUEUE_SCREEN.md`) |
 | Supplier CRM + profile | `/ops/suppliers`, `/[id]` | Prototyped (`/design-preview/ops/suppliers`, `/design-preview/ops/supplier?id=`; see `atlas-obsidian/OPS_SUPPLIER_CRM_SCREEN.md`) |
+| Compliance holds | `/ops/compliance` | Prototyped (`/design-preview/ops/compliance?hold=`; see `atlas-obsidian/OPS_COMPLIANCE_REVIEW_SCREEN.md`) |
 | Research inbox | `/ops/research` | Specified §5.3 |
 | Outreach approval queue | `/ops/outreach` | Specified §5.4 |
 | Compliance holds, audit explorer, intake | `/ops/compliance`, `/ops/audit`, `/ops/intake` | Planned |

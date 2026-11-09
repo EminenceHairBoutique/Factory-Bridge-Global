@@ -185,6 +185,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-38 (supplier document library contract).
 
+## 6o. Session 17 — Operations compliance holds (2026-11-08, branch `design/ux04-ops-compliance`, stacked on PR #19)
+
+**Reuse first:** the hold list reuses the work queue's SLA helper (`slaFor`) so a hold's overdue chip agrees with the queue's compliance_hold task, which now opens the hold; the decision form reuses the outreach-approval pattern (effect stated before the action, audit line after) and the view-as role switch from the supplier record.
+
+**Implemented in preview:** `/design-preview/ops/compliance?hold=` (`OpsComplianceReview.tsx`): six holds (nitrile gloves, HPLC, a disclosure grant draft, supplier provenance, a declined ingestible, a food-contact release with conditions); trigger, policy basis, evidence, the buyer-facing sentence, internal notes with add; decision form with four outcomes whose downstream effect is stated per hold kind, a reason of at least 20 characters, conditions list, escalation target; operators cannot decide (fieldset disabled, reason shown); platform-admin actions marked audited; evidence drawer with the blocked list, who may do what and the 24 h target. `ops-compliance-demo.ts` with 6 tests. Details in `OPS_COMPLIANCE_REVIEW_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 315: web 97); `next build` exit 0; production `next start`: the route → 404. Browser (built-in, dev server on :3100): Atlas 1440 — no horizontal overflow, no console errors, list of 5 active holds with the overdue HPLC hold first, view-as Operator disables the decision fieldset and shows the gate text, Claim → Decline with a 9-character reason blocked by the validator, a full reason enabled Record decision and produced the Decision panel, the appended audit note and the rail log line; `?hold=h_grant_b` opened the grant hold with its "Open record" link; the queue (Unassigned / All open) shows "Open hold" → `?hold=h_gloves`. Obsidian 375, 320 and 768 — no horizontal overflow after two fixes (the record button label no longer carries the actor name; the view-as labels shortened to Operator / Compliance / Admin), outcome cards and reason field legible at 320.
+
+**Cross-track:** H-39 (compliance holds contract).
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).
