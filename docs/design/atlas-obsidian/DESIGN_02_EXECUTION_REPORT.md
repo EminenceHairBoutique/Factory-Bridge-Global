@@ -255,6 +255,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-45; Cases nav entry for UX-03.
 
+## 6v. Session 24 — Supplier 生产与质检 (2026-11-09, branch `design/ux04-supplier-production`, stacked on PR #28)
+
+**Reuse first:** milestones, samples, inspection jobs and findings come from the shared quality data used by the operations (session 20) and buyer (session 22) screens, so all three workspaces agree; evidence uses the shared upload pre-check with Chinese reasons; the sampling plan reuses `samplingPlanFor`; zh formatting reuses the supplier helpers.
+
+**Implemented in preview:** `/design-preview/supplier/production?order=` (`SupplierProduction.tsx`): Supplier A's active labels order (lot L-0007, 70 % reported, packing estimated 11 November, pre-shipment inspection 12 November, a during-production inspection with one major and one minor finding) and one completed order; 待您处理 derived from state; progress, inspection, results and standard tabs with their gates. `supplier-production-demo.ts` with 11 tests. The supplier dashboard gained a 生产与质检 notice. Details in `SUPPLIER_ZH_CN_SCREENS.md` §3.9.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 374: web 156); `next build` exit 0; production `next start`: `/design-preview/supplier/production` → 404. Browser (built-in, dev server on :3100): Atlas 1440 — no overflow or console errors; three pending items; progress 60 % refused against the reported 70 %; 包装完成 as 已发生 refused for missing 100 % and evidence; the Word file rejected by the pre-check with the Chinese reason while the photo was accepted; 85 % submitted as 待平台核对 with the log line; the inspection tab showed the date, the placeholder inspector, "样本量字码 L，抽检 200 件" and the two conditions; a reschedule to the same date with a one-character reason showed both errors; ticking the site-ready box enabled 确认按期检验, which confirmed and committed the packing date; moving that committed date showed the reason error and the 交期变更、日期推迟 flags; the results tab showed the exact Chinese badge sentence, the finding in Chinese and the minor-finding note; 已返工 without evidence was refused, the rework photo enabled submission, and the header reached 待处理 0 with 暂无待处理事项; the dashboard notice lists the three items and links here. Obsidian 375 / 320 / 768 — no horizontal overflow on every tab with the forms open and on the completed order.
+
+**Cross-track:** H-46; 生产与质检 sidebar entry for UX-03.
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

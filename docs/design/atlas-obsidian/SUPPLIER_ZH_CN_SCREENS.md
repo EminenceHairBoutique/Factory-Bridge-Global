@@ -99,13 +99,28 @@ Route `/design-preview/supplier/quotes?group=<id>`. One thread per RFQ (`quote_g
 
 Rules in `supplier-quotes-demo.ts` (7 tests): `zhStatus`, `validityText`, `canWithdraw` (current confirmed or expiring only), `canCancelSubmission`, `canUpdate` (confirmed, expiring or expired; never while a version is under review), `withdrawReasonError`, `diffVersions`, `newVersionGate`, `applyWithdraw` / `applyCancelSubmission` / `applyNewVersion`, `quotesSummary`, `sortGroups`. The RFQ screen's review notice now links here and states the real rule (审核期间可撤销提交；已转达的报价可撤回，或通过新版本更新); the dashboard's 即将过期报价 panel links here.
 
+### 3.9 生产与质检 — `SupplierProduction.tsx` (added 2026-11-09, session 24)
+
+Route `/design-preview/supplier/production?order=<track id or order ref>`. IA §2.3 `/supplier/production` (Phase 3); master spec supplier role "report production milestones and submit QA/inspection evidence"; QUALITY_ASSURANCE §3–§5, §7. Reads the shared quality records (`demo-data/quality.ts`, the same ones the operations and buyer quality screens use) filtered to this supplier, plus supplier-side data in `demo-data/supplier-production.ts` (Chinese order description, QSR translation checked by the platform, update submissions, one completed order).
+
+- **Header**: 待处理 count, 检验已安排, as-of date; 消息.
+- **订单** list (left, 17 rem at `xl`): active orders with 待处理 n or 生产中, product, order ref, lot, quantity; completed orders with 已出货 and the shipped date (read-only summary with the inspection sentence).
+- **待您处理** notice derived by `pendingActions`: confirm the inspection schedule, submit corrective action for major or critical findings, update progress (once a day while below 100 %); each with 前往 to the right tab. Cleared items leave "暂无待处理事项".
+- **生产进度**: the four milestones (材料到位 · 开始生产 · 生产进度 · 包装完成) with date and 已发生 / 预计 / 承诺 chips; **更新进度** form (节点, 日期类型, 日期, 进度 % or 原因, evidence through the shared upload pre-check with sample files and a real file input; accepted files chip 供应商提供，未核验, rejected ones show the Chinese reason); live errors and the flags the buyer will see (交期变更, 日期推迟); **提交记录** with 待平台核对 / 已转达买家.
+- **检验安排**: the scheduled inspection (type, date, inspector — placeholder, not contracted — lot, checklist version, the resolved sampling plan marked 示意); 检验条件（试点方案）: 生产完成 100 % and 包装完成不晚于检验日, each met or not with detail; **确认按期检验** (needs the packing date on or before the inspection and the site-ready confirmation; commits the packing date) or **申请改期** (a later date, not the current one, and a reason; the date does not change until the platform confirms).
+- **检验结果与整改**: notice that results cannot be edited (questions go to 消息); per completed inspection the fixed Chinese badge sentence, inspector, report, counts; findings by class in Chinese; major and critical findings take a 整改说明 (方式, 数量, 原因与措施, evidence required for 已返工 / 已更换) shown afterwards as 整改说明待平台审核; minor findings need none.
+- **质检标准与样品**: the QSR v3 in Chinese (关键尺寸与材料, 测试, 缺陷分类) with translation provenance and "以英文版为准", the sampling plan, the samples and the golden sample agreement with where the sealed sample is retained.
+- Right rail: the rules in Chinese; session log.
+
+Rules in `supplier-production-demo.ts` (11 tests): `validateMilestone` (已发生 not after today, 预计 / 承诺 not before today, earlier milestones reported first, progress 0–100 and never lower, progress only as 已发生, 包装完成 needs 100 % and evidence, a moved 承诺 date needs a reason), `milestoneFlags`, `applyMilestone`, `checkEvidence` (shared pre-check, Chinese reasons), `readiness`, `canConfirmReadiness`, `commitPackedDate`, `validateReschedule`, `validateCorrective`, `inspectionBadgeZh` with a guard against 零缺陷 / 质量保证 / 认证工厂 / 免检, `planTextZh`, `pendingActions`. The readiness conditions are a pilot design assumption, not taken from a standard. The dashboard shows a 生产与质检 notice with the pending items and a link here.
+
 ## 4. Validation module
 
 `supplier-demo.ts` (11 tests): `validateTiers` (ascending, non-overlapping [min, max), open-ended must be last, gap and non-monotonic warnings), `validateBasis` (unknown → warning, place required for FCA/FOB/CFR/CIF/DAP/DPU/DDP, recommended for EXW), `quoteSubmissionGate`, zh-CN formatters. Display-only; the authoritative checks are the `quotation_tiers` exclusion constraint (B-18) and `packages/domain` (B-14).
 
 ## 5. Not built / limitations
 
-- 账户 is a navigation entry only; 我的报价 exists at `/design-preview/supplier/quotes` but the sidebar entry belongs to the shell (UX-03; wire 我的报价 → `/design-preview/supplier/quotes`).
+- 账户 is a navigation entry only; 我的报价 and 生产与质检 exist at `/design-preview/supplier/quotes` and `/design-preview/supplier/production` but the sidebar entries belong to the shell (UX-03; wire both).
 - EN toggle is visual; a real bilingual supplier UI needs the zh-CN catalog keys (handoff H-24).
 - No real upload, scan, review or audit write; "确认有效" and "撤销授权" change local state only.
 - Buyer identity masking is a UI convention here; the real control is RLS plus `contact_disclosure_grants` / `source_permissions`.
