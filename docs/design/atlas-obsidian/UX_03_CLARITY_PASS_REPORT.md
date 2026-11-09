@@ -40,7 +40,7 @@ Owned and rewritten: `ui/AppShell.tsx`, `screens/BuyerDashboard.tsx`. Owned and 
 | Projects | `/design-preview/buyer/projects` (new) | `/buyer/project`, `/buyer/new-request`, `/buyer/brief`, `/buyer/reports`, `/buyer/report` | implemented |
 | Quotes | `/design-preview/buyer/quotes` (new, scoped landing) | `/buyer/compare` | implemented |
 | Documents | `/design-preview/buyer/documents` | `/buyer/review` | existing |
-| Inbox | — | — | Planned (no link, no count) until PR #15 lands; then `/design-preview/buyer/messages` |
+| Inbox | `/design-preview/buyer/messages` (PR #15) | thread deep links (`?thread=`) | implemented; count derived from threads awaiting you |
 | Account | opens the account-and-appearance sheet | — | trigger, never active |
 
 Active-state rule (`nav.ts`, unit tested): exact path match first, then the longest segment-aware child prefix, otherwise nothing. Anchors and query strings are stripped and no shipped entry uses one. Exactly one entry or none is ever `aria-current="page"` per navigation landmark (rail, phone tabs, phone sheet).
@@ -209,7 +209,7 @@ Tablet (headless Edge 768×1024): header stacks above the actions and project ro
 
 ## 6. Known limitations
 
-- Inbox stays planned on this branch until PR #15 merges (§7); the Overview's approval item links to the project's Messages tab until then.
+- Inbox, supplier 消息 and 产品目录 were wired after PR #15 merged (main merged into this branch); the Overview approval item opens `/buyer/messages?thread=th_tooling`.
 - Untouched screens still contain pre-existing buttons with a `title` but no handler (project record `Edit wording`, `Download`; documents `Download`). They were out of scope for this pass and are noted for UX-04.
 - Phone screenshots are device presets (393 and 320 px wide) rather than exactly 390×844 / 320×700; the pane measurements were taken at 375×812 and 320×700.
 - The 180 ms colour transition still runs when the user switches theme in the sheet (intended); only the page-load flash was removed.

@@ -13,6 +13,8 @@
  * Anchors (`#section`) are not destinations: `navPath` strips them before comparing, and no shipped entry
  * uses one (see the "honest navigation entries" tests).
  */
+import { DEMO_THREADS } from "./demo-data/messages";
+import { needsYou } from "./messages-demo";
 import type { IconName } from "./ui/icons";
 
 export type Workspace = "buyer" | "ops" | "supplier";
@@ -91,6 +93,9 @@ export function mobileTabs(
 
 const BUYER = "/design-preview/buyer";
 
+/** Threads waiting on the buyer in the inbox fixtures: the only count the Inbox entry may show. */
+const BUYER_INBOX_COUNT = DEMO_THREADS.filter((t) => needsYou(t)).length;
+
 export const BUYER_NAV: readonly NavItem[] = [
   { label: "Overview", short: "Home", icon: "home", href: `${BUYER}/dashboard`, mobile: true },
   {
@@ -114,8 +119,13 @@ export const BUYER_NAV: readonly NavItem[] = [
     href: `${BUYER}/documents`,
     match: [`${BUYER}/review`],
   },
-  // Planned: no preview exists yet, so no link and no unread count.
-  { label: "Inbox", icon: "message", mobile: true },
+  {
+    label: "Inbox",
+    icon: "message",
+    href: `${BUYER}/messages`,
+    ...(BUYER_INBOX_COUNT > 0 ? { badge: BUYER_INBOX_COUNT } : {}),
+    mobile: true,
+  },
 ];
 
 export const BUYER_NAV_BOTTOM: readonly NavItem[] = [
@@ -144,7 +154,12 @@ const SUPPLIER = "/design-preview/supplier";
 export const SUPPLIER_NAV: readonly NavItem[] = [
   { label: "工作台", icon: "home", href: `${SUPPLIER}/dashboard`, mobile: true },
   { label: "企业资料", icon: "building", href: `${SUPPLIER}/onboarding` },
-  { label: "产品目录", icon: "list" },
+  {
+    label: "产品目录",
+    icon: "list",
+    href: `${SUPPLIER}/catalog`,
+    match: [`${SUPPLIER}/catalog`],
+  },
   {
     label: "阶梯报价",
     short: "报价",
@@ -161,7 +176,8 @@ export const SUPPLIER_NAV: readonly NavItem[] = [
     mobile: true,
     mobileOrder: 1,
   },
-  { label: "文件与消息", icon: "message" },
+  { label: "消息", icon: "message", href: `${SUPPLIER}/messages`, badge: 1 },
+  { label: "文件资料", icon: "upload" },
   { label: "数据共享设置", icon: "lock", href: `${SUPPLIER}/sharing` },
 ];
 

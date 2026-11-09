@@ -553,13 +553,12 @@ export function QuoteComparison() {
               </div>
               <div className="mt-4 flex justify-end gap-2">
                 <Button onClick={() => setClarification(null)}>Cancel</Button>
-                <Button
-                  variant="primary"
-                  disabled
-                  title="Send stays disabled until both approvals exist (PRD AC-B6.1)"
+                <Link
+                  href="/design-preview/buyer/messages?thread=th_tooling"
+                  className={buttonClasses("primary")}
                 >
-                  Send (needs operator approval)
-                </Button>
+                  Review in Messages
+                </Link>
               </div>
             </div>
           </div>
