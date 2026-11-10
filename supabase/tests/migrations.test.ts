@@ -2,7 +2,12 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ENUM_REGISTRY } from "@fbg/domain/enums";
 import { extractEnumBlock, generateEnumSql } from "@fbg/domain/sql/enum-sql";
 import { applyMigrations, listMigrations, openDb, readSeed, type Db } from "./db.js";
-import { AUTHENTICATED_MAX_PRIVILEGES, PUBLIC_READ_TABLES, TENANT_TABLES } from "./rls-coverage.js";
+import {
+  AUTHENTICATED_MAX_PRIVILEGES,
+  PUBLIC_FUNCTIONS,
+  PUBLIC_READ_TABLES,
+  TENANT_TABLES,
+} from "./rls-coverage.js";
 
 let db: Db;
 
@@ -168,6 +173,79 @@ describe("RLS coverage guard (fails when a public table is added without harness
     if (TENANT_TABLES.length === 0) return;
     const covered = new Set(TENANT_TABLES.map((t) => t.coveredBy));
     expect([...covered]).toContain("rls.test.ts");
+  });
+});
+
+describe("public function guard (the Data API surface, ADR-041 §1)", () => {
+  interface PublicFn {
+    name: string;
+    args: string;
+    secdef: boolean;
+    config: string[] | null;
+    lang: string;
+    src: string;
+    anon: boolean;
+    authn: boolean;
+    svc: boolean;
+    pub: boolean;
+  }
+  const list = () =>
+    db.query<PublicFn & Record<string, unknown>>(
+      `select p.proname as name,
+              pg_get_function_identity_arguments(p.oid) as args,
+              p.prosecdef as secdef,
+              p.proconfig as config,
+              l.lanname as lang,
+              p.prosrc as src,
+              has_function_privilege('anon', p.oid, 'EXECUTE') as anon,
+              has_function_privilege('authenticated', p.oid, 'EXECUTE') as authn,
+              has_function_privilege('service_role', p.oid, 'EXECUTE') as svc,
+              exists (select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+                       where a.grantee = 0 and a.privilege_type = 'EXECUTE') as pub
+         from pg_proc p
+         join pg_namespace n on n.oid = p.pronamespace
+         join pg_language l on l.oid = p.prolang
+        where n.nspname = 'public' and p.prokind = 'f'
+          and not exists (select 1 from pg_depend d
+                           where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e')
+        order by 1, 2`,
+    );
+
+  it("every non-extension function in public is registered in tests/rls-coverage.ts PUBLIC_FUNCTIONS", async () => {
+    const actual = (await list()).map((f) => `${f.name}(${f.args})`).sort();
+    const registered = PUBLIC_FUNCTIONS.map((f) => `${f.name}(${f.args})`).sort();
+    expect(actual, "public functions must be registered in tests/rls-coverage.ts").toEqual(
+      registered,
+    );
+  });
+
+  it("each is a SECURITY INVOKER sql wrapper with search_path pinned to '' that only calls its app function", async () => {
+    for (const f of await list()) {
+      const entry = PUBLIC_FUNCTIONS.find((e) => e.name === f.name);
+      expect(entry, f.name).toBeDefined();
+      expect(f.secdef, `${f.name} must be SECURITY INVOKER`).toBe(false);
+      expect(f.lang, `${f.name} must be language sql`).toBe("sql");
+      expect(f.config ?? [], `${f.name} must pin search_path = ''`).toContain('search_path=""');
+      // One statement: `select app.<fn>(<args>)` or `select * from app.<fn>(<args>)`, nothing else.
+      const body = f.src.replace(/\s+/g, " ").trim().toLowerCase();
+      const call = `${entry!.wraps}(`;
+      const rest = body.startsWith(`select ${call}`)
+        ? body.slice(`select ${call}`.length)
+        : body.startsWith(`select * from ${call}`)
+          ? body.slice(`select * from ${call}`.length)
+          : null;
+      expect(rest, `${f.name} body must only call ${entry!.wraps}: ${body}`).not.toBeNull();
+      expect(rest!, `${f.name} body: ${body}`).toMatch(/^[a-z0-9_, ]*\);?$/);
+    }
+  });
+
+  it("each is executable by authenticated only — not anon, not PUBLIC, not service_role", async () => {
+    for (const f of await list()) {
+      expect(f.authn, `authenticated EXECUTE on ${f.name}`).toBe(true);
+      expect(f.anon, `anon EXECUTE on ${f.name}`).toBe(false);
+      expect(f.pub, `PUBLIC EXECUTE on ${f.name}`).toBe(false);
+      expect(f.svc, `service_role EXECUTE on ${f.name}`).toBe(false);
+    }
   });
 });
 

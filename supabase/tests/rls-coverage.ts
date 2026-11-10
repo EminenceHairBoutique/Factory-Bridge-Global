@@ -154,3 +154,49 @@ export const AUTHENTICATED_MAX_PRIVILEGES: Readonly<Record<string, ReadonlyArray
     review_tasks: ["SELECT"],
     human_corrections: ["SELECT", "INSERT"],
   };
+
+/**
+ * Every function in schema `public` (extension-owned functions excluded). The Data API exposes `public`, so each
+ * entry is a deliberate user action (ADR-041 §1): a `language sql`, SECURITY INVOKER wrapper with a pinned
+ * `search_path` that only calls its `app` function, executable by `authenticated` and by nobody else.
+ * migrations.test.ts fails when a public function exists that is not listed here, or breaks any of those rules.
+ * `args` is pg_get_function_identity_arguments(); `coveredBy` is the suite with the negative tests.
+ */
+export const PUBLIC_FUNCTIONS: ReadonlyArray<{
+  name: string;
+  args: string;
+  wraps: string;
+  coveredBy: string;
+}> = [
+  // 0013 web_auth_rpc (B-05)
+  {
+    name: "create_organization",
+    args: "p_org_type org_type, p_legal_name text, p_display_name text, p_display_name_zh text, p_country character",
+    wraps: "app.create_organization",
+    coveredBy: "web-auth-rpc.test.ts",
+  },
+  {
+    name: "create_invite",
+    args: "p_org uuid, p_email text, p_role member_role",
+    wraps: "app.create_invite",
+    coveredBy: "web-auth-rpc.test.ts",
+  },
+  {
+    name: "accept_invite",
+    args: "p_token text",
+    wraps: "app.accept_invite",
+    coveredBy: "web-auth-rpc.test.ts",
+  },
+  {
+    name: "update_membership",
+    args: "p_membership uuid, p_role member_role, p_status text",
+    wraps: "app.update_membership",
+    coveredBy: "web-auth-rpc.test.ts",
+  },
+  {
+    name: "list_org_members",
+    args: "p_org uuid",
+    wraps: "app.list_org_members",
+    coveredBy: "web-auth-rpc.test.ts",
+  },
+];
