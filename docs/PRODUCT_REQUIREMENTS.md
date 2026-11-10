@@ -1,6 +1,6 @@
 # PRODUCT REQUIREMENTS — Factory Bridge Global
 
-**Status:** Phase 0 design (nothing built). Supersedes nothing; refines `docs/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md` §6–§8 into buildable requirements with acceptance criteria.
+**Status:** Phase 0 design. *Implementation as of 2026-11-10 (M0):* the database layer for the first vertical slice exists and is CI-verified; no user-facing flow is built yet (see `docs/STATUS.md`). Supersedes nothing; refines `docs/FACTORY_BRIDGE_MASTER_ENGINEERING_SPEC.md` §6–§8 into buildable requirements with acceptance criteria.
 **Related:** `ARCHITECTURE.md`, `SCHEMA_PLAN.md`, `QUOTE_ENGINE_SPEC.md`, `UX_INFORMATION_ARCHITECTURE.md`, `PILOT_CATEGORY_SELECTION.md`.
 
 ## 1. Product definition

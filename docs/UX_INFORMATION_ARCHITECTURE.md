@@ -1,6 +1,6 @@
 # UX INFORMATION ARCHITECTURE AND VISUAL SYSTEM
 
-**Status:** Phase 0 design. No screens built. Mock-only prototypes may be produced in Phase 0/1 with clearly fake data labeled "DEMO".
+**Status:** Phase 0 design. Mock-only prototypes may be produced in Phase 0/1 with clearly fake data labeled "DEMO". *Implementation as of 2026-11-10 (M0):* the Atlas × Obsidian design-preview prototypes exist under `/design-preview` (synthetic data, off in production builds — CI-checked from PR #36); no product screen is wired to real data.
 
 ## 1. Design intent
 

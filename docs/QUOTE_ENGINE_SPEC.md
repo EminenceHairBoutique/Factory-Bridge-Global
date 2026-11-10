@@ -1,6 +1,6 @@
 # QUOTE ENGINE SPEC — Deterministic Comparison and Landed Cost
 
-**Status:** Phase 0 design. Target package: `packages/domain` (pure TypeScript, no I/O, 100 % unit-test coverage required before use in UI). No AI anywhere in this engine.
+**Status:** Phase 0 design. Target package: `packages/domain` (pure TypeScript, no I/O, 100 % unit-test coverage required before use in UI). No AI anywhere in this engine. *Implementation as of 2026-11-10 (M0):* `packages/domain` has money/FX, tiers, Incoterm comparability and the quotation lifecycle table (unit-tested); spec matching, landed-cost assembly and ranking are not written (B-14).
 
 ## 1. Inputs
 
