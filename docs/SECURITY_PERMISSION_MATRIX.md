@@ -25,7 +25,7 @@ Actions: **R** read, **C** create, **U** update (non-ownership fields), **X** ex
 | Own org settings, members, invites | R C U | R | R | R C U (own org) | R | — | — | — | R U (audited) | via priv. fn |
 | Sourcing project / brief (buyer-owned) | R C U X | R C U X | R | — | — | R U X | — | R (hold review only) | R (audited) | job reads |
 | Buyer-uploaded documents (`buyer_uploaded_private`) | R C X | R C X | R | — | — | R X | — | — | R (audited) | parse/scan |
-| Operator-imported documents (`internal_only` until permission) | — | — | — | — | — | R C X | R C (own imports) | R | R | parse/scan |
+| Operator-imported documents (`internal_only` until permission; *0010: an assigned operator may also import into a buyer project as a buyer-owned document, ADR-039 §7*) | — | — | — | — | — | R C X | R C (own imports) | R | R | parse/scan |
 | Research leads (`internal_market_observation`) | — | — | — | — | — | R C U | R C U | R | R | — |
 | Supplier profile (public fields via `supplier_public_profile_v`) | R | R | R | R U (own) | R (own) | R C U | R | R | R | — |
 | **Supplier contacts (restricted)** | only rows with active `contact_disclosure_grants` | same | — | R U (own org) | R (own org) | R C U | **—** | R | R (audited) | — |
@@ -35,7 +35,7 @@ Actions: **R** read, **C** create, **U** update (non-ownership fields), **X** ex
 | Negotiated quotation (`customer_private_quote`, buyer-owned) | R X | R X | R | R (own quotes only) | R (own) | R X T | — | — | R (audited) | expiry job |
 | `quote_visibility_grants` | R (grants to my org) | same | same | — | — | C RV | — | — | R | — |
 | Quotation lifecycle (`T`) — confirm/supersede/withdraw | AC (confirm from review) | AC | — | withdraw own | — | AC T | — | — | T (audited) | expire |
-| Review tasks / extractions | R AC (own org) | R AC | R | — | — | R AC | — | — | R | create |
+| Review tasks / extractions *(0010 ✅, ADR-039: AC via `app.start_review / accept_extraction / reject_review` only)* | R AC (own org) | R AC | R | — | — | R AC | — | — | R AC | create |
 | Comparison snapshots / landed-cost scenarios / reports | R C X | R C X | R X | — | — | R C X | — | — | R | render |
 | FX rates, taxonomy, attribute definitions | R | R | R | R | R | R | R | R | R U | write FX |
 | `audit_events` | AU (own org, owner/admin only) | — | — | AU (own org, owner/admin) | — | AU (assigned projects) | — | AU | AU | write only via fn |
