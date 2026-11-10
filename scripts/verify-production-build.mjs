@@ -39,10 +39,10 @@ const SCREEN_MARKERS = [
   "Supplier A (demo)",
   "Custom BOPP roll labels",
 ];
-// Known gap (recorded in docs/reports/2026-11-09_OPUS_5_5_M0_RECONCILIATION_REPORT.md, owned by the design-preview
-// track): Next.js still resolves the segment's static `metadata` for the 404, so the <title> names the prototype.
-// Reported as a warning, not a pass and not a failure, until the design track moves the gate into generateMetadata.
-const TITLE_LEAK = /<title>[^<]*design preview[^<]*<\/title>/i;
+// Name leak (report-only): the 404 should not reveal that a prototype route exists. Before B-31 (#37) Next.js resolved
+// the preview segment's static `metadata`, so the 404 <title> and RSC payload named "Design preview … (demo data)".
+// Checked over the WHOLE body (title + RSC payload) and reported as WARN, not failure; see the M0 report §4.
+const PREVIEW_NAME_LEAK = /design preview|demo data/i;
 // The site-wide branded 404 (apps/web/src/app/not-found.tsx, copy in apps/web/src/site/content.ts NOT_FOUND).
 const NOT_FOUND_TEXT = "Page not found";
 // The public homepage headline (apps/web/src/site/content.ts HERO.headline) — proves `/` is the real site.
@@ -150,8 +150,15 @@ async function runScenario(scenario, port) {
           leaked.length === 0,
           `${route} 404 carries no prototype screen content${leaked.length ? ` (found: ${leaked.join(", ")})` : ""}`,
         );
-        if (TITLE_LEAK.test(res.body))
-          warnings.add(`${route}: 404 <title> still names the design preview`);
+        const leak = PREVIEW_NAME_LEAK.exec(res.body);
+        if (leak) {
+          const at = res.body
+            .slice(Math.max(0, leak.index - 60), leak.index + 60)
+            .replace(/\s+/g, " ");
+          warnings.add(`${route}: 404 body still names the prototype ("…${at}…")`);
+        } else {
+          log(`  ok   ${route} 404 body does not name the prototype (title + RSC payload)`);
+        }
       } else {
         for (const marker of SCREEN_MARKERS)
           if (res.body.includes(marker)) markersSeenOnPreview.add(marker);
