@@ -1,0 +1,195 @@
+#!/usr/bin/env node
+// Production build gate (M0-D). Run AFTER `pnpm --filter @fbg/web build`.
+//
+// Starts the built web app with `next start` (NODE_ENV=production) under several runtime environments and
+// checks over real HTTP that:
+//   1. the public homepage and the liveness route render;
+//   2. every probed /design-preview route answers 404 — with no APP_ENV, with DESIGN_PREVIEW=enabled alone,
+//      and with APP_ENV=production + DESIGN_PREVIEW=enabled (gate.ts: a production build can never enable
+//      the prototypes for production or an unset APP_ENV) — and the 404 body carries no prototype content;
+//   3. a positive control: APP_ENV=staging + DESIGN_PREVIEW=enabled DOES serve the prototypes, proving the
+//      404s above come from the gate and not from a route that is simply missing.
+//
+// Exit code 0 only when every expectation holds. No network access beyond 127.0.0.1; no secrets read.
+import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const WEB = join(ROOT, "apps", "web");
+const NEXT_BIN = join(WEB, "node_modules", ".bin", "next");
+
+const PREVIEW_ROUTES = [
+  "/design-preview",
+  "/design-preview/gallery",
+  "/design-preview/buyer/projects",
+  "/design-preview/buyer/quotes",
+  "/design-preview/ops/quote-review",
+  "/design-preview/ops/audit",
+  "/design-preview/supplier/quotes",
+];
+// Content only the prototype screens render (layout theme script, runtime font link, synthetic data). None may
+// appear in a 404 body; each must appear on at least one page in the positive control, so a stale marker fails
+// loudly instead of passing vacuously.
+const SCREEN_MARKERS = [
+  "fbg-design-preview-theme",
+  "fonts.googleapis.com",
+  "Supplier A (demo)",
+  "Custom BOPP roll labels",
+];
+// Known gap (recorded in docs/reports/2026-11-10_OPUS_5_5_M0_RECONCILIATION_REPORT.md, owned by the design-preview
+// track): Next.js still resolves the segment's static `metadata` for the 404, so the <title> names the prototype.
+// Reported as a warning, not a pass and not a failure, until the design track moves the gate into generateMetadata.
+const TITLE_LEAK = /<title>[^<]*design preview[^<]*<\/title>/i;
+const NOT_FOUND_TEXT = "This page could not be found";
+
+const SCENARIOS = [
+  { name: "no APP_ENV, no DESIGN_PREVIEW", env: {}, previewStatus: 404 },
+  {
+    name: "DESIGN_PREVIEW=enabled without APP_ENV",
+    env: { DESIGN_PREVIEW: "enabled" },
+    previewStatus: 404,
+  },
+  {
+    name: "APP_ENV=production + DESIGN_PREVIEW=enabled",
+    env: { APP_ENV: "production", DESIGN_PREVIEW: "enabled" },
+    previewStatus: 404,
+  },
+  {
+    name: "positive control: APP_ENV=staging + DESIGN_PREVIEW=enabled",
+    env: { APP_ENV: "staging", DESIGN_PREVIEW: "enabled" },
+    previewStatus: 200,
+  },
+];
+
+const failures = [];
+const warnings = new Set();
+const markersSeenOnPreview = new Set();
+const log = (line) => process.stdout.write(`${line}\n`);
+
+function check(ok, message) {
+  log(`${ok ? "  ok  " : "  FAIL"} ${message}`);
+  if (!ok) failures.push(message);
+}
+
+function cleanEnv(extra) {
+  const env = { ...process.env, NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1" };
+  delete env.APP_ENV;
+  delete env.DESIGN_PREVIEW;
+  return { ...env, ...extra };
+}
+
+async function waitForServer(base, child, timeoutMs = 60_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null)
+      throw new Error(`next start exited early with code ${child.exitCode}`);
+    try {
+      const res = await fetch(`${base}/api/health`, { redirect: "manual" });
+      if (res.status > 0) return;
+    } catch {
+      // not listening yet
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw new Error(`server at ${base} did not start within ${timeoutMs} ms`);
+}
+
+async function get(base, path) {
+  const res = await fetch(`${base}${path}`, { redirect: "manual" });
+  return { status: res.status, body: await res.text() };
+}
+
+async function runScenario(scenario, port) {
+  log(`\n▶ ${scenario.name} (port ${port})`);
+  const base = `http://127.0.0.1:${port}`;
+  const child = spawn(NEXT_BIN, ["start", "-p", String(port), "-H", "127.0.0.1"], {
+    cwd: WEB,
+    env: cleanEnv(scenario.env),
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let output = "";
+  child.stdout.on("data", (chunk) => (output += chunk));
+  child.stderr.on("data", (chunk) => (output += chunk));
+  try {
+    await waitForServer(base, child);
+
+    const home = await get(base, "/");
+    check(home.status === 200, `/ → ${home.status} (expected 200)`);
+    check(
+      home.body.includes("Source Better. Verify Quality."),
+      "/ renders the public homepage headline",
+    );
+    const health = await get(base, "/api/health");
+    check(health.status === 200, `/api/health → ${health.status} (expected 200)`);
+
+    for (const route of PREVIEW_ROUTES) {
+      const res = await get(base, route);
+      check(
+        res.status === scenario.previewStatus,
+        `${route} → ${res.status} (expected ${scenario.previewStatus})`,
+      );
+      if (scenario.previewStatus === 404) {
+        check(res.body.includes(NOT_FOUND_TEXT), `${route} renders the standard not-found page`);
+        const leaked = SCREEN_MARKERS.filter((marker) => res.body.includes(marker));
+        check(
+          leaked.length === 0,
+          `${route} 404 carries no prototype screen content${leaked.length ? ` (found: ${leaked.join(", ")})` : ""}`,
+        );
+        if (TITLE_LEAK.test(res.body))
+          warnings.add(`${route}: 404 <title> still names the design preview`);
+      } else {
+        for (const marker of SCREEN_MARKERS)
+          if (res.body.includes(marker)) markersSeenOnPreview.add(marker);
+      }
+    }
+  } catch (error) {
+    check(false, `${scenario.name}: ${error instanceof Error ? error.message : String(error)}`);
+    log(output.slice(-2000));
+  } finally {
+    child.kill("SIGTERM");
+    await new Promise((resolve) => {
+      if (child.exitCode !== null) resolve();
+      else child.once("exit", resolve);
+    });
+  }
+}
+
+if (!existsSync(join(WEB, ".next", "BUILD_ID"))) {
+  console.error(
+    "No production build found at apps/web/.next — run `pnpm --filter @fbg/web build` first.",
+  );
+  process.exit(1);
+}
+if (!existsSync(NEXT_BIN)) {
+  console.error(`next binary not found at ${NEXT_BIN} — run \`pnpm install\` first.`);
+  process.exit(1);
+}
+
+let port = 3910;
+for (const scenario of SCENARIOS) {
+  await runScenario(scenario, port++);
+}
+
+for (const marker of SCREEN_MARKERS) {
+  check(
+    markersSeenOnPreview.has(marker),
+    `positive control renders marker "${marker}" somewhere (marker is live)`,
+  );
+}
+if (warnings.size > 0)
+  log(
+    "\nKnown gaps (reported, not failures — see docs/reports/2026-11-10_OPUS_5_5_M0_RECONCILIATION_REPORT.md):",
+  );
+for (const warning of warnings) log(`  WARN ${warning}`);
+
+if (failures.length > 0) {
+  console.error(
+    `\nProduction build gate FAILED (${failures.length}):\n - ${failures.join("\n - ")}`,
+  );
+  process.exit(1);
+}
+log(
+  "\nProduction build gate passed: homepage renders; every probed /design-preview route is a 404 with no prototype screen content in every production configuration, and is served only when a non-production host opts in.",
+);
