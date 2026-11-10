@@ -83,6 +83,38 @@ describe("phone tab bar", () => {
     expect(tabs.map((t) => t.short ?? t.label)).toEqual(["Home", "Projects", "Inbox", "Account"]);
   });
 
+  it.each([
+    ["/design-preview/buyer/landed-cost", "Landed cost"],
+    ["/design-preview/buyer/qa", "Quality"],
+  ])("%s lights the buyer destination added after PR #32: %s", (pathname, label) => {
+    expect(activeNavItem(buyerItems, pathname)?.label).toBe(label);
+    expect(activeCount(buyerItems, pathname)).toBe(1);
+  });
+
+  it.each([
+    ["/design-preview/ops/pipeline", "Projects"],
+    ["/design-preview/ops/research", "Research"],
+    ["/design-preview/ops/compliance", "Compliance"],
+    ["/design-preview/ops/quality", "Quality"],
+    ["/design-preview/ops/cases", "Cases"],
+    ["/design-preview/ops/audit", "Audit"],
+    ["/design-preview/ops/supplier", "Suppliers"],
+  ])("%s lights exactly one ops destination: %s", (pathname, label) => {
+    const items = [...NAV.ops.main, ...NAV.ops.bottom];
+    expect(activeNavItem(items, pathname)?.label).toBe(label);
+    expect(activeCount(items, pathname)).toBe(1);
+  });
+
+  it.each([
+    ["/design-preview/supplier/documents", "文件资料"],
+    ["/design-preview/supplier/quotes", "我的报价"],
+    ["/design-preview/supplier/production", "生产与质检"],
+  ])("%s lights exactly one supplier destination: %s", (pathname, label) => {
+    const items = [...NAV.supplier.main, ...NAV.supplier.bottom];
+    expect(activeNavItem(items, pathname)?.label).toBe(label);
+    expect(activeCount(items, pathname)).toBe(1);
+  });
+
   it("lights one supplier destination for the catalog and its import screen", () => {
     const items = [...NAV.supplier.main, ...NAV.supplier.bottom];
     expect(activeNavItem(items, "/design-preview/supplier/catalog")?.label).toBe("产品目录");

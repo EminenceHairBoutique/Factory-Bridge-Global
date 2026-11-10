@@ -119,6 +119,8 @@ export const BUYER_NAV: readonly NavItem[] = [
     href: `${BUYER}/documents`,
     match: [`${BUYER}/review`],
   },
+  { label: "Landed cost", icon: "truck", href: `${BUYER}/landed-cost` },
+  { label: "Quality", icon: "shield", href: `${BUYER}/qa` },
   {
     label: "Inbox",
     icon: "message",
@@ -136,11 +138,14 @@ const OPS = "/design-preview/ops";
 
 export const OPS_NAV: readonly NavItem[] = [
   { label: "Work queue", short: "Queue", icon: "list", href: `${OPS}/queue`, mobile: true },
-  { label: "Projects", icon: "folder", mobile: true },
-  { label: "Research", icon: "search" },
+  { label: "Projects", icon: "folder", href: `${OPS}/pipeline`, mobile: true },
+  { label: "Research", icon: "search", href: `${OPS}/research` },
   { label: "Suppliers", icon: "building", href: `${OPS}/suppliers`, match: [`${OPS}/supplier`] },
   { label: "Reviews", icon: "eye", href: `${OPS}/quote-review`, badge: 4, mobile: true },
-  { label: "Cases", icon: "flag" },
+  { label: "Compliance", icon: "alert", href: `${OPS}/compliance` },
+  { label: "Quality", icon: "check", href: `${OPS}/quality` },
+  { label: "Cases", icon: "flag", href: `${OPS}/cases` },
+  { label: "Audit", icon: "clock", href: `${OPS}/audit` },
   { label: "Admin", icon: "lock" },
 ];
 
@@ -176,8 +181,10 @@ export const SUPPLIER_NAV: readonly NavItem[] = [
     mobile: true,
     mobileOrder: 1,
   },
+  { label: "我的报价", icon: "check", href: `${SUPPLIER}/quotes` },
+  { label: "生产与质检", icon: "settings", href: `${SUPPLIER}/production` },
   { label: "消息", icon: "message", href: `${SUPPLIER}/messages`, badge: 1 },
-  { label: "文件资料", icon: "upload" },
+  { label: "文件资料", icon: "upload", href: `${SUPPLIER}/documents` },
   { label: "数据共享设置", icon: "lock", href: `${SUPPLIER}/sharing` },
 ];
 
