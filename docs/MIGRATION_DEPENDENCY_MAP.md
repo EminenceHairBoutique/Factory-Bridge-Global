@@ -53,6 +53,8 @@ fx_rates; freight_estimates(project_id); duty_assumptions(project_id); compariso
      │
 pgmq queues; jobs_dead_letter; notifications(user_id, org_id); pg_cron expiry sweep → app.expire_quotations()  0012 jobs_notifications
      │
+service_role table/sequence grants on the four fbg queues (pgmq functions are SECURITY INVOKER)  0012b worker_queue_grants
+     │
 quality tables (Phase 3)                                                     0013+ deferred
 ```
 
@@ -78,6 +80,7 @@ File names follow the Supabase CLI convention `<YYYYMMDDHHMMSS>_<name>.sql` unde
 | 0010b | `20261110000100_ai_review_hardening.sql` (M0, ADR-039 §9) | replaces `app.accept_extraction` (decide-before-replay; `source_type`/`rights_class` from the document), `app.review_task_before_write` (status only with a signed-in person, `resolved_by = auth.uid()`, accepted task cites its own document + extraction, resolved task frozen) and `documents_update` (assigned operator changes only `operator_import` rows); restates `accept_extraction` grants | 0010 | **implemented** (M0) on #35, **not on `main`**; tested PGlite + local Postgres 16, CI on #35 |
 | 0011 | `20261107001100_fx_landed_cost.sql` | `fx_rates` (append-only; worker/admin write; public read), `freight_estimates` (sourced ⇒ document), `duty_assumptions` (person-only, basis required), `comparison_snapshots` (immutable; fx ids pinned and verified), `landed_cost_scenarios` (immutable; validated lines; partial ⇒ no total, never rankable); `app.fx_rate_for()`; RLS via project | 0008, 0009 (**not** 0010) | **implemented** (B-21); tested PGlite + local Postgres 16 ×3 on one database, CI pending |
 | 0012 | `20261107001200_jobs_notifications.sql` | pgmq queues + pg_cron schedules (guarded by extension availability; asserted on the real stack), `job_executions` (idempotency ledger), `jobs_dead_letter` (admin-resolved), `notifications` (own rows; read_at only; dedupe); `app.notify()`, `app.expire_quotations()`, `app.notify_expiring_quotations()`; RLS | 0009 | **implemented** (B-25 + B-11 schema half); tested PGlite + local Postgres 16 (extension assertion deliberately fails off-Supabase), CI pending |
+| 0012b | `20261110000200_worker_queue_grants.sql` (B-11 code half, ADR-041; timestamp after 0010b) | no objects: grants `service_role` SELECT/INSERT/UPDATE/DELETE on `pgmq.q_<queue>`, SELECT/INSERT on `pgmq.a_<queue>`, USAGE/SELECT on `pgmq.q_<queue>_msg_id_seq` for the four fbg queues, and SELECT on `pgmq.meta` — without them the worker (as `service_role`) cannot send/read/set_vt/archive (measured on pgmq 1.5.1); guarded like 0012 (no-op on PGlite) | 0012 | **implemented** (B-11); tested: real local Supabase stack (CLI 3.1.0, `db reset` ×2) — `queue-grants.test.ts` 4 tests + worker integration 10 tests; red without 0012b (8/10 worker tests fail with "permission denied"); PGlite: guarded no-op asserted; CI pending on the PR |
 
 ## 3. Helper function catalogue (complete; every policy helper is listed here)
 

@@ -1,3 +1,9 @@
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
-export default defineConfig({ test: { include: ["src/**/*.test.ts"] } });
+// Unit tests only: no database. The pgmq integration suite has its own config (vitest.integration.config.ts).
+export default defineConfig({
+  test: {
+    include: ["src/**/*.test.ts"],
+    exclude: [...configDefaults.exclude, "src/**/*.integration.test.ts"],
+  },
+});
