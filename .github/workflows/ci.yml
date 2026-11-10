@@ -71,10 +71,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
+      # Pinned (M0-C): generated DB types must be reproducible, so the CLI (and the postgres-meta generator it runs,
+      # v0.100.0 for CLI 3.1.0) only changes in a reviewed PR — bump it together with packages/db/src/types.ts.
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
-          github-token: ${{ secrets.GITHUB_TOKEN }} # resolving "latest" unauthenticated hits the API rate limit
+          version: 3.1.0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       # Real PostgreSQL + Supabase auth schema/roles + storage-api (its migrations create the storage.buckets columns
       # and storage.objects shape that migration 0006's bucket rows and policies depend on). Other heavy services are excluded.
