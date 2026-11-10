@@ -235,6 +235,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-43; 我的报价 nav entry for UX-03.
 
+## 6t. Session 22 — Buyer samples and inspections (2026-11-08, branch `design/ux04-buyer-qa`, stacked on PR #25)
+
+**Reuse first:** the data and `trackView` come from the operations quality screen (session 20); badges render through the existing `EvidenceBadge`; the decision form follows the compliance and landed-cost patterns (consequence stated before recording). The step grid on both quality screens now goes to four columns only at `2xl`, since four columns beside the right rail at 1440 were unreadable.
+
+**Implemented in preview:** `/design-preview/buyer/qa?track=` (`BuyerQaStatus.tsx`): two supplier tracks on the labels project (Supplier A in production with the pre-shipment inspection scheduled; Supplier B with a failed inspection and the buyer's decision pending); evidence badges opening to what / who / when / scope; the eight steps in the buyer's words; the decision panel with the sampling-limits sentences, four decisions with consequences, note, acknowledgement; samples, production, inspections with findings and the limits disclosure, remediation. `buyer-qa-demo.ts` with 5 tests. The project overview gained a Quality tab linking here. Details in `BUYER_QA_STATUS_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 355: web 137); `next build` exit 0; production `next start`: `/design-preview/buyer/qa` → 404. Browser (built-in, dev server on :3100): Atlas 1440 — Supplier B selected first with "Your decision needed" and "Inspection failed: your decision is needed"; three badges for B including the exact failed-inspection sentence; the spec badge opened to Checked / By "You (buyer approval)" / On 2026-10-20 / Scope; the sampling sentence with 125 of 3,000, accept 7 / reject 8, 9 found; "Record my decision" disabled until a decision and the acknowledgement, partial acceptance refused without a scope note, rework recorded with the notice, the list chip and "0 decisions waiting for you"; Supplier A showed six badges, the golden sample sentence, estimated chips and the limits disclosure; the project overview's Quality tab links here; no console errors; no contact-like strings. Long badge sentences overflowed at 1440 and now wrap. Obsidian 375 / 320 / 768 — no horizontal overflow.
+
+**Cross-track:** H-44.
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

@@ -273,6 +273,7 @@ export function ProjectOverview({ initialTab = "overview" }: { initialTab?: Proj
             { value: "documents", label: "Documents", count: PROJECT_DOCUMENTS.length },
             { value: "messages", label: "Messages", count: awaitingYou || undefined },
             { value: "reports", label: "Reports", count: PROJECT_REPORT_ROWS.length },
+            { value: "quality", label: "Quality", count: 1 },
             { value: "activity", label: "Activity" },
           ]}
         />
@@ -845,6 +846,38 @@ export function ProjectOverview({ initialTab = "overview" }: { initialTab?: Proj
                 })}
               </ul>
             )}
+          </Panel>
+        ) : null}
+
+        {tab === "quality" ? (
+          <Panel
+            title="Samples and inspections"
+            description="Exactly what was checked for each supplier, by whom and when. Decisions after a failed inspection are yours."
+          >
+            <ul className="flex flex-col gap-2 text-sm">
+              <li className="flex flex-wrap items-center gap-2">
+                <Badge tone="danger" icon="alert">
+                  Your decision needed
+                </Badge>
+                <span className="text-(--fbg-text-primary)">
+                  Supplier B (demo): lot L-0003 did not pass pre-shipment inspection on 2026-11-03.
+                </span>
+              </li>
+              <li className="flex flex-wrap items-center gap-2">
+                <Badge tone="teal" icon="clock">
+                  Inspection scheduled
+                </Badge>
+                <span className="text-(--fbg-text-primary)">
+                  Supplier A (demo): pre-shipment inspection of lot L-0007 on 2026-11-12; golden
+                  sample on file.
+                </span>
+              </li>
+            </ul>
+            <div className="mt-4">
+              <Link href="/design-preview/buyer/qa" className={buttonClasses("primary")}>
+                Open samples and inspections
+              </Link>
+            </div>
           </Panel>
         ) : null}
 

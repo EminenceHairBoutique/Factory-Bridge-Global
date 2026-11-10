@@ -17,6 +17,7 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 | Extraction review (buyer) | `/app/projects/[id]/review/[taskId]` | Prototyped (`/design-preview/buyer/review?doc=`; shared `ui/ReviewSplit.tsx`, read-only with flag-for-operator) | B-20 |
 | Supplier options | `/app/projects/[id]/options` | Specified §3.3 | B-09 |
 | Quote comparison + landed cost | `/app/projects/[id]/compare`, `/landed-cost` | Prototyped (`/design-preview/buyer/compare`; `/design-preview/buyer/landed-cost?snapshot=`, see `atlas-obsidian/BUYER_LANDED_COST_SCREEN.md`) | B-22, B-14, B-21 |
+| Samples & inspections | `/app/projects/[id]/qa` | Prototyped (`/design-preview/buyer/qa?track=`; see `atlas-obsidian/BUYER_QA_STATUS_SCREEN.md`; Phase 3 tables) |
 | Messages / clarifications | `/app/projects/[id]/messages` | Prototyped (`/design-preview/buyer/messages?thread=`; see `atlas-obsidian/BUYER_MESSAGES_SCREEN.md`) | B-24 |
 | Reports | `/app/projects/[id]/reports` | Prototyped (`/design-preview/buyer/reports`, `/design-preview/buyer/report?id=`; see `atlas-obsidian/BUYER_REPORTS_SCREENS.md`) | B-23 |
 | Supplier public profile | `/app/suppliers/[id]` | Specified §3.4 | B-08b |

@@ -174,6 +174,7 @@ export const PROJECT_TABS = [
   "documents",
   "messages",
   "reports",
+  "quality",
   "activity",
 ] as const;
 

@@ -121,6 +121,7 @@ describe("project tab deep links", () => {
     expect(PROJECT_TABS).toContain("options");
     expect(parseProjectTab("messages")).toBe("messages");
     expect(parseProjectTab(["activity"])).toBe("activity");
+    expect(parseProjectTab("quality")).toBe("quality");
     expect(parseProjectTab("nope")).toBe("overview");
     expect(parseProjectTab(undefined)).toBe("overview");
   });
