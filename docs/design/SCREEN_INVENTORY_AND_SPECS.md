@@ -51,7 +51,8 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 | Buyer cases | `/ops/cases` | Prototyped (`/design-preview/ops/cases?case=`; see `atlas-obsidian/OPS_BUYER_CASES_SCREEN.md`) |
 | Research inbox | `/ops/research` | Prototyped (`/design-preview/ops/research?lead=`; see `atlas-obsidian/OPS_SUPPLIER_CRM_SCREEN.md` §2b) |
 | Outreach approval queue | `/ops/outreach` | Specified §5.4 |
-| Compliance holds, audit explorer, intake | `/ops/compliance`, `/ops/audit`, `/ops/intake` | Planned |
+| Audit explorer | `/ops/audit` | Prototyped (`/design-preview/ops/audit?event=`; see `atlas-obsidian/OPS_AUDIT_EXPLORER_SCREEN.md`) |
+| Intake imports | `/ops/intake` | Planned |
 
 ## 2. Prototyped screens
 

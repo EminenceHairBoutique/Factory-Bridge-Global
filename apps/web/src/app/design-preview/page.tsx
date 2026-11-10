@@ -172,6 +172,12 @@ const SCREENS = [
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/ops/audit",
+    title: "Operations: audit explorer",
+    body: "Read-only append-only record: filters by organization, entity, date, actor role, request and text; event detail with the diff (supplier contact values redacted for operators), before and after hashes, the entity's hash chain (consistent, unverifiable, mismatch) and the other events of the same request; security events and document access for the roles allowed to read them; the weekly privileged-access report; CSV export. A view-as switch shows the operator, compliance and platform-admin scopes; platform-admin reads and every export are themselves recorded.",
+    workspace: "Internal operations",
+  },
+  {
     href: "/design-preview/ops/pipeline",
     title: "Operations: pipeline board",
     body: "Every project by stage with the operator's stage targets, computed attention reasons (past target, compliance hold, no lead, buyer reminder due, overdue work item), who owes the next move, and operator load; board and list views with operator, buyer and attention filters; a project drawer listing what the next stage needs with each item's owner, recording an operator-owned move only when every requirement is met (stages are derived from records, never dragged), lead assignment with a reason to reassign, the open work items behind the card, and stage history.",

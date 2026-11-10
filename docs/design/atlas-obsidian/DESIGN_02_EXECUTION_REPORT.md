@@ -275,6 +275,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-47; Projects / Pipeline nav entry for UX-03.
 
+## 6x. Session 26 — Operations audit explorer (2026-11-09, branch `design/ux04-audit-explorer`, stacked on PR #31)
+
+**Reuse first:** the events retell actions recorded by earlier preview screens (quotations, contacts, grants, compliance, documents, landed cost, messages, inspections, cases, research, pipeline, supplier milestones) with the same ids; the list–detail layout, view-as switch and CSV pattern follow earlier screens; the row shape mirrors migration 0003 exactly.
+
+**Implemented in preview:** `/design-preview/ops/audit?event=` (`OpsAuditExplorer.tsx`): 25 audit events, 5 security events, 5 document-access rows; filters; detail with redacted diff, hashes, chain and request group; privileged-access report; export with preview; view-as scopes. `audit-demo.ts` with 7 tests. Details in `OPS_AUDIT_EXPLORER_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 441: web 172); `next build` exit 0; production `next start`: `/design-preview/ops/audit` → 404. Browser (built-in, in a separate tab so the page open in the pane stayed untouched; dev server on :3100): Atlas 1440 — no overflow or console errors; 25 events and no edit or delete control; the quotations filter listed confirm, supersede, withdraw, confirm; the Second Demo Buyer LLC organization filter 3; an inverted date range showed the error, 7 November alone 2; the message send showed "Hash chain consistent" and "2 events in this request", which filtered to the send and the operator approval; the labels backfill showed the unverifiable link; compliance saw the contact handle; as Operator 18 events, the assigned-projects notice, no supplier contacts, no privileged report, "Not in your scope" on Security, 4 access rows, and an export of 18 rows with the CSV header preview; as Admin the notice showed and opening the contact event appended a `read` row (26 → 27) that joined the privileged-access report. The CSV download itself was not triggered in the browser; its content is covered by tests. Obsidian 375 / 320 / 768 — no horizontal overflow on all three tabs, with the export panel open and via the `?event=` deep link.
+
+**Cross-track:** H-48; Audit nav entry for UX-03. PR #15 merged during this session (main `4058721`); GitHub retargeted #17 to `main`; the UX-03 session merged main into #16 and was sent the route list for the nav entries this stack adds. GitHub then rebased #17–#29 onto main a second time (every commit content-identical by `git range-diff`); #31 was brought up to date by merging its rewritten base (two docs insertion points resolved, the resulting diff identical to the original commit), and #28's database job, which failed when the runner's Docker could not set up container networking, was re-run.
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).
