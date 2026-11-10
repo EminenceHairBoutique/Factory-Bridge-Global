@@ -1,6 +1,6 @@
 # STATUS
 
-**Last updated:** 2026-11-10 (M0 reconciliation — verified against GitHub, CI and Vercel on 2026-11-10; see `docs/reports/2026-11-10_OPUS_5_5_M0_RECONCILIATION_REPORT.md`)
+**Last updated:** 2026-11-10 (M0 reconciliation — verified against GitHub, CI and Vercel on 2026-11-10; see `docs/reports/2026-11-09_OPUS_5_5_M0_RECONCILIATION_REPORT.md`)
 **Phase:** 1 — Secure internal + buyer quote workspace
 **Repository:** `EminenceHairBoutique/Factory-Bridge-Global` — GitHub reports visibility **public** (OQ-21 recorded "private": founder action). `main` at `21c58e6` (#34 B-18 / 0010 merged 2026-11-10 05:25 UTC; earlier #33 + the design-preview stack, #26 B-25 / 0012, #21 B-20 + B-21 …); latest `main` CI run [42762050313](https://github.com/EminenceHairBoutique/Factory-Bridge-Global/actions/runs/42762050313) green on both required jobs. Open: #35 (0010b security fixes; CI green) and #36 (this reconciliation, stacked on #35). Ruleset `main-protection`: PR-only, required checks `check` + `db`, branch must be up to date, no force-push/deletion.
 

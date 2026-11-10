@@ -21,7 +21,7 @@
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "test:db": "pnpm --filter @fbg/supabase test",
     "db:gen-enums": "pnpm --filter @fbg/supabase gen:enums",
-    "db:gen-types": "supabase gen types typescript --local --schema public > packages/db/src/types.ts",
+    "db:gen-types": "node scripts/gen-db-types.mjs",
     "eval": "pnpm --filter @fbg/eval eval"
   },
   "devDependencies": {

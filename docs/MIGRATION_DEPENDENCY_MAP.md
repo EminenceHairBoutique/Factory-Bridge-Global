@@ -1,6 +1,6 @@
 # MIGRATION DEPENDENCY MAP
 
-**Status:** Phase 0.5 corrected plan (supersedes `SCHEMA_PLAN.md` §5 of 2026-11-07 morning; see ADR-019). Only migration `0001` exists as code at the time of writing — see `STATUS.md`. Everything else here is the *executable order* the remaining migrations must follow.
+**Status:** Phase 0.5 corrected plan (supersedes `SCHEMA_PLAN.md` §5 of 2026-11-07 morning; see ADR-019). *Implementation as of 2026-11-10 (M0):* every migration in §3 exists as code and is on `main` (0001–0012 incl. 0003b); 0010b (security fixes to 0010) is on PR #35. Merged migrations are never edited — fixes are forward migrations. `STATUS.md` is authoritative.
 **Invariants:** (1) an object is created only after everything it references; (2) a `language sql` helper that reads a table is created in the same migration as that table or later (Postgres validates SQL-function bodies at `CREATE`); (3) no policy references an undefined helper; (4) no ordering problem is ever solved by dropping a constraint or leaving a permissive policy; (5) a fresh `supabase db reset` applies the whole chain with no manual steps.
 
 ## 1. Object dependency DAG (edges point at prerequisites)

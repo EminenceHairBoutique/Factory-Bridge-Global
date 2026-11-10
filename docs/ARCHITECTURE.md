@@ -1,6 +1,6 @@
 # ARCHITECTURE — Factory Bridge Global
 
-**Status:** Phase 0 design. Nothing in this document is implemented. See `docs/STATUS.md`.
+**Status:** Phase 0 design. *Implementation as of 2026-11-10 (M0):* the monorepo scaffold, the database chain 0001–0012 (+ 0010b on PR #35) and CI exist; auth, the workspaces, the queue consumer and every integration do not. Vercel builds the web app's placeholder homepage (protected, no env vars); nothing else is hosted. `docs/STATUS.md` is authoritative.
 **Decisions referenced:** `docs/DECISIONS.md` (ADR-001 … ADR-012).
 
 ## 1. System overview

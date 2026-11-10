@@ -38,7 +38,7 @@ const SCREEN_MARKERS = [
   "Supplier A (demo)",
   "Custom BOPP roll labels",
 ];
-// Known gap (recorded in docs/reports/2026-11-10_OPUS_5_5_M0_RECONCILIATION_REPORT.md, owned by the design-preview
+// Known gap (recorded in docs/reports/2026-11-09_OPUS_5_5_M0_RECONCILIATION_REPORT.md, owned by the design-preview
 // track): Next.js still resolves the segment's static `metadata` for the 404, so the <title> names the prototype.
 // Reported as a warning, not a pass and not a failure, until the design track moves the gate into generateMetadata.
 const TITLE_LEAK = /<title>[^<]*design preview[^<]*<\/title>/i;
@@ -180,7 +180,7 @@ for (const marker of SCREEN_MARKERS) {
 }
 if (warnings.size > 0)
   log(
-    "\nKnown gaps (reported, not failures — see docs/reports/2026-11-10_OPUS_5_5_M0_RECONCILIATION_REPORT.md):",
+    "\nKnown gaps (reported, not failures — see docs/reports/2026-11-09_OPUS_5_5_M0_RECONCILIATION_REPORT.md):",
   );
 for (const warning of warnings) log(`  WARN ${warning}`);
 

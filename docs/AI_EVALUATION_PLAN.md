@@ -1,6 +1,6 @@
 # AI PIPELINE AND EVALUATION PLAN
 
-**Status:** Phase 0 design. No prompt, schema or eval set exists yet. All thresholds below are *gates to pass before production use*, not results.
+**Status:** Phase 0 design. All thresholds below are *gates to pass before production use*, not results. *Implementation as of 2026-11-10 (M0):* prompt `quotation_extractor` v1.0.0, schema `quote_extraction_v1` and the offline harness `eval/run.ts` with 17 synthetic fixtures exist and are tested against the mock provider only; **no live-model run and no measured accuracy exist** (B-19 live, gate G2). See `docs/STATUS.md`.
 
 ## 1. AI modules (each narrow, schema-constrained, auditable)
 

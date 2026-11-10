@@ -105,8 +105,9 @@ pnpm lint
 pnpm test                # vitest, all packages (supabase suite runs on PGlite — dev-time SQL checks, not Supabase integration)
 pnpm test:db             # same suite; set DATABASE_URL to run against real Postgres (CI does this on the local Supabase stack)
 pnpm db:gen-enums        # regenerate the enum block in migration 0001 from packages/domain/src/enums.ts
-pnpm test:e2e            # playwright
+pnpm test:e2e            # fails on purpose until B-05 adds Playwright (no e2e suite exists)
+pnpm verify:production-build  # next build + /design-preview must 404 in production (CI `check` job)
 supabase start           # local stack (Docker)
 supabase db reset        # apply migrations + seed (dev only)
-supabase gen types typescript --local > packages/db/src/types.ts
+pnpm db:gen-types        # regenerate packages/db/src/types.ts from the migrated DB (Supabase CLI 3.1.0 + Prettier); CI fails on drift
 ```

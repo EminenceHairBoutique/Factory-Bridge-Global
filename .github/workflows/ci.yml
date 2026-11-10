@@ -96,18 +96,12 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
 
-      # Generated types (M0-C): packages/db/src/types.ts is never hand-written. It must equal what the CLI generates
-      # from this exact migration chain; on drift the job fails and attaches the regenerated file as an artifact.
-      # Regenerate locally (Docker + Supabase CLI): supabase start && supabase db reset && pnpm db:gen-types
+      # Generated types (M0-C): packages/db/src/types.ts is never hand-written. It must equal what the pinned CLI
+      # generates from this exact migration chain (formatted with the repo's Prettier config); on drift the job fails,
+      # prints a bounded diff and attaches the regenerated file as an artifact. Locally: supabase db reset && pnpm db:gen-types
       - name: Generated database types match the migrations (drift check)
         id: db_types
-        run: |
-          supabase --version
-          supabase gen types typescript --local --schema public > "$RUNNER_TEMP/types.ts"
-          if ! diff -u packages/db/src/types.ts "$RUNNER_TEMP/types.ts"; then
-            echo "::error file=packages/db/src/types.ts::Generated DB types are missing or stale. Download the 'generated-db-types' artifact of this run, or regenerate with: supabase db reset && pnpm db:gen-types"
-            exit 1
-          fi
+        run: node scripts/gen-db-types.mjs --check
 
       - name: Attach regenerated types on drift
         if: failure() && steps.db_types.outcome == 'failure'
