@@ -25,7 +25,7 @@ Actions: **R** read, **C** create, **U** update (non-ownership fields), **X** ex
 | Own org settings, members, invites | R C U | R | R | R C U (own org) | R | — | — | — | R U (audited) | via priv. fn |
 | Sourcing project / brief (buyer-owned) | R C U X | R C U X | R | — | — | R U X | — | R (hold review only) | R (audited) | job reads |
 | Buyer-uploaded documents (`buyer_uploaded_private`) | R C X | R C X | R | — | — | R X | — | — | R (audited) | parse/scan |
-| Operator-imported documents (`internal_only` until permission; *0010: an assigned operator may also import into a buyer project as a buyer-owned document, ADR-039 §7*) | — | — | — | — | — | R C X | R C (own imports) | R | R | parse/scan |
+| Operator-imported documents (`internal_only` until permission; *0010: an assigned operator may also import into a buyer project as a buyer-owned document, ADR-039 §7; the operator may change (discard) only those `operator_import` rows — the buyer's own uploads are read-only to the operator, ADR-039 §9 / migration 0010b*) | — | — | — | — | — | R C X | R C (own imports) | R | R | parse/scan |
 | Research leads (`internal_market_observation`) | — | — | — | — | — | R C U | R C U | R | R | — |
 | Supplier profile (public fields via `supplier_public_profile_v`) | R | R | R | R U (own) | R (own) | R C U | R | R | R | — |
 | **Supplier contacts (restricted)** | only rows with active `contact_disclosure_grants` | same | — | R U (own org) | R (own org) | R C U | **—** | R | R (audited) | — |

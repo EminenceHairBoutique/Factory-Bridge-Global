@@ -27,6 +27,7 @@ const PROJ = "f4f40000-0000-4000-8000-000000000001";
 const DOC = {
   op: "f5f50000-0000-4000-8000-000000000001", // operator intake, owned by buyer A, on A's project
   sup: "f5f50000-0000-4000-8000-000000000002", // supplier-owned submission
+  buyer: "f5f50000-0000-4000-8000-000000000003", // buyer A's own upload on the project
 };
 const SHA = (c: string) => c.repeat(64);
 
@@ -39,6 +40,7 @@ let extractionId = "";
 let taskId = "";
 let quoteId = "";
 let task2 = "";
+let ex2Id = "";
 
 const count = async (sql: string, params: unknown[] = []) =>
   Number(
@@ -222,6 +224,22 @@ describe("operator intake into a buyer project (0006 policies replaced)", () => 
   });
 });
 
+describe("M0 hardening — operator reach over buyer files", () => {
+  it("an assigned operator may not update or discard the buyer's own upload on the project (only operator imports)", async () => {
+    await asUser(db, U.aMember, async () => {
+      await db.exec(
+        `insert into public.documents (id, org_id, project_id, source_type, rights_class, storage_path, original_filename, mime, bytes)
+         values ('${DOC.buyer}', '${ORG.a}', '${PROJ}', 'buyer_upload', 'buyer_uploaded_private', '${ORG.a}/${DOC.buyer}/spec.pdf', 'spec.pdf', 'application/pdf', 512)`,
+      );
+    });
+    await asUser(db, U.opA, async () => {
+      expect(await count("select 1 from public.documents where id = $1", [DOC.buyer])).toBe(1); // reads it
+      await db.exec(`update public.documents set status = 'discarded' where id = '${DOC.buyer}'`); // RLS: 0 rows
+    });
+    expect(await docStatus(DOC.buyer)).toBe("uploaded");
+  });
+});
+
 describe("worker: prompt template, ai run, extraction, review task", () => {
   it("only the worker writes templates/extractions/tasks; extraction requires a parsed document and an extract run; extractions are immutable", async () => {
     await worker(async () => {
@@ -322,7 +340,7 @@ describe("worker: prompt template, ai run, extraction, review task", () => {
         ),
       ).toMatch(/not an ai_extractions row/);
       // a second, invalid extraction of the same document (e.g. a re-run) gets its own task
-      const ex2 = (
+      ex2Id = (
         await db.query<{ id: string }>(
           "insert into public.ai_extractions (document_id, ai_run_id, schema_name, schema_version, validation_errors, raw_output) values ($1, $2, 'quote_extraction', 'v1', '[\"tiers: overlapping\"]', '{\"garbage\":true}') returning id",
           [DOC.op, runId],
@@ -331,7 +349,7 @@ describe("worker: prompt template, ai run, extraction, review task", () => {
       task2 = (
         await db.query<{ id: string }>(
           "insert into public.review_tasks (kind, subject_id) values ('extraction', $1) returning id",
-          [ex2],
+          [ex2Id],
         )
       )[0]!.id;
       await db.exec(`update public.documents set status = 'in_review' where id = '${DOC.op}'`);
@@ -514,11 +532,20 @@ describe("the human gate", () => {
           [taskId, reviewedPayload({ supplier_id: "00000000-0000-4000-8000-0000000000aa" })],
         ),
       ).toMatch(/differs from the review task/);
-      // a payload that tries to cite another document or extraction is overridden by the task's provenance
+      // a payload that tries to cite another document or extraction, or to re-label where the price came from,
+      // is overridden by the task's and the document's provenance
       quoteId = (
         await db.query<{ id: string }>(
           "select app.accept_extraction($1, $2::jsonb, null, 'matches PDF p.1 after FOB correction', 'rev-key-accept01') as id",
-          [taskId, reviewedPayload({ document_id: DOC.sup, extraction_id: null })],
+          [
+            taskId,
+            reviewedPayload({
+              document_id: DOC.sup,
+              extraction_id: ex2Id,
+              source_type: "supplier_portal",
+              rights_class: "supplier_submitted_private",
+            }),
+          ],
         )
       )[0]!.id;
     });
@@ -541,6 +568,11 @@ describe("the human gate", () => {
       sup: sId,
       by: U.aMember,
     });
+    const prov = await db.query<{ st: string; rc: string }>(
+      "select source_type::text as st, rights_class::text as rc from public.quotations where id = $1",
+      [quoteId],
+    );
+    expect(prov[0]).toEqual({ st: "operator_import", rc: "customer_private_quote" });
     expect(
       await count(
         "select 1 from public.quote_fees where quotation_id = $1 and fee_type = 'export_doc'",
@@ -566,6 +598,15 @@ describe("the human gate", () => {
         )[0]!.id,
     );
     expect(again).toBe(quoteId);
+    await asUser(db, U.aViewer, async () => {
+      expect(
+        await expectError(
+          db,
+          "select app.accept_extraction($1, $2::jsonb, null, 'viewer replay', 'rev-key-accept01')",
+          [taskId, reviewedPayload()],
+        ),
+      ).toMatch(/not permitted/);
+    });
     expect(
       await count("select 1 from public.quotations where extraction_id = $1", [extractionId]),
     ).toBe(1);
@@ -635,6 +676,112 @@ describe("the human gate", () => {
         ),
       ).toMatch(/foreign key/);
     });
+  });
+});
+
+describe("M0 hardening — privileged and anonymous paths", () => {
+  it("the worker (service_role) cannot move a review task's status, even with table grants", async () => {
+    let open = "";
+    await worker(async () => {
+      // an extraction of a document that was never scanned/parsed is refused
+      expect(
+        await expectError(
+          db,
+          "insert into public.ai_extractions (document_id, ai_run_id, schema_name, schema_version, validated_output) values ($1, $2, 'quote_extraction', 'v1', '{}')",
+          [DOC.buyer, runId],
+        ),
+      ).toMatch(/has not been parsed/);
+    });
+    await asUser(db, U.opA, async () => {
+      await db.exec(
+        `insert into public.documents (id, org_id, project_id, source_type, rights_class, storage_path, original_filename, mime, bytes)
+         values ('f5f50000-0000-4000-8000-000000000004', '${ORG.a}', '${PROJ}', 'operator_import', 'customer_private_quote', '${ORG.a}/f5f50000-0000-4000-8000-000000000004/q2.pdf', 'q2.pdf', 'application/pdf', 100)`,
+      );
+    });
+    await worker(async () => {
+      await db.exec(
+        `update public.documents set status = 'scanning' where id = 'f5f50000-0000-4000-8000-000000000004'`,
+      );
+      await db.exec(
+        `update public.documents set status = 'parsed', sha256 = '${SHA("4")}', storage_bucket = 'documents' where id = 'f5f50000-0000-4000-8000-000000000004'`,
+      );
+      const ex = (
+        await db.query<{ id: string }>(
+          "insert into public.ai_extractions (document_id, ai_run_id, schema_name, schema_version, validated_output) values ('f5f50000-0000-4000-8000-000000000004', $1, 'quote_extraction', 'v1', '{\"schema\":\"quote_extraction_v1\"}') returning id",
+          [runId],
+        )
+      )[0]!.id;
+      open = (
+        await db.query<{ id: string }>(
+          "insert into public.review_tasks (kind, subject_id) values ('extraction', $1) returning id",
+          [ex],
+        )
+      )[0]!.id;
+      expect(
+        await expectError(db, "update public.review_tasks set status = 'in_review' where id = $1", [
+          open,
+        ]),
+      ).toMatch(/never by a job/);
+      expect(
+        await expectError(
+          db,
+          "update public.review_tasks set status = 'rejected', resolved_by = $2, resolved_at = now(), resolution_reason = 'auto' where id = $1",
+          [open, U.aOwner],
+        ),
+      ).toMatch(/never by a job/);
+      expect(
+        await expectError(db, "update public.ai_extractions set flags = '{}' where id = $1", [ex]),
+      ).toMatch(/immutable/);
+    });
+    // even a session that carries a person's identity cannot attach someone else's quotation to an open task
+    await db.exec(`select set_config('request.jwt.claim.sub', '${U.aOwner}', false)`);
+    try {
+      expect(
+        await expectError(
+          db,
+          "update public.review_tasks set status = 'accepted', resolved_by = $2, resolved_at = now(), result_quotation_id = $3 where id = $1",
+          [open, U.aOwner, quoteId],
+        ),
+      ).toMatch(/citing its own document and extraction/);
+      expect(
+        await expectError(
+          db,
+          "update public.review_tasks set status = 'rejected', resolved_by = $2, resolved_at = now(), resolution_reason = 'someone else' where id = $1",
+          [open, U.opA],
+        ),
+      ).toMatch(/resolved_by must be the person/);
+    } finally {
+      await db.exec("select set_config('request.jwt.claim.sub', '', false)");
+    }
+    // a resolved task is frozen entirely (not only its status)
+    expect(
+      await expectError(db, "update public.review_tasks set due_at = now() where id = $1", [
+        taskId,
+      ]),
+    ).toMatch(/cannot be reopened or edited/);
+  });
+
+  it("anonymous sessions can neither read review data nor call the review functions", async () => {
+    await db.exec("set role anon");
+    try {
+      for (const t of ["prompt_templates", "ai_extractions", "review_tasks", "human_corrections"]) {
+        expect(await expectError(db, `select 1 from public.${t} limit 1`), t).toMatch(
+          /permission denied/,
+        );
+      }
+      expect(await expectError(db, "select app.start_review($1)", [taskId])).toMatch(
+        /permission denied/,
+      );
+      expect(
+        await expectError(
+          db,
+          "select app.accept_extraction($1, '{}'::jsonb, null, 'anon', 'rev-key-anon-0001')",
+          [taskId],
+        ),
+      ).toMatch(/permission denied/);
+    } finally {
+      await db.exec("reset role");
+    }
   });
 });
 
