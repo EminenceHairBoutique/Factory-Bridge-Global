@@ -17,10 +17,18 @@ import {
   type WorldUser,
 } from "./world";
 
+/**
+ * Random per run, never committed: 24 base64url characters (144 bits). Long enough for the app's minimum (10) and the
+ * local stack's policy (length only; `password_requirements = ""` in supabase/config.toml).
+ */
+function generateRunPassword(): string {
+  return randomBytes(18).toString("base64url");
+}
+
 export default async function globalSetup(): Promise<void> {
   const env = e2eEnv();
   const runId = randomBytes(4).toString("hex");
-  const password = `E2e-${randomBytes(18).toString("base64url")}`;
+  const password = generateRunPassword();
   const admin = createClient(env.supabaseUrl, env.serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

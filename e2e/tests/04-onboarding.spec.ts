@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { world } from "../support/helpers";
+import { field, world } from "../support/helpers";
 
 test.describe("sign-up, organization creation, a brief, and the org switcher", () => {
   test("a newcomer signs up, creates a buyer org, creates and edits a brief, adds a supplier org and switches", async ({
@@ -12,7 +12,7 @@ test.describe("sign-up, organization creation, a brief, and the org switcher", (
     await page.goto("/sign-up");
     await page.getByLabel(/^Full name/).fill("New Comer");
     await page.getByLabel("Work email").fill(w.users.newcomer.email);
-    await page.getByLabel("Password", { exact: true }).fill(w.password);
+    await field(page, "Password").fill(w.password);
     await page.getByRole("button", { name: "Create account" }).click();
     await expect(page).toHaveURL(/\/onboarding$/);
 
@@ -22,7 +22,7 @@ test.describe("sign-up, organization creation, a brief, and the org switcher", (
 
     await page.getByLabel("Organization type").selectOption("buyer");
     await page.getByLabel("Legal name").fill(`${buyerName} LLC`);
-    await page.getByLabel("Display name", { exact: true }).fill(buyerName);
+    await field(page, "Display name").fill(buyerName);
     await page.getByRole("button", { name: "Create organization" }).click();
     await expect(page).toHaveURL(/\/app$/);
     await expect(page.getByTestId("active-org")).toHaveText(buyerName);
@@ -43,7 +43,7 @@ test.describe("sign-up, organization creation, a brief, and the org switcher", (
     await expect(page.getByRole("heading", { name: "Your workspaces" })).toBeVisible();
     await page.getByLabel("Organization type").selectOption("supplier");
     await page.getByLabel("Legal name").fill(`${supplierName} Co., Ltd.`);
-    await page.getByLabel("Display name", { exact: true }).fill(supplierName);
+    await field(page, "Display name").fill(supplierName);
     await page.getByLabel(/^Chinese display name/).fill(`宁波示例陶瓷 ${w.runId}`);
     await page.getByLabel("Country").fill("CN");
     await page.getByRole("button", { name: "Create organization" }).click();

@@ -12,8 +12,8 @@ export function world(): World {
 /** Sign in through the real form (password). Leaves the page wherever the app sends the user. */
 export async function signIn(page: Page, user: UserKey, next?: string): Promise<void> {
   await page.goto(next ? `/sign-in?next=${encodeURIComponent(next)}` : "/sign-in");
-  await page.getByLabel("Email", { exact: true }).fill(world().users[user].email);
-  await page.getByLabel("Password", { exact: true }).fill(world().password);
+  await field(page, "Email").fill(world().users[user].email);
+  await field(page, "Password").fill(world().password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).not.toHaveURL(/\/sign-in(\?|$)/);
 }
@@ -38,16 +38,27 @@ export async function expectNotFound(page: Page, path: string): Promise<void> {
 }
 
 /** The latest 6-digit code Supabase Auth sent to `email`, read from the local stack's Mailpit inbox. */
+interface MailpitSummary {
+  ID: string;
+  Created: string;
+  Subject?: string;
+  To?: Array<{ Address?: string }>;
+}
+
 export async function latestEmailCode(email: string, sentAfter: Date): Promise<string> {
   const { mailpitUrl } = e2eEnv();
-  const deadline = Date.now() + 20_000;
+  const deadline = Date.now() + 30_000;
+  let seen: MailpitSummary[] = [];
   while (Date.now() < deadline) {
-    const search = await fetch(
-      `${mailpitUrl}/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}&limit=5`,
-    );
-    if (search.ok) {
-      const body = (await search.json()) as { messages?: Array<{ ID: string; Created: string }> };
-      const fresh = (body.messages ?? []).find((m) => new Date(m.Created) >= sentAfter);
+    // List and filter here rather than relying on Mailpit's search syntax (a "+" in the address).
+    const list = await fetch(`${mailpitUrl}/api/v1/messages?limit=100`).catch(() => null);
+    if (list?.ok) {
+      const body = (await list.json()) as { messages?: MailpitSummary[] };
+      seen = body.messages ?? [];
+      const fresh = seen
+        .filter((m) => (m.To ?? []).some((t) => t.Address?.toLowerCase() === email.toLowerCase()))
+        .filter((m) => new Date(m.Created).getTime() >= sentAfter.getTime() - 5_000)
+        .sort((a, b) => new Date(b.Created).getTime() - new Date(a.Created).getTime())[0];
       if (fresh) {
         const message = (await (
           await fetch(`${mailpitUrl}/api/v1/message/${fresh.ID}`)
@@ -59,9 +70,23 @@ export async function latestEmailCode(email: string, sentAfter: Date): Promise<s
         // Prefer the digits right after "code" (GoTrue's template: "enter the code: 123456") over any 6-digit run.
         const code = (/code\b[^0-9]{0,40}(\d{6})\b/i.exec(text) ?? /\b(\d{6})\b/.exec(text))?.[1];
         if (code) return code;
+        throw new Error(
+          `e2e: the email to ${email} has no 6-digit code (template without {{ .Token }}?): ${text.slice(0, 400)}`,
+        );
       }
     }
     await new Promise((r) => setTimeout(r, 500));
   }
-  throw new Error(`e2e: no sign-in code arrived for ${email}`);
+  const inbox = seen.map(
+    (m) => `${m.Subject ?? "?"} → ${(m.To ?? []).map((t) => t.Address).join(",")}`,
+  );
+  throw new Error(
+    `e2e: no sign-in code arrived for ${email}; Mailpit holds ${seen.length} message(s): ${inbox.join(" | ")}`,
+  );
+}
+
+/** A form control by its visible label, ignoring the required-field marker ("Email *"). */
+export function field(page: Page, label: string) {
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return page.getByLabel(new RegExp(`^${escaped}\\s*\\*?$`));
 }

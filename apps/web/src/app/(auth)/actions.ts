@@ -94,6 +94,9 @@ export async function requestEmailCode(
     options: { shouldCreateUser: false },
   });
   if (rateLimited(error)) return { error: AUTH_COPY.rateLimited, email: parsed.data.email };
+  // Operators need to see refusals (misconfigured mailer, disabled provider); the visitor must not. Code/status only.
+  if (error)
+    console.warn(`one-time sign-in request refused (${error.code ?? "?"}, ${error.status ?? "?"})`);
   await setPendingOtpEmail(parsed.data.email);
   redirect(withNext(SIGN_IN_CODE_PATH, safeNextPath(parsed.data.next)));
 }

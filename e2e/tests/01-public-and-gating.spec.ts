@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { world } from "../support/helpers";
+import { field, world } from "../support/helpers";
 
 test.describe("public site and signed-out gating", () => {
   test("the public home links to the real sign-in page", async ({ page }) => {
@@ -8,7 +8,7 @@ test.describe("public site and signed-out gating", () => {
     await page.getByRole("link", { name: "Sign in" }).first().click();
     await expect(page).toHaveURL(/\/sign-in$/);
     await expect(page.getByRole("heading", { name: "Sign in", level: 1 })).toBeVisible();
-    await expect(page.getByLabel("Email", { exact: true })).toBeVisible();
+    await expect(field(page, "Email")).toBeVisible();
     await expect(page.getByLabel("Email for a sign-in code")).toBeVisible();
   });
 
@@ -37,8 +37,8 @@ test.describe("public site and signed-out gating", () => {
     page,
   }) => {
     await page.goto("/sign-in");
-    await page.getByLabel("Email", { exact: true }).fill(world().users.buyerAOwner.email);
-    await page.getByLabel("Password", { exact: true }).fill("not-the-password-123");
+    await field(page, "Email").fill(world().users.buyerAOwner.email);
+    await field(page, "Password").fill(`wrong-${world().runId}-input`);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(page.getByText("Email or password is incorrect.")).toBeVisible();
     await expect(page).toHaveURL(/\/sign-in$/);

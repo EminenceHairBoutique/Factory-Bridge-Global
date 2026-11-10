@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { contextFor, signIn, world } from "../support/helpers";
+import { contextFor, field, signIn, world } from "../support/helpers";
 
 test.describe.configure({ mode: "serial" });
 
@@ -15,8 +15,8 @@ test.describe("invitations and role changes", () => {
     const w = world();
     await signIn(page, "buyerAOwner");
     await page.goto("/app/settings/team");
-    await page.getByLabel("Email", { exact: true }).fill(w.users.invitee.email);
-    await page.getByLabel("Role", { exact: true }).selectOption("member");
+    await field(page, "Email").fill(w.users.invitee.email);
+    await field(page, "Role").selectOption("member");
     await page.getByRole("button", { name: "Create invitation" }).click();
     const url = await page.getByTestId("invite-url").textContent();
     invitePath = new URL(url ?? "").pathname;
