@@ -3,3 +3,4 @@ packages:
   - "packages/*"
   - "supabase"
   - "eval"
+  - "e2e"

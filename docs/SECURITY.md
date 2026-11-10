@@ -56,7 +56,7 @@ Request → Auth (Supabase JWT) → resolve active org + role (memberships)
 - **Ownership columns are immutable** (`app.prevent_owner_change` triggers on `org_id`, `buyer_org_id`, `supplier_id`, `project_id`, grant targets); the confirmed quotation payload is immutable (`MIGRATION_DEPENDENCY_MAP.md` §6). Policies therefore never rely on a self-referential `WITH CHECK`.
 - **Audit is foundational, not late:** `audit_events`/`security_events`/`document_access_log` and the trusted writer land in migration 0003, before any business table (ADR-022). `authenticated` has no `INSERT` grant on `audit_events`; rows come only from `app.record_audit_event` (actor derived from `auth.uid()`) and the row-change trigger, so audit entries cannot be spoofed. DB event log ≠ application request log (Sentry/pino); both are kept, the former is the legal record.
 - Internal operator access requires `project_assignments`; `platform_admin` bypass is logged and alerts on volume anomalies.
-- Role changes revoke sessions (Supabase `auth.admin.signOut(userId)`).
+- Role changes revoke sessions: migration 0013's `memberships_revoke_sessions` trigger deletes the member's `auth.sessions` rows when someone else changes their role or status, so `getUser()` refuses their token on the next request; authorization itself is never cached — the web guard and RLS read `memberships` live (ADR-041 §4–§5). (`auth.admin.signOut` takes the user's JWT, not a user id, so it cannot do this.)
 
 ## 4. Upload safety pipeline
 

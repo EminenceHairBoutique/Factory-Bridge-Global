@@ -105,7 +105,7 @@ pnpm lint
 pnpm test                # vitest, all packages (supabase suite runs on PGlite — dev-time SQL checks, not Supabase integration)
 pnpm test:db             # same suite; set DATABASE_URL to run against real Postgres (CI does this on the local Supabase stack)
 pnpm db:gen-enums        # regenerate the enum block in migration 0001 from packages/domain/src/enums.ts
-pnpm test:e2e            # fails on purpose until B-05 adds Playwright (no e2e suite exists)
+pnpm test:e2e            # Playwright (e2e/): production build + LOCAL Supabase stack only; fails fast without one (see e2e/README.md)
 pnpm verify:production-build  # next build + /design-preview must 404 in production (CI `check` job)
 supabase start           # local stack (Docker)
 supabase db reset        # apply migrations + seed (dev only)

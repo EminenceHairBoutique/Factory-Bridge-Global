@@ -1,0 +1,19 @@
+{
+  "name": "@fbg/e2e",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Playwright end-to-end suite (B-05). Runs only against a local Supabase stack plus a production build of apps/web (CI job `e2e`); synthetic users only. Never points at a hosted project.",
+  "scripts": {
+    "e2e": "playwright test",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@supabase/supabase-js": "^2.119.0",
+    "@types/node": "^22.19.0",
+    "@types/pg": "^8.15.5",
+    "pg": "^8.16.3",
+    "typescript": "~5.9.3"
+  }
+}

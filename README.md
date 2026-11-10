@@ -46,7 +46,7 @@ pnpm check                    # typecheck + lint + format:check + unit tests (th
 pnpm test:db                  # the same database suite; set DATABASE_URL to run it on real Postgres
 pnpm verify:production-build  # next build + checks that /design-preview is a 404 in production
 pnpm db:gen-types             # regenerate packages/db/src/types.ts (after supabase start && supabase db reset)
-pnpm test:e2e                 # fails on purpose: no end-to-end suite exists yet (Playwright arrives with B-05)
+pnpm test:e2e                 # Playwright suite (B-05): needs `supabase start` + `next build`; see e2e/README.md
 ```
 
 PGlite runs are development-time SQL checks, not Supabase integration tests. The authoritative database run is CI's `db` job.
