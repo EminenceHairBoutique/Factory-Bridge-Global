@@ -265,6 +265,16 @@ H-14 (token promotion), H-16 (fonts), H-18 (navigation), H-19 (comparison DTO an
 
 **Cross-track:** H-46; 生产与质检 sidebar entry for UX-03.
 
+## 6w. Session 25 — Operations pipeline board (2026-11-09, branch `design/ux04-pipeline-board`, stacked on PR #29)
+
+**Reuse first:** stages, targets, projects and the stage clock come from the work queue (`PIPELINE_STAGES`, `PIPELINE_PROJECTS`, `stageSla`, `slaFor`); open work per card is derived from the queue's tasks and matches the tab's static counts (tested); the board columns follow the tab's markup; the drawer follows the conversation drawer pattern (dialog, Escape, focus). The queue's Pipeline tab stays and links here.
+
+**Implemented in preview:** `/design-preview/ops/pipeline?project=` (`OpsPipelineBoard.tsx`): seven projects across the stages with record facts in `demo-data/pipeline-board.ts`; board and list views; filters; attention chips; operator load; the project drawer with requirements and owners, record-move, assignment, open work items and stage history. `pipeline-demo.ts` with 9 tests. Details in `OPS_PIPELINE_BOARD_SCREEN.md`.
+
+**Tests actually run:** `pnpm check` exit 0 (format, typecheck, lint, Vitest 434: web 165); `next build` exit 0; production `next start`: `/design-preview/ops/pipeline` → 404. Browser (built-in, dev server on :3100): Atlas 1440 — no overflow or console errors; columns 2 / 1 / 1 / 1 / 1 / 1 / 0; header 6 need attention, 4 past target; the cartons card showed "2 d / 1 d · past target", one work item, Past target, Overdue work item and Waiting on operator; "Without a lead" listed the sleeves and gloves projects; "Needs attention only" showed 6; the list ordered cartons, mailers, tea, hair, labels, gloves, sleeves; the hair drawer took focus, listed three met requirements and recorded the move to Finding options (new requirements, 0 d / 5 d, history and log line); Escape closed it; the sleeves drawer explained the missing brief attributes, kept Assign disabled until an operator was chosen, assigned the lead, and refused a reassignment without a reason; the gloves drawer linked its compliance hold and offered no record button; the queue's Pipeline tab links here. Obsidian 375 / 320 / 768 (in a separate tab) — no horizontal overflow on the board, the list and with the drawer open. The pane's active tab had PR #15 open; the 1440 run navigated it away and it was restored to the same page afterwards.
+
+**Cross-track:** H-47; Projects / Pipeline nav entry for UX-03.
+
 ## 7. Unresolved items
 
 - Dark `border-strong` contrast (H-21).

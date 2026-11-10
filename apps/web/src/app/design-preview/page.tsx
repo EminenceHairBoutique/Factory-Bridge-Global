@@ -172,6 +172,12 @@ const SCREENS = [
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/ops/pipeline",
+    title: "Operations: pipeline board",
+    body: "Every project by stage with the operator's stage targets, computed attention reasons (past target, compliance hold, no lead, buyer reminder due, overdue work item), who owes the next move, and operator load; board and list views with operator, buyer and attention filters; a project drawer listing what the next stage needs with each item's owner, recording an operator-owned move only when every requirement is met (stages are derived from records, never dragged), lead assignment with a reason to reassign, the open work items behind the card, and stage history.",
+    workspace: "Internal operations",
+  },
+  {
     href: "/design-preview/ops/queue",
     title: "Operations: work queue and pipeline",
     body: "Everything waiting on an operator ordered by SLA, with claim, inline outbound approval (buyer approved → operator → sent via platform), supplier-reply relay, kind and project filters, and a pipeline board of projects by stage with per-stage targets.",
