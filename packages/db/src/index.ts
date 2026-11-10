@@ -1,10 +1,14 @@
 /**
  * User-scoped Supabase client factory. RLS applies to every query made through this client.
- * Types are generated into ./types.ts by `supabase gen types typescript --local` once migrations exist (B-03).
+ * `Database` is GENERATED into ./types.ts from the migration chain (`pnpm db:gen-types`; never edit by hand) and
+ * CI's `db` job fails if it drifts from a fresh `supabase gen types typescript --local --schema public`.
+ * Only the `public` schema is exposed through the Data API (supabase/config.toml); the review / quotation
+ * functions live in schema `app` and are called server-side, not through this client's `.rpc()`.
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "./types";
 
-export type Database = Record<string, never>; // replaced by generated types in B-03
+export type { Database, Json, Tables, TablesInsert, TablesUpdate, Enums } from "./types";
 
 export interface PublicSupabaseConfig {
   readonly url: string;

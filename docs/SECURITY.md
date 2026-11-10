@@ -1,6 +1,6 @@
 # SECURITY — Threat Model and Controls
 
-**Status:** Phase 0 design. Controls marked **[P1]** are required before any real buyer or supplier data enters the system; **[P2+]** are phase-gated. Nothing here is implemented or tested yet.
+**Status:** Phase 0 design. Controls marked **[P1]** are required before any real buyer or supplier data enters the system; **[P2+]** are phase-gated. *Implementation as of 2026-11-10 (M0):* implemented and tested at the database layer — RLS on every table with negative tests, a grant-layer privilege guard, append-only audit, SECURITY DEFINER helpers with empty `search_path`; CI runs gitleaks and `pnpm audit`. Not yet built: auth/session handling, rate limits, file scanning, webhook verification, server-side policy enforcement in a running app. See `docs/STATUS.md`.
 
 ## 1. Assets and trust boundaries
 

@@ -40,6 +40,15 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
 
+      # Production build gate (M0-D): `next build` must succeed, and the built app served by `next start` must
+      # answer 404 (with no prototype screen content) on /design-preview in every production configuration; a
+      # positive control proves the 404s come from the gate. APP_ENV / DESIGN_PREVIEW are deliberately unset here.
+      # Writes apps/web/.next only (ignored by prettier, eslint and git), after format:check has already run.
+      - name: Production build + design-preview isolation (next build, next start smoke test)
+        run: pnpm verify:production-build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
       - name: Secret scan (gitleaks)
         uses: gitleaks/gitleaks-action@v2
         env:
@@ -62,10 +71,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
+      # Pinned (M0-C): generated DB types must be reproducible, so the CLI (and the postgres-meta generator it runs,
+      # v0.100.0 for CLI 3.1.0) only changes in a reviewed PR — bump it together with packages/db/src/types.ts.
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
-          github-token: ${{ secrets.GITHUB_TOKEN }} # resolving "latest" unauthenticated hits the API rate limit
+          version: 3.1.0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       # Real PostgreSQL + Supabase auth schema/roles + storage-api (its migrations create the storage.buckets columns
       # and storage.objects shape that migration 0006's bucket rows and policies depend on). Other heavy services are excluded.
@@ -84,6 +95,21 @@ jobs:
         run: pnpm test:db
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
+      # Generated types (M0-C): packages/db/src/types.ts is never hand-written. It must equal what the pinned CLI
+      # generates from this exact migration chain (formatted with the repo's Prettier config); on drift the job fails,
+      # prints a bounded diff and attaches the regenerated file as an artifact. Locally: supabase db reset && pnpm db:gen-types
+      - name: Generated database types match the migrations (drift check)
+        id: db_types
+        run: node scripts/gen-db-types.mjs --check
+
+      - name: Attach regenerated types on drift
+        if: failure() && steps.db_types.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-db-types
+          path: ${{ runner.temp }}/types.ts
+          retention-days: 7
 
       - name: Stop stack
         if: always()

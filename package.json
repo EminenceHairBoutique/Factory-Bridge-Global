@@ -10,16 +10,18 @@
   "scripts": {
     "dev": "pnpm -r --parallel --filter \"./apps/**\" dev",
     "build": "pnpm -r build",
+    "verify:production-build": "pnpm --filter @fbg/web build && node scripts/verify-production-build.mjs",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "pnpm -r test",
     "test:rls": "pnpm --filter @fbg/supabase test",
-    "test:e2e": "echo 'Playwright suite arrives with B-05 (auth flows)' && exit 0",
+    "test:e2e": "node scripts/test-e2e-not-implemented.mjs",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "test:db": "pnpm --filter @fbg/supabase test",
     "db:gen-enums": "pnpm --filter @fbg/supabase gen:enums",
+    "db:gen-types": "node scripts/gen-db-types.mjs",
     "eval": "pnpm --filter @fbg/eval eval"
   },
   "devDependencies": {
