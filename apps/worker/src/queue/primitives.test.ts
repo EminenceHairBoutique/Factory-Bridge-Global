@@ -90,8 +90,8 @@ describe("job envelope", () => {
   });
 
   it("error summaries name paths and issue codes, never the offending values", () => {
-    const secret = "supplier-quote-USD-0.0473";
-    const r = parseEnvelope({ ...valid, idempotency_key: secret.replace(/-/g, " ") });
+    const offendingValue = "supplier-quote-USD-0.0473";
+    const r = parseEnvelope({ ...valid, idempotency_key: offendingValue.replace(/-/g, " ") });
     expect(r.ok).toBe(false);
     if (r.ok) return;
     expect(r.error).toContain("idempotency_key");
