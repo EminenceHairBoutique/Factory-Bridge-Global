@@ -11,7 +11,8 @@
     "./quote/tiers": "./src/quote/tiers.ts",
     "./quote/incoterms": "./src/quote/incoterms.ts",
     "./sql/enum-sql": "./src/sql/enum-sql.ts",
-    "./policy": "./src/policy/index.ts"
+    "./policy": "./src/policy/index.ts",
+    "./workspace": "./src/policy/workspace.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",

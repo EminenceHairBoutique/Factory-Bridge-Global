@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { InquiryMode } from "@/server/inquiry/config";
@@ -43,14 +45,22 @@ describe("public home page markup (B-31)", () => {
     for (const href of targets) expect(ids, href).toContain(href.slice(1));
     for (const href of hrefs) {
       if (href.startsWith("#")) expect(ids, href).toContain(href.slice(1));
-      else expect(href, "only in-page anchors until real routes exist").toMatch(/^\/$/);
+      else
+        expect(href, "in-page anchors, home, or the real sign-in route (B-05)").toMatch(
+          /^\/(sign-in)?$/,
+        );
     }
   });
 
-  it("never links to the design preview, fake sign-in or synthetic dashboards", () => {
+  it("never links to the design preview or synthetic dashboards; Sign in is the real B-05 route", () => {
     expect(html).not.toMatch(/design-preview/);
-    expect(SITE_LINKS.signIn).toBeNull();
-    expect(text(html)).not.toMatch(/\bSign in\b/);
+    expect(SITE_LINKS.signIn).toBe("/sign-in");
+    // the route exists as a production page, not a placeholder
+    const page = fileURLToPath(new URL("../../app/(auth)/sign-in/page.tsx", import.meta.url));
+    expect(existsSync(page)).toBe(true);
+    expect(hrefs).toContain("/sign-in");
+    expect(text(html)).toMatch(/\bSign in\b/);
+    expect(html).not.toMatch(/href="\/(app|ops|supplier)\b/);
   });
 
   it("renders no prohibited claims and no preview vocabulary", () => {

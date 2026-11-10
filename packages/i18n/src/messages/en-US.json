@@ -20,5 +20,21 @@
   "compare.below_moq": "Below MOQ",
   "compare.basis_not_stated": "Price basis not stated — request confirmation",
   "research.internal_only": "Internal research reference — not a supplier offer",
-  "doc.supplier_provided_unverified": "Supplier-provided, unverified"
+  "doc.supplier_provided_unverified": "Supplier-provided, unverified",
+  "supplier.workspace": "Supplier workspace",
+  "supplier.dashboard.title": "Dashboard",
+  "supplier.dashboard.lead": "Your company's workspace on Factory Bridge Global.",
+  "supplier.dashboard.organization": "Company",
+  "supplier.dashboard.role": "Your role",
+  "supplier.dashboard.foundation": "Catalog, price tiers, quotes and documents will open here in later releases. Nothing you see here is shared with buyers.",
+  "nav.switch_org": "Switch organization",
+  "nav.switch": "Switch",
+  "nav.sign_out": "Sign out",
+  "role.owner": "Owner",
+  "role.admin": "Admin",
+  "role.member": "Member",
+  "role.viewer": "Viewer",
+  "role.operator": "Operator",
+  "role.compliance_reviewer": "Compliance reviewer",
+  "role.platform_admin": "Platform admin"
 }
