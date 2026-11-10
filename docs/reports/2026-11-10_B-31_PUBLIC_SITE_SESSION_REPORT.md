@@ -34,7 +34,7 @@ Nothing. Note (from the M0 track, PR #36): `main` is Git-connected to a protecte
 ## Partial / blocked
 
 - **Live delivery** ⛔ — needs a founder-approved provider/account (OQ-16), sending domain + `EMAIL_FROM` (OQ-02), recipient inbox, privacy notice (OQ-06). The Resend adapter has only been exercised against a mocked `fetch`.
-- **Public launch** ⛔ OQ-02 (entity / "U.S.-based"), OQ-06 (privacy policy), founder copy approval (H-17), hosting (OQ-16).
+- **Public launch** ⛔ OQ-02 (entity / "U.S.-based"), OQ-06 (privacy policy), hosting (OQ-16), inquiry delivery (ADR-040). Founder copy approval (H-17): **given 2026-11-10**.
 - **CSP** (SECURITY.md T15) not added; recorded in ADR-040.
 - **Fonts:** `next/font/google` (self-served at runtime; `next build` needs network) instead of H-16's `next/font/local` — recorded deviation in `site/fonts.ts` and H-16.
 
@@ -69,7 +69,7 @@ None. No new dependency, account or service. `next/font/google` downloads font f
 
 ## Founder actions required
 
-1. **Approve or edit the public copy** in `apps/web/src/site/content.ts` (every string is listed there); merging is the H-17 copy approval.
+1. ~~Approve or edit the public copy~~ — **approved as written 2026-11-10** (founder, in the session; recorded in `content.ts`, H-17, STATUS and BACKLOG). Merging PR #37 still needs its own go-ahead.
 2. **Decide inquiry delivery** (ADR-040): provider/account, sending domain, recipient inbox, privacy-notice text (counsel, OQ-06), whether to store requests (OQ-07), CAPTCHA or not. Until then the form stays switched off.
 3. Before merging, note that `main` deploys to the protected Vercel project (PR #36 founder action 3).
 4. OQ-02 (entity / location claims) and OQ-06 (privacy policy) gate the public launch and `SITE_INDEXING=enabled`.

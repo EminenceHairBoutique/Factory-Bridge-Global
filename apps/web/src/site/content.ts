@@ -2,10 +2,12 @@
  * Public-site copy (B-31) — one module so the founder and counsel can review every public string in one place,
  * and so content.test.ts can scan all of it for prohibited claims (PRD §7, CLAUDE.md §4, master spec §2.1/§14).
  *
- * Approval status: PROPOSED. The headline set follows master spec §2.1 (the PRD §7 "allowed headline set") with
- * one deliberate weakening ("verified quotations" → "factory-confirmed quotations", FTC list §14). Everything
- * else is drafted from the spec, ADR-026 and the QA vocabulary and needs founder sign-off before launch, which
- * OQ-02 (entity / "U.S.-based") and OQ-06 (privacy policy) also gate.
+ * Approval status: APPROVED as written by the founder on 2026-11-10 (B-31, PR #37; integration handoff H-17).
+ * The headline set follows master spec §2.1 (the PRD §7 "allowed headline set") with two deliberate weakenings:
+ * "verified quotations" → "factory-confirmed quotations" (FTC list §14) and "One accountable sourcing workspace"
+ * → "One accountable record" (no live workspace yet). Any change to a public string needs founder approval again,
+ * and the prohibited-claims guard (claims.ts) still runs on every change. Copy approval is not launch approval:
+ * OQ-02 (entity / "U.S.-based"), OQ-06 (privacy policy) and ADR-040 (inquiry delivery) still gate the launch.
  *
  * Rules applied: no "U.S.-based" or location claim; no counters, logos, testimonials, savings, SLAs or response
  * times; no guarantee or certification language; check vocabulary from UX_INFORMATION_ARCHITECTURE.md §4 and
