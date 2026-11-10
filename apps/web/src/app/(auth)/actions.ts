@@ -1,7 +1,7 @@
 "use server";
 
 /**
- * Sign-in, email-code and sign-up actions (B-05, ADR-041 §3). Server-only: the browser never holds a Supabase client
+ * Sign-in, email-code and sign-up actions (B-05, ADR-042 §3). Server-only: the browser never holds a Supabase client
  * or token. Messages never say whether an account exists. `next` is untrusted and passes safeNextPath() or is dropped.
  * `redirect()` throws by design, so it is never inside a try block.
  */

@@ -157,7 +157,7 @@ export const AUTHENTICATED_MAX_PRIVILEGES: Readonly<Record<string, ReadonlyArray
 
 /**
  * Every function in schema `public` (extension-owned functions excluded). The Data API exposes `public`, so each
- * entry is a deliberate user action (ADR-041 §1): a `language sql`, SECURITY INVOKER wrapper with a pinned
+ * entry is a deliberate user action (ADR-042 §1): a `language sql`, SECURITY INVOKER wrapper with a pinned
  * `search_path` that only calls its `app` function, executable by `authenticated` and by nobody else.
  * migrations.test.ts fails when a public function exists that is not listed here, or breaks any of those rules.
  * `args` is pg_get_function_identity_arguments(); `coveredBy` is the suite with the negative tests.

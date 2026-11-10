@@ -4,7 +4,7 @@
  */
 import { z } from "zod";
 
-export const PASSWORD_MIN = 10; // ADR-041 §3 (hosted projects must set the same minimum)
+export const PASSWORD_MIN = 10; // ADR-042 §3 (hosted projects must set the same minimum)
 export const PASSWORD_MAX = 72; // bcrypt input limit used by Supabase Auth
 
 const email = z

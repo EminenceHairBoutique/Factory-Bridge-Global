@@ -176,7 +176,7 @@ describe("RLS coverage guard (fails when a public table is added without harness
   });
 });
 
-describe("public function guard (the Data API surface, ADR-041 §1)", () => {
+describe("public function guard (the Data API surface, ADR-042 §1)", () => {
   interface PublicFn {
     name: string;
     args: string;

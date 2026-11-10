@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
   headers() {
     return Promise.resolve([
       { source: "/(.*)", headers: securityHeaders },
-      // The invite token is in the path (ADR-041 §6): never send it in a Referer header. Last match wins.
+      // The invite token is in the path (ADR-042 §6): never send it in a Referer header. Last match wins.
       { source: "/invite/:path*", headers: [{ key: "Referrer-Policy", value: "no-referrer" }] },
     ]);
   },

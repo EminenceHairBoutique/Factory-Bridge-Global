@@ -38,7 +38,7 @@ export async function clearPendingOtpEmail(): Promise<void> {
 }
 
 /**
- * ADR-041 §2: the profile row is created by the user on first sign-in (`insert … on conflict do nothing`, allowed by
+ * ADR-042 §2: the profile row is created by the user on first sign-in (`insert … on conflict do nothing`, allowed by
  * 0002's user_profiles_insert policy). Failure is not fatal — every reader treats a missing profile as the defaults.
  */
 export async function ensureProfile(

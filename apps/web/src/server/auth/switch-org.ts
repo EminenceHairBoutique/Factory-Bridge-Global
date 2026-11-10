@@ -1,7 +1,7 @@
 "use server";
 
 /**
- * Org switcher (B-05, ADR-041 §4). The submitted id is untrusted: it is honoured only if the database returns an
+ * Org switcher (B-05, ADR-042 §4). The submitted id is untrusted: it is honoured only if the database returns an
  * active, usable membership for it right now; the cookie it sets is a preference the guard re-checks on every request.
  */
 import { redirect } from "next/navigation";

@@ -6,14 +6,14 @@ Branch `eng/b05-auth-production` from `origin/main` `a861da3` (main CI run 42797
 [#40](https://github.com/EminenceHairBoutique/Factory-Bridge-Global/pull/40).
 
 **Implemented**
-- **ADR-041** (`docs/DECISIONS.md`), covering six decisions:
+- **ADR-042** (`docs/DECISIONS.md`), covering six decisions:
   - The web tier calls `app.*` through thin `public` wrappers: SECURITY INVOKER, `search_path = ''`, EXECUTE for `authenticated` only.
   - `user_profiles` rows come from a first-sign-in upsert, not an `auth.users` trigger. A trigger would have broken the 0002 contract and an existing RLS test.
   - Sessions live in server-only HttpOnly cookies.
   - Authorization is re-read from the database on every request.
   - A role or status change revokes the member's sessions.
   - Internal staff have no self-service path in, and MFA is deferred to B-05b.
-- **Migration 0013** `20261110000200_web_auth_rpc.sql` (forward only, no tables):
+- **Migration 0013** `20261110000300_web_auth_rpc.sql` (forward only, no tables):
   - wrappers `create_organization`, `create_invite`, `accept_invite`, `update_membership`, `list_org_members`;
   - `app.list_org_members`, open to owners/admins and platform admins only;
   - trigger `memberships_revoke_sessions`, which deletes `auth.sessions` when someone else changes a member's role or status.
@@ -54,7 +54,7 @@ Branch `eng/b05-auth-production` from `origin/main` `a861da3` (main CI run 42797
 - CSP (SECURITY T15).
 
 **Changes**
-- `supabase/migrations/20261110000200_web_auth_rpc.sql`
+- `supabase/migrations/20261110000300_web_auth_rpc.sql`
 - `supabase/tests/{web-auth-rpc.test.ts, migrations.test.ts, rls-coverage.ts, db.ts}`
 - `supabase/config.toml` (email templates) and `supabase/templates/`
 - `packages/db/src/types.ts` (Functions)
@@ -65,7 +65,7 @@ Branch `eng/b05-auth-production` from `origin/main` `a861da3` (main CI run 42797
 - `apps/web/next.config.ts` (invite Referrer-Policy) and `site/links.ts`, plus `SiteHome.test.tsx`
 - `e2e/**`
 - `.github/workflows/ci.yml` (new `e2e` job only)
-- Docs: DECISIONS (ADR-041), MIGRATION_DEPENDENCY_MAP (0013 row + helpers), SECURITY §3, BACKLOG (B-05, B-05b), STATUS, CLAUDE.md §8, README, `.env.example`
+- Docs: DECISIONS (ADR-042), MIGRATION_DEPENDENCY_MAP (0013 row + helpers), SECURITY §3, BACKLOG (B-05, B-05b), STATUS, CLAUDE.md §8, README, `.env.example`
 
 **Security review**
 - **Tenant isolation**: RLS is unchanged and still the second layer. The new server guard is the first.

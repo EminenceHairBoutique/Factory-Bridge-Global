@@ -1,5 +1,5 @@
 /**
- * Request-scoped Supabase client for Server Components, Server Actions and Route Handlers (B-05, ADR-041 §3).
+ * Request-scoped Supabase client for Server Components, Server Actions and Route Handlers (B-05, ADR-042 §3).
  *
  * The session lives in cookies written and read only on the server — there is no browser Supabase client — so they
  * are HttpOnly, SameSite=Lax and Secure outside local http. Every query made through this client carries the signed-in

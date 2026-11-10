@@ -1,9 +1,9 @@
--- 0013 web_auth_rpc — Factory Bridge Global (B-05 / M1, ADR-041)
+-- 0013 web_auth_rpc — Factory Bridge Global (B-05 / M1, ADR-042)
 -- docs/MIGRATION_DEPENDENCY_MAP.md §2 row 0013. Depends on 0002 (tenancy tables, helpers, mutation functions) and
 -- 0003 (memberships audit trigger, which keeps recording every change below).
 --
 -- The Data API exposes `public` only (supabase/config.toml). The web tier therefore reaches the tenancy functions in
--- schema `app` through thin `public` wrappers (ADR-041 §1):
+-- schema `app` through thin `public` wrappers (ADR-042 §1):
 --   * `language sql`, SECURITY INVOKER, `search_path = ''`; the body only calls the `app` function with the same
 --     arguments, so every rule (auth.uid(), roles, last-owner guard, token hashing) stays in one place;
 --   * EXECUTE for `authenticated` only (Supabase's default privileges in `public` grant ALL on new functions to
@@ -11,7 +11,7 @@
 --   * registered in supabase/tests/rls-coverage.ts PUBLIC_FUNCTIONS; migrations.test.ts fails on any public function
 --     that is unregistered, SECURITY DEFINER, unpinned, or executable by anon.
 -- Also here: the team-list reader (the only path to teammates' emails) and session revocation on a role change
--- (ADR-041 §5). No table is created, so no RLS policy changes.
+-- (ADR-042 §5). No table is created, so no RLS policy changes.
 
 -- ============================================================================
 -- 1. app.list_org_members — owner/admin of the org (or a platform admin) reads the team with emails
@@ -49,13 +49,13 @@ begin
 end;
 $$;
 comment on function app.list_org_members(uuid) is
-  'Team list with emails for owners/admins of p_org and platform admins (ADR-041 §4). Raises 42501 for anyone else.';
+  'Team list with emails for owners/admins of p_org and platform admins (ADR-042 §4). Raises 42501 for anyone else.';
 
 revoke execute on function app.list_org_members(uuid) from public, anon;
 grant execute on function app.list_org_members(uuid) to authenticated, service_role;
 
 -- ============================================================================
--- 2. Session revocation on a role or status change (ADR-041 §5)
+-- 2. Session revocation on a role or status change (ADR-042 §5)
 --    Authorization is never cached (the web guard and RLS read memberships live); this additionally ends the
 --    member's sessions everywhere, so the next request on any device must sign in again. auth.sessions is owned
 --    by Supabase Auth; deleting a row cascades to its refresh tokens, and getUser() then refuses the old access
@@ -151,15 +151,15 @@ as $$
 $$;
 
 comment on function public.create_organization(public.org_type, text, text, text, char) is
-  'Data API wrapper for app.create_organization (ADR-041 §1). SECURITY INVOKER; authenticated only.';
+  'Data API wrapper for app.create_organization (ADR-042 §1). SECURITY INVOKER; authenticated only.';
 comment on function public.create_invite(uuid, text, public.member_role) is
-  'Data API wrapper for app.create_invite (ADR-041 §1). Returns the raw token once. SECURITY INVOKER; authenticated only.';
+  'Data API wrapper for app.create_invite (ADR-042 §1). Returns the raw token once. SECURITY INVOKER; authenticated only.';
 comment on function public.accept_invite(text) is
-  'Data API wrapper for app.accept_invite (ADR-041 §1). SECURITY INVOKER; authenticated only.';
+  'Data API wrapper for app.accept_invite (ADR-042 §1). SECURITY INVOKER; authenticated only.';
 comment on function public.update_membership(uuid, public.member_role, text) is
-  'Data API wrapper for app.update_membership (ADR-041 §1). SECURITY INVOKER; authenticated only.';
+  'Data API wrapper for app.update_membership (ADR-042 §1). SECURITY INVOKER; authenticated only.';
 comment on function public.list_org_members(uuid) is
-  'Data API wrapper for app.list_org_members (ADR-041 §4). SECURITY INVOKER; authenticated only.';
+  'Data API wrapper for app.list_org_members (ADR-042 §4). SECURITY INVOKER; authenticated only.';
 
 revoke all on function
   public.create_organization(public.org_type, text, text, text, char),

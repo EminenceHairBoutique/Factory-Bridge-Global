@@ -1,5 +1,5 @@
 /**
- * The one authorization gate for every workspace page and server action (B-05, ADR-041 §4).
+ * The one authorization gate for every workspace page and server action (B-05, ADR-042 §4).
  *
  * Per request, in order:
  *   1. `auth.getUser()` — Supabase Auth validates the access token *and* that its session still exists, so a session

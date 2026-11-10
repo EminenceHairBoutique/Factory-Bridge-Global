@@ -25,7 +25,7 @@ const buyerB = m({ orgId: "b", role: "viewer" });
 const supplierS = m({ orgId: "s", orgType: "supplier", role: "admin" });
 const internal = m({ orgId: "i", orgType: "internal", role: "operator" });
 
-describe("workspace gating (ADR-041 §4)", () => {
+describe("workspace gating (ADR-042 §4)", () => {
   it("maps org types to workspaces", () => {
     expect(workspaceForOrgType("buyer")).toBe("buyer");
     expect(workspaceForOrgType("supplier")).toBe("supplier");

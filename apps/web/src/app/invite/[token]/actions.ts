@@ -1,7 +1,7 @@
 "use server";
 
 /**
- * Accept an invitation through `public.accept_invite` (ADR-041 §6). app.accept_invite checks the token hash, expiry,
+ * Accept an invitation through `public.accept_invite` (ADR-042 §6). app.accept_invite checks the token hash, expiry,
  * single use and that it was issued to the signed-in user's email; this action adds nothing but input validation,
  * the active-org preference and the redirect. The raw token is never logged.
  */

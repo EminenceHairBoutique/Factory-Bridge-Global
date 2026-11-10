@@ -1,5 +1,5 @@
 /**
- * Static guards for B-05 (ADR-041 §4). Layouts are not re-run on client navigations, so the authorization gate must
+ * Static guards for B-05 (ADR-042 §4). Layouts are not re-run on client navigations, so the authorization gate must
  * be called by every page and every server action itself. These tests fail when a workspace page or action is added
  * without it, when a page gates on the wrong workspace, or when the session proxy starts matching the public site.
  */

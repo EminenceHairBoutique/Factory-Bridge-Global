@@ -2,7 +2,7 @@
  * The synthetic world every spec runs in (B-05): two buyer orgs, a supplier org, an assigned and an unassigned
  * internal operator, a newcomer and an invitee. Created once per run by global-setup.ts — users through the Supabase
  * Auth admin API, tenancy rows and the operator assignment through SQL as `postgres` (internal memberships have no
- * self-service path, ADR-041 §7). Emails carry a per-run id so reruns never collide; the password is random per run
+ * self-service path, ADR-042 §7). Emails carry a per-run id so reruns never collide; the password is random per run
  * and lives only in the git-ignored e2e/.auth/world.json.
  */
 import { readFileSync } from "node:fs";

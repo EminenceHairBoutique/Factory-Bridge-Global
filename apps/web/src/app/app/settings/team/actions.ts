@@ -1,7 +1,7 @@
 "use server";
 
 /**
- * Team management for owners/admins (ADR-041 §4–§6): invitations through `public.create_invite`, role/status changes
+ * Team management for owners/admins (ADR-042 §4–§6): invitations through `public.create_invite`, role/status changes
  * through `public.update_membership`. The domain policy check here is the first layer; app.create_invite /
  * app.update_membership re-check the role in SQL. A change signs the member out everywhere (migration 0013 trigger).
  * The raw invite token is returned to the inviter once and never logged.

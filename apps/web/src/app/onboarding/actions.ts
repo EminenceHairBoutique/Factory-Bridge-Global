@@ -1,7 +1,7 @@
 "use server";
 
 /**
- * Create a buyer or supplier organization through the `public.create_organization` wrapper (ADR-041 §1). The caller
+ * Create a buyer or supplier organization through the `public.create_organization` wrapper (ADR-042 §1). The caller
  * becomes its owner inside app.create_organization; the internal org cannot be created this way (refused in SQL).
  */
 import { redirect } from "next/navigation";

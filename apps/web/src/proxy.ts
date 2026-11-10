@@ -1,5 +1,5 @@
 /**
- * Session refresh (B-05, ADR-041 §3). Server Components cannot write cookies, so this proxy runs Supabase Auth's
+ * Session refresh (B-05, ADR-042 §3). Server Components cannot write cookies, so this proxy runs Supabase Auth's
  * `getUser()` before render on the auth and workspace paths only: an expired access token is refreshed and the new
  * HttpOnly cookies are written to both the request (for this render) and the response. It makes no authorization
  * decision — every page and action runs the guard (server/auth/guard.ts) — and it never runs on the public site or

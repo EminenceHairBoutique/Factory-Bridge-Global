@@ -1,5 +1,5 @@
 /**
- * Workspace gating (B-05, ADR-041 §4). Pure: the web guard loads the actor's live memberships from the database on
+ * Workspace gating (B-05, ADR-042 §4). Pure: the web guard loads the actor's live memberships from the database on
  * every request and asks these functions which workspace and organization the request may act in. A preferred org
  * (the `fbg_org` cookie) is only a hint among memberships the database just returned — never a grant.
  */

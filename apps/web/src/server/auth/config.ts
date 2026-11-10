@@ -1,5 +1,5 @@
 /**
- * Supabase Auth configuration for the web tier (B-05, ADR-041 §3). Fails closed: anything missing, malformed or
+ * Supabase Auth configuration for the web tier (B-05, ADR-042 §3). Fails closed: anything missing, malformed or
  * still a `.env.example` placeholder means "not configured", and the auth pages say so instead of guessing.
  *
  * Only the project URL and the anon (publishable) key are read here. Both are public by design; the anon key carries

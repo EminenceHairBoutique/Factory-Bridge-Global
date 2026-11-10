@@ -1,5 +1,5 @@
 /**
- * Migration 0013 web_auth_rpc (B-05, ADR-041): the `public` wrappers the web tier calls through the Data API, the
+ * Migration 0013 web_auth_rpc (B-05, ADR-042): the `public` wrappers the web tier calls through the Data API, the
  * team-list reader and session revocation on a role change. Every assertion runs as `authenticated` (or `anon`) with
  * the JWT sub claim set; fixtures are inserted by the superuser connection, never used for assertions.
  *
