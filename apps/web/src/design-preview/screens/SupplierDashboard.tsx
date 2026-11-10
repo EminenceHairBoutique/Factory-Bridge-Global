@@ -9,6 +9,9 @@ import { SUPPLIER_PROFILE, SUPPLIER_PRODUCTS, SUPPLIER_RFQS } from "../demo-data
 import { daysUntil, formatZhDate, formatZhMoney, tierRangeZh } from "../supplier-demo";
 import { SUPPLIER_THREADS } from "../demo-data/supplier-messages";
 import { smSummary } from "../supplier-messages-demo";
+import { QUALITY_TRACKS } from "../demo-data/quality";
+import { PRODUCTION_TODAY, SUBMISSIONS, SUPPLIER_ID } from "../demo-data/supplier-production";
+import { pendingActions, supplierTracks } from "../supplier-production-demo";
 import { AppShell } from "../ui/AppShell";
 import { Icon } from "../ui/icons";
 import {
@@ -23,6 +26,22 @@ import {
 } from "../ui/primitives";
 
 const TODAY = "2026-11-07";
+
+const PRODUCTION_PENDING = supplierTracks(SUPPLIER_ID, QUALITY_TRACKS).flatMap((t) =>
+  pendingActions(
+    t,
+    t.milestones,
+    {
+      readinessConfirmed: false,
+      rescheduleRequested: false,
+      correctiveSubmitted: new Set<string>(),
+      lastProgressAt:
+        [...SUBMISSIONS].reverse().find((s) => s.trackId === t.id && s.kind === "milestone")?.at ??
+        null,
+    },
+    PRODUCTION_TODAY,
+  ),
+);
 
 const RFQ_TONE: Record<string, Tone> = {
   待回复: "warn",
@@ -99,6 +118,24 @@ export function SupplierDashboard() {
             }
           >
             买家的澄清问题由平台翻译并转达；您的回复经平台运营核对后转达买家。
+          </Notice>
+        ) : null}
+
+        {PRODUCTION_PENDING.length > 0 ? (
+          <Notice
+            tone="teal"
+            icon="clock"
+            title={`生产与质检：${PRODUCTION_PENDING.length} 项待处理`}
+            action={
+              <Link
+                href="/design-preview/supplier/production"
+                className={buttonClasses("secondary", "sm")}
+              >
+                前往生产与质检
+              </Link>
+            }
+          >
+            {PRODUCTION_PENDING.map((a) => a.text).join("；")}。
           </Notice>
         ) : null}
 
