@@ -11,17 +11,27 @@ import { useMemo, useState } from "react";
 import { DEMO_AS_OF, DEMO_PROJECTS, DEMO_QUOTES, STAGE_LABEL, STAGE_ORDER } from "../demo-data";
 import {
   DOCUMENT_STATUS_LABEL,
-  type MessageThread,
   PROJECT_ACTIVITY,
   PROJECT_BRIEF_SUMMARY,
   PROJECT_DOCUMENTS,
   PROJECT_ID,
-  PROJECT_MESSAGES,
   PROJECT_TIMELINE,
   type ProjectDocument,
 } from "../demo-data/project";
 import { compareQuotes, formatQty } from "../compare-demo";
+import type { ProjectTab } from "../projects-demo";
 import { DEMO_REPORTS } from "../demo-data/reports";
+import { DEMO_THREADS, THREAD_KIND_LABEL } from "../demo-data/messages";
+import {
+  THREAD_STATUS_LABEL,
+  THREAD_STATUS_TONE,
+  approvalChain,
+  lastActivity,
+  needsYou,
+  sortThreads,
+  threadStatus,
+} from "../messages-demo";
+import { ApprovalChainChips } from "../ui/ApprovalChain";
 import {
   REPORT_STATE_LABEL,
   REPORT_STATE_TONE,
@@ -46,8 +56,8 @@ import {
   type Tone,
 } from "../ui/primitives";
 
-type Tab =
-  "overview" | "brief" | "options" | "compare" | "documents" | "messages" | "reports" | "activity";
+/** Tab ids are shared with the route's `?tab=` deep link (projects-demo.ts). */
+type Tab = ProjectTab;
 
 const DOC_TONE: Record<ProjectDocument["status"], Tone> = {
   uploaded: "neutral",
@@ -81,13 +91,7 @@ const REPORT_CTX: ReportContext = {
   newestReportId: PROJECT_REPORT_ROWS[0]?.id ?? null,
 };
 
-const MSG_STATUS: Record<MessageThread["status"], { label: string; tone: Tone }> = {
-  awaiting_your_approval: { label: "Awaiting your approval", tone: "warn" },
-  awaiting_operator_approval: { label: "Awaiting operator approval", tone: "teal" },
-  sent: { label: "Sent", tone: "ok" },
-  replied: { label: "Replied", tone: "ok" },
-  info: { label: "Notice", tone: "neutral" },
-};
+const PROJECT_THREADS = DEMO_THREADS.filter((t) => t.projectId === PROJECT_ID);
 
 const ACTING_TONE: Record<string, Tone> = {
   user: "teal",
@@ -96,7 +100,7 @@ const ACTING_TONE: Record<string, Tone> = {
   platform_admin: "brand",
 };
 
-export function ProjectOverview() {
+export function ProjectOverview({ initialTab = "overview" }: { initialTab?: ProjectTab }) {
   const project = DEMO_PROJECTS[0] ?? {
     name: "Sourcing project",
     family: "Labels",
@@ -111,8 +115,7 @@ export function ProjectOverview() {
     nextAction: "",
     id: "prj_demo_labels",
   };
-  const [tab, setTab] = useState<Tab>("overview");
-  const [messages, setMessages] = useState<MessageThread[]>(PROJECT_MESSAGES);
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [docFilter, setDocFilter] = useState<"all" | "quote" | "artwork" | "logistics" | "report">(
     "all",
   );
@@ -124,27 +127,8 @@ export function ProjectOverview() {
   const included = comparison.groups.filter((g) => g.kind === "basis").flatMap((g) => g.quotes);
   const excluded = comparison.groups.find((g) => g.kind === "excluded")?.quotes ?? [];
   const stageIndex = STAGE_ORDER.indexOf(project.stage);
-  const awaitingYou = messages.filter((m) => m.status === "awaiting_your_approval").length;
+  const awaitingYou = PROJECT_THREADS.filter((t) => needsYou(t)).length;
   const inReviewDocs = PROJECT_DOCUMENTS.filter((d) => d.status === "in_review").length;
-
-  const approveDraft = (id: string) =>
-    setMessages((list) =>
-      list.map((m) =>
-        m.id === id
-          ? {
-              ...m,
-              status: "awaiting_operator_approval",
-              chain: m.chain.map((s, i) =>
-                i === 0
-                  ? { ...s, state: "done", at: DEMO_AS_OF }
-                  : i === 1
-                    ? { ...s, state: "waiting" }
-                    : s,
-              ),
-            }
-          : m,
-      ),
-    );
 
   const rightRail = (
     <div className="flex flex-col gap-5">
@@ -239,7 +223,13 @@ export function ProjectOverview() {
           }
           actions={
             <>
-              <Button icon="upload">Upload a quote</Button>
+              <Link
+                href="/design-preview/buyer/documents#upload"
+                className={buttonClasses("secondary")}
+              >
+                <Icon name="upload" size={16} />
+                Upload a quote
+              </Link>
               <Link href="/design-preview/buyer/compare" className={buttonClasses("primary")}>
                 <Icon name="compare" size={16} />
                 Open comparison
@@ -283,6 +273,7 @@ export function ProjectOverview() {
             { value: "documents", label: "Documents", count: PROJECT_DOCUMENTS.length },
             { value: "messages", label: "Messages", count: awaitingYou || undefined },
             { value: "reports", label: "Reports", count: PROJECT_REPORT_ROWS.length },
+            { value: "quality", label: "Quality", count: 1 },
             { value: "activity", label: "Activity" },
           ]}
         />
@@ -588,12 +579,15 @@ export function ProjectOverview() {
               <Notice tone="warn" title="Cross-group ranking unavailable">
                 Required landed-cost lines are missing for{" "}
                 {comparison.landedRankingBlockedBy.join(", ")}. Add a freight estimate and a duty
-                assumption on the comparison screen.
+                assumption in a landed-cost scenario.
               </Notice>
             </div>
-            <div className="mt-4">
+            <div className="mt-4 flex flex-wrap gap-2">
               <Link href="/design-preview/buyer/compare" className={buttonClasses("primary")}>
                 Open comparison
+              </Link>
+              <Link href="/design-preview/buyer/landed-cost" className={buttonClasses("secondary")}>
+                Landed cost scenarios
               </Link>
             </div>
           </Panel>
@@ -693,82 +687,64 @@ export function ProjectOverview() {
             title="Messages and approvals"
             description="Every outbound message shows its approval chain. Nothing is sent to a supplier until the chain is complete."
             padded={false}
+            actions={
+              <Link
+                href="/design-preview/buyer/messages"
+                className={buttonClasses("secondary", "sm")}
+              >
+                Open inbox
+              </Link>
+            }
           >
             <ul className="divide-y divide-(--fbg-border-subtle)">
-              {messages.map((m) => (
-                <li key={m.id} className="flex flex-col gap-3 px-5 py-4">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-[15px] font-medium text-(--fbg-text-primary)">
-                        {m.subject}
-                      </p>
-                      <p className="fbg-num text-xs text-(--fbg-text-secondary)">
-                        {m.counterpart} · {m.updatedAt}
-                      </p>
+              {sortThreads(PROJECT_THREADS).map((t) => {
+                const status = threadStatus(t);
+                const last = t.messages[t.messages.length - 1];
+                const lastOutbound = [...t.messages]
+                  .reverse()
+                  .find((m) => m.direction === "outbound");
+                const chain = lastOutbound?.approval
+                  ? approvalChain(lastOutbound.approval, lastOutbound.channel)
+                  : [];
+                return (
+                  <li key={t.id} className="flex flex-col gap-3 px-5 py-4">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-[15px] font-medium text-(--fbg-text-primary)">
+                          {t.subject}
+                        </p>
+                        <p className="fbg-num text-xs text-(--fbg-text-secondary)">
+                          {t.supplier?.name ?? "System"} · {THREAD_KIND_LABEL[t.kind]} ·{" "}
+                          {lastActivity(t)}
+                        </p>
+                      </div>
+                      <Badge tone={THREAD_STATUS_TONE[status]}>{THREAD_STATUS_LABEL[status]}</Badge>
                     </div>
-                    <Badge tone={MSG_STATUS[m.status].tone}>{MSG_STATUS[m.status].label}</Badge>
-                  </div>
-                  <div className="rounded-(--fbg-radius-control) border border-(--fbg-border-subtle) bg-(--fbg-bg-canvas) p-3 text-sm">
-                    <p className="text-(--fbg-text-primary)">{m.preview}</p>
-                    {m.previewZh ? (
-                      <p className="fbg-zh mt-1 text-(--fbg-text-secondary)" lang="zh-CN">
-                        {m.previewZh}
-                      </p>
+                    {last ? (
+                      <div className="rounded-(--fbg-radius-control) border border-(--fbg-border-subtle) bg-(--fbg-bg-canvas) p-3 text-sm">
+                        <p className="text-(--fbg-text-primary)">{last.en}</p>
+                        {last.zh ? (
+                          <p className="fbg-zh mt-1 text-(--fbg-text-secondary)" lang="zh-CN">
+                            {last.zh}
+                          </p>
+                        ) : null}
+                      </div>
                     ) : null}
-                  </div>
-                  {m.chain.length > 0 ? (
-                    <ol className="flex flex-wrap items-center gap-2 text-xs">
-                      {m.chain.map((s, i) => (
-                        <li key={s.who} className="flex items-center gap-2">
-                          <span
-                            className={cx(
-                              "inline-flex items-center gap-1 rounded-(--fbg-radius-chip) border px-2 py-0.5",
-                              s.state === "done"
-                                ? "border-(--fbg-status-success)/35 bg-(--fbg-status-success-fill) text-(--fbg-status-success)"
-                                : s.state === "waiting"
-                                  ? "border-(--fbg-status-warning)/40 bg-(--fbg-status-warning-fill) text-(--fbg-status-warning)"
-                                  : "border-(--fbg-border-subtle) text-(--fbg-text-secondary)",
-                            )}
-                          >
-                            <Icon
-                              name={
-                                s.state === "done"
-                                  ? "check"
-                                  : s.state === "waiting"
-                                    ? "clock"
-                                    : "lock"
-                              }
-                              size={12}
-                            />
-                            {s.who}
-                            {s.at ? <span className="fbg-num"> {s.at}</span> : null}
-                          </span>
-                          {i < m.chain.length - 1 ? (
-                            <Icon
-                              name="chevron-right"
-                              size={12}
-                              className="text-(--fbg-text-muted)"
-                            />
-                          ) : null}
-                        </li>
-                      ))}
-                    </ol>
-                  ) : null}
-                  {m.status === "awaiting_your_approval" ? (
+                    {chain.length > 0 ? <ApprovalChainChips steps={chain} /> : null}
                     <div className="flex flex-wrap gap-2">
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        icon="check"
-                        onClick={() => approveDraft(m.id)}
+                      <Link
+                        href={`/design-preview/buyer/messages?thread=${t.id}`}
+                        className={buttonClasses(
+                          status === "awaiting_your_approval" ? "primary" : "secondary",
+                          "sm",
+                        )}
                       >
-                        Approve draft
-                      </Button>
-                      <Button size="sm">Edit wording</Button>
+                        {status === "awaiting_your_approval" ? "Review and approve" : "Open thread"}
+                      </Link>
                     </div>
-                  ) : null}
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           </Panel>
         ) : null}
@@ -870,6 +846,38 @@ export function ProjectOverview() {
                 })}
               </ul>
             )}
+          </Panel>
+        ) : null}
+
+        {tab === "quality" ? (
+          <Panel
+            title="Samples and inspections"
+            description="Exactly what was checked for each supplier, by whom and when. Decisions after a failed inspection are yours."
+          >
+            <ul className="flex flex-col gap-2 text-sm">
+              <li className="flex flex-wrap items-center gap-2">
+                <Badge tone="danger" icon="alert">
+                  Your decision needed
+                </Badge>
+                <span className="text-(--fbg-text-primary)">
+                  Supplier B (demo): lot L-0003 did not pass pre-shipment inspection on 2026-11-03.
+                </span>
+              </li>
+              <li className="flex flex-wrap items-center gap-2">
+                <Badge tone="teal" icon="clock">
+                  Inspection scheduled
+                </Badge>
+                <span className="text-(--fbg-text-primary)">
+                  Supplier A (demo): pre-shipment inspection of lot L-0007 on 2026-11-12; golden
+                  sample on file.
+                </span>
+              </li>
+            </ul>
+            <div className="mt-4">
+              <Link href="/design-preview/buyer/qa" className={buttonClasses("primary")}>
+                Open samples and inspections
+              </Link>
+            </div>
           </Panel>
         ) : null}
 

@@ -6,7 +6,7 @@ const SCREENS = [
   {
     href: "/design-preview/marketing",
     title: "Marketing home (Obsidian hero)",
-    body: "Proposed public home page: Obsidian hero with the bridge mark, then Atlas value, process, categories and evidence sections. Copy subject to approval.",
+    body: "Proposed public home page: Obsidian hero with the drawn bridge figure, then Atlas sections for How it works, Services, Categories, Quality process and About, and a Contact band. Seven anchored destinations, appearance switch in the footer. Copy subject to approval.",
     workspace: "Public site",
   },
   {
@@ -17,8 +17,20 @@ const SCREENS = [
   },
   {
     href: "/design-preview/buyer/dashboard",
-    title: "Buyer dashboard",
-    body: "Projects, required actions, quote status, supplier options and evidence indicators.",
+    title: "Buyer overview",
+    body: "What needs your attention (three ranked items, the rest one click away), the three most recent projects with in-row details, and one primary action. Supplier options and activity live inside the project; quote statistics on Quotes.",
+    workspace: "Buyer (English)",
+  },
+  {
+    href: "/design-preview/buyer/projects",
+    title: "Buyer: projects",
+    body: "Searchable, filterable list of every sourcing project — Project · Stage · Next action · Updated — with quantity, quote counts, operator and links behind an in-row disclosure.",
+    workspace: "Buyer (English)",
+  },
+  {
+    href: "/design-preview/buyer/quotes",
+    title: "Buyer: quotes",
+    body: "Organization-wide quote status counts and where each project's quotes stand, linking to the one comparison that exists. States that a cross-project quotation list needs the permissioned query.",
     workspace: "Buyer (English)",
   },
   {
@@ -36,7 +48,7 @@ const SCREENS = [
   {
     href: "/design-preview/buyer/documents",
     title: "Buyer: documents and the upload pipeline",
-    body: "Every uploaded or received document with its pipeline status (uploaded → scanning → parsed → extracted → in review → accepted, or rejected), who acts next, the scan result, extraction flags, the linked quotation and the access log; client-side upload pre-check with a simulated pipeline; discard with confirmation.",
+    body: "List first — file, project, type, status, date, next action — with the record inspector (scan result, flags, provenance, pipeline, linked quotation, access log) opening on demand as a rail or drawer; the upload intake collapsed until asked for (#upload opens it); client-side pre-check with a simulated pipeline; discard with confirmation.",
     workspace: "Buyer",
   },
   {
@@ -58,6 +70,12 @@ const SCREENS = [
     workspace: "Buyer",
   },
   {
+    href: "/design-preview/buyer/messages?thread=th_tooling",
+    title: "Buyer: messages and approvals",
+    body: "Inbox with needs-you-first ordering and status filters; threads in both languages with translation provenance; the approval chain You → Operator → Sent on every outbound message with approve, edit (approvals reset) and withdraw; a composer that submits to the operator queue over the channels the supplier's recorded contact basis allows; inbound flags (text addressed to the software, contacts removed, links not opened); outbound log with channel, approvers, time and reference.",
+    workspace: "Buyer",
+  },
+  {
     href: "/design-preview/buyer/brief",
     title: "Brief confirmation (AI proposal → your version)",
     body: "Raw input with highlighted sources, the AI proposal with from input / inferred / missing provenance and Chinese translation, your decisions per field, and a versioned confirm.",
@@ -66,7 +84,19 @@ const SCREENS = [
   {
     href: "/design-preview/buyer/compare",
     title: "Supplier quotation comparison",
-    body: "Price-basis groups, tiers and MOQ, FX provenance, landed-cost line status, freshness and verification evidence.",
+    body: "Three presentations of the same evaluated quotes — Summary cards, Compare (decision rows side by side within each trade-term group), Full details (every specification, tier, source, check record and landed line) — with price-basis groups, FX provenance and what is missing never hidden. ?mode= opens a presentation directly.",
+    workspace: "Buyer (English)",
+  },
+  {
+    href: "/design-preview/buyer/qa",
+    title: "Samples and inspections (buyer QA status)",
+    body: "Per supplier on the project: every quality badge in the fixed wording, each opening to what was checked, by whom, when and against which checklist version; the eight steps in the buyer's words; samples, the golden sample agreement, production milestones with estimated vs committed dates, inspections with findings and the limits of sampling stated with the plan's numbers; the decision after a failed inspection recorded as the buyer's with an acknowledgement and relayed by the platform; remediation in plain words. Supplier contact data never appears.",
+    workspace: "Buyer (English)",
+  },
+  {
+    href: "/design-preview/buyer/landed-cost",
+    title: "Landed cost scenarios",
+    body: 'Immutable snapshots citing the exact FX rows and inputs; a new scenario with quantity, as-of date (FX resolved by the 3-day lag rule or missing_fx), a freight estimate (provider or manual; sourced only with a document) and a person-recorded duty assumption (never AI-filled); every landed-cost line per eligible quotation with status and source; a total only when complete, otherwise "Partial — excludes: …"; cross-term ranking only when every eligible total is complete.',
     workspace: "Buyer (English)",
   },
   {
@@ -88,9 +118,33 @@ const SCREENS = [
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/supplier/catalog",
+    title: "供应商：产品目录 (supplier catalog, zh-CN)",
+    body: "Products with price state and visibility, counts, status tabs and a visibility filter; 新增产品 creates a priced-later product as 待确认; 暂停 / 恢复; the 依据 drawer explains what each visibility means and that unconfirmed prices never reach a buyer.",
+    workspace: "Supplier",
+  },
+  {
+    href: "/design-preview/supplier/catalog/import",
+    title: "供应商：批量导入 (catalog import, zh-CN)",
+    body: "Template download (CSV, UTF-8 with BOM, one row per tier), file or pasted CSV or sample files, a per-product preview with row-numbered Chinese errors and warnings (colloquial trade terms, missing places, overlapping tiers, bad currency, expired dates, invalid scope) and the diff against the catalog, then import of the clean rows as 待确认.",
+    workspace: "Supplier",
+  },
+  {
     href: "/design-preview/supplier/pricing",
     title: "阶梯报价 (Price tier editor)",
     body: "Ascending non-overlapping tiers with inline validation, Incoterm code plus 指定地点, colloquial 出厂价 never defaulted to EXW, validity required, visibility intent.",
+    workspace: "供应商（zh-CN）",
+  },
+  {
+    href: "/design-preview/supplier/production",
+    title: "生产与质检 (Production and inspection)",
+    body: "The supplier's own orders only: production milestones with 已发生 / 预计 / 承诺 dates and evidence through the shared upload pre-check, progress that never goes backwards, a reason and a 交期变更 flag for moved committed dates; the inspection schedule with readiness conditions, confirmation (which commits the packing date) or a reschedule request; inspection results in the fixed Chinese wording with corrective action per major finding; the agreed quality standard and samples in Chinese. Updates go to the platform and reach the buyer as supplier-reported.",
+    workspace: "供应商（zh-CN）",
+  },
+  {
+    href: "/design-preview/supplier/quotes",
+    title: "我的报价 (My quotations: versions and lifecycle)",
+    body: "One thread per RFQ with its versions and the fixed statuses 待审核 / 已确认 / 即将过期 / 已过期 / 已更新 / 已撤回 (migration 0009, ADR-021); the current version's terms and tiers read-only; actions by state: 撤销提交 while under review, 撤回报价 with a reason, 更新报价 as a new version that enters review while the previous stays visible to the buyer; version history with field diffs and the status events.",
     workspace: "供应商（zh-CN）",
   },
   {
@@ -100,15 +154,63 @@ const SCREENS = [
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/supplier/messages",
+    title: "供应商：消息 (supplier inbox, zh-CN)",
+    body: "The supplier's side of the threads: buyer questions in Chinese with the English original and translation provenance, the supplier's replies with their relay state (待平台转达 → 已转达), platform notices, an anonymized buyer label, a reply composer that warns on contact details and prices and routes attachments through the upload pipeline, and the relay log.",
+    workspace: "Supplier",
+  },
+  {
+    href: "/design-preview/supplier/documents",
+    title: "供应商：文件资料 (supplier documents, zh-CN)",
+    body: "Every file the supplier uploaded or the platform attached with its pipeline status, its review state (供应商提供，未核验 until a platform check), expiry, linked record and who can see it; the certification checklist with upload prompts; upload through the shared pre-check with a simulated pipeline; replace as a new version; delete only where the file is not evidence; signed download links that are logged.",
+    workspace: "Supplier",
+  },
+  {
     href: "/design-preview/supplier/sharing",
     title: "数据共享设置 (Data-sharing settings)",
     body: "Per-field 仅内部 / 平台买家 / 指定买家, contacts locked behind a separate disclosure grant, recorded grants with revocation effects explained.",
     workspace: "供应商（zh-CN）",
   },
   {
+    href: "/design-preview/ops/audit",
+    title: "Operations: audit explorer",
+    body: "Read-only append-only record: filters by organization, entity, date, actor role, request and text; event detail with the diff (supplier contact values redacted for operators), before and after hashes, the entity's hash chain (consistent, unverifiable, mismatch) and the other events of the same request; security events and document access for the roles allowed to read them; the weekly privileged-access report; CSV export. A view-as switch shows the operator, compliance and platform-admin scopes; platform-admin reads and every export are themselves recorded.",
+    workspace: "Internal operations",
+  },
+  {
+    href: "/design-preview/ops/pipeline",
+    title: "Operations: pipeline board",
+    body: "Every project by stage with the operator's stage targets, computed attention reasons (past target, compliance hold, no lead, buyer reminder due, overdue work item), who owes the next move, and operator load; board and list views with operator, buyer and attention filters; a project drawer listing what the next stage needs with each item's owner, recording an operator-owned move only when every requirement is met (stages are derived from records, never dragged), lead assignment with a reason to reassign, the open work items behind the card, and stage history.",
+    workspace: "Internal operations",
+  },
+  {
     href: "/design-preview/ops/queue",
     title: "Operations: work queue and pipeline",
     body: "Everything waiting on an operator ordered by SLA, with claim, inline outbound approval (buyer approved → operator → sent via platform), supplier-reply relay, kind and project filters, and a pipeline board of projects by stage with per-stage targets.",
+    workspace: "Internal operations",
+  },
+  {
+    href: "/design-preview/ops/cases",
+    title: "Operations: buyer cases",
+    body: "Buyer questions, data issues, requests and complaints ordered by derived priority with internal pilot targets; each case with its linked records, a timeline that marks what the buyer sees, a reply composer that blocks claims and response-time promises and names the record it concerns, internal notes, resolution with a code and a buyer-visible note, escalation with a target and reason, and reopening only with the buyer's own message.",
+    workspace: "Internal operations",
+  },
+  {
+    href: "/design-preview/ops/quality",
+    title: "Operations: quality verification",
+    body: "One checkpoint track per project, supplier and variant through spec, sample, golden sample, production, inspection, exceptions, remediation and closure (QUALITY_ASSURANCE.md §4); the QSR with its sampling plan resolved for the lot (illustrative ISO 2859-1 Level II values), samples and the golden sample agreement, milestones flagged estimated or committed, inspection jobs with the exact badge sentence and findings by class, a result derived from the accept numbers (report required), the shipment-release recommendation, the buyer's decision recorded only against the buyer's message, and the remediation case with the fixed responsibility and resolution vocabulary.",
+    workspace: "Internal operations",
+  },
+  {
+    href: "/design-preview/ops/compliance",
+    title: "Operations: compliance holds",
+    body: 'Holds for blocked and out-of-pilot categories, export-sensitive items, contact disclosure grants and supplier provenance, ordered by urgency with SLA chips; each hold shows its trigger, policy basis, evidence, what the buyer sees (only "Compliance review required") and internal notes; a decision form (release, release with conditions, decline, escalate) that states the downstream effect before recording who, role, when, reason and conditions; a view-as switch shows that operators read and only compliance reviewers and platform admins decide.',
+    workspace: "Internal operations",
+  },
+  {
+    href: "/design-preview/ops/research",
+    title: "Operations: research inbox",
+    body: "Typed observations from manual research (PRD US-O1): fresh-first lead list with staleness after 30 days, each lead's reference, Chinese search term, indicative price range and MOQ labelled internal-only, a record form enforcing the 0005 rules (source register with a blocked entry, required reference, term and date, price and MOQ checks, fixed rights class), dismiss with a reason, and the handoff into supplier creation.",
     workspace: "Internal operations",
   },
   {

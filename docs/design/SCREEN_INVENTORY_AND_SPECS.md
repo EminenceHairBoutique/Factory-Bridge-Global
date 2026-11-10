@@ -16,8 +16,9 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 | Documents | `/app/projects/[id]/uploads` | Prototyped (`/design-preview/buyer/documents`; see `atlas-obsidian/DOCUMENTS_AND_EXTRACTION_REVIEW_SCREENS.md`) | B-10, B-11 |
 | Extraction review (buyer) | `/app/projects/[id]/review/[taskId]` | Prototyped (`/design-preview/buyer/review?doc=`; shared `ui/ReviewSplit.tsx`, read-only with flag-for-operator) | B-20 |
 | Supplier options | `/app/projects/[id]/options` | Specified §3.3 | B-09 |
-| Quote comparison + landed cost | `/app/projects/[id]/compare`, `/landed-cost` | Prototyped | B-22, B-14, B-21 |
-| Messages / clarifications | `/app/projects/[id]/messages` | Approval modal prototyped | B-24 |
+| Quote comparison + landed cost | `/app/projects/[id]/compare`, `/landed-cost` | Prototyped (`/design-preview/buyer/compare`; `/design-preview/buyer/landed-cost?snapshot=`, see `atlas-obsidian/BUYER_LANDED_COST_SCREEN.md`) | B-22, B-14, B-21 |
+| Samples & inspections | `/app/projects/[id]/qa` | Prototyped (`/design-preview/buyer/qa?track=`; see `atlas-obsidian/BUYER_QA_STATUS_SCREEN.md`; Phase 3 tables) |
+| Messages / clarifications | `/app/projects/[id]/messages` | Prototyped (`/design-preview/buyer/messages?thread=`; see `atlas-obsidian/BUYER_MESSAGES_SCREEN.md`) | B-24 |
 | Reports | `/app/projects/[id]/reports` | Prototyped (`/design-preview/buyer/reports`, `/design-preview/buyer/report?id=`; see `atlas-obsidian/BUYER_REPORTS_SCREENS.md`) | B-23 |
 | Supplier public profile | `/app/suppliers/[id]` | Specified §3.4 | B-08b |
 | Settings | `/app/settings/*` | Planned | B-05 |
@@ -29,21 +30,29 @@ Status key: **Prototyped** (interactive, local state, in `apps/web/src/design-pr
 |---|---|---|
 | 工作台 Dashboard | `/supplier` | Prototyped (`/design-preview/supplier/dashboard`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md`) |
 | 企业认证 Onboarding | `/supplier/onboarding` | Prototyped (`/design-preview/supplier/onboarding`; see `atlas-obsidian/SUPPLIER_ONBOARDING_SCREEN.md`) |
-| 产品目录 / 批量导入 | `/supplier/catalog`, `/import` | Specified §4.3 |
+| 产品目录 / 批量导入 | `/supplier/catalog`, `/import` | Prototyped (`/design-preview/supplier/catalog`, `/design-preview/supplier/catalog/import`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md` §3.6) |
 | 价格梯度 editor | `/supplier/catalog/[id]/pricing` | Prototyped (`/design-preview/supplier/pricing`) |
 | 询价单 / 提交报价 | `/supplier/rfqs`, `/[id]` | Prototyped (`/design-preview/supplier/rfqs`; Phase 2 feature) |
+| 我的报价 | `/supplier/quotes` | Prototyped (`/design-preview/supplier/quotes?group=`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md` §3.8) |
+| 生产与质检 | `/supplier/production` | Prototyped (`/design-preview/supplier/production?order=`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md` §3.9; Phase 3 tables) |
 | 数据共享设置 | `/supplier/settings/data-sharing` | Prototyped (`/design-preview/supplier/sharing`) |
+| 消息 | `/supplier/messages` | Prototyped (`/design-preview/supplier/messages?thread=`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md` §3.5) |
+| 文件资料 | `/supplier/documents` | Prototyped (`/design-preview/supplier/documents?doc=`; see `atlas-obsidian/SUPPLIER_ZH_CN_SCREENS.md` §3.7) |
 
 ### 1.3 Internal operations
 
 | Screen | Route | Status |
 |---|---|---|
 | Quotes awaiting review + review split | `/ops/review`, `/ops/review/[taskId]` | Prototyped (concept, refined onto shared `ui/ReviewSplit.tsx`; document facts, extraction flags incl. the embedded-instruction security notice, pending tasks read-only until assigned) |
-| Pipeline board + work queue | `/ops` | Prototyped (`/design-preview/ops/queue`; see `atlas-obsidian/OPS_WORK_QUEUE_SCREEN.md`) |
+| Pipeline board + work queue | `/ops` | Prototyped (`/design-preview/ops/queue`, see `atlas-obsidian/OPS_WORK_QUEUE_SCREEN.md`; `/design-preview/ops/pipeline?project=`, see `atlas-obsidian/OPS_PIPELINE_BOARD_SCREEN.md`) |
 | Supplier CRM + profile | `/ops/suppliers`, `/[id]` | Prototyped (`/design-preview/ops/suppliers`, `/design-preview/ops/supplier?id=`; see `atlas-obsidian/OPS_SUPPLIER_CRM_SCREEN.md`) |
-| Research inbox | `/ops/research` | Specified §5.3 |
+| Compliance holds | `/ops/compliance` | Prototyped (`/design-preview/ops/compliance?hold=`; see `atlas-obsidian/OPS_COMPLIANCE_REVIEW_SCREEN.md`) |
+| Quality verification | `/ops/quality` | Prototyped (`/design-preview/ops/quality?track=`; see `atlas-obsidian/OPS_QUALITY_VERIFICATION_SCREEN.md`; Phase 3 tables) |
+| Buyer cases | `/ops/cases` | Prototyped (`/design-preview/ops/cases?case=`; see `atlas-obsidian/OPS_BUYER_CASES_SCREEN.md`) |
+| Research inbox | `/ops/research` | Prototyped (`/design-preview/ops/research?lead=`; see `atlas-obsidian/OPS_SUPPLIER_CRM_SCREEN.md` §2b) |
 | Outreach approval queue | `/ops/outreach` | Specified §5.4 |
-| Compliance holds, audit explorer, intake | `/ops/compliance`, `/ops/audit`, `/ops/intake` | Planned |
+| Audit explorer | `/ops/audit` | Prototyped (`/design-preview/ops/audit?event=`; see `atlas-obsidian/OPS_AUDIT_EXPLORER_SCREEN.md`) |
+| Intake imports | `/ops/intake` | Planned |
 
 ## 2. Prototyped screens
 

@@ -4,6 +4,7 @@
  * 询价单 inbox + 提交报价 (IA §2.3 `/supplier/rfqs`, `/supplier/rfqs/[id]`). Simplified-Chinese first.
  * Local state only. Replies and quotes go to the platform for review; nothing is sent to a buyer directly.
  */
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   INCOTERM_GLOSS,
@@ -20,7 +21,9 @@ import { Icon } from "../ui/icons";
 import {
   Badge,
   Button,
+  buttonClasses,
   Checkbox,
+  cx,
   Field,
   Notice,
   PageHeader,
@@ -29,7 +32,6 @@ import {
   Select,
   TextArea,
   TextInput,
-  cx,
   type Tone,
 } from "../ui/primitives";
 import { TierTable } from "../ui/TierTable";
@@ -328,6 +330,14 @@ export function SupplierRfqs({ rfqId }: { rfqId?: string | undefined }) {
                 tone="warn"
                 icon="message"
                 title={`平台澄清请求（${formatZhDate(rfq.clarification.askedAt)}）`}
+                action={
+                  <Link
+                    href={`/design-preview/supplier/messages?thread=sm_${rfq.id}`}
+                    className={buttonClasses("secondary", "sm")}
+                  >
+                    在消息中回复
+                  </Link>
+                }
               >
                 <p className="text-(--fbg-text-primary)">{rfq.clarification.question}</p>
                 <p className="mt-1 text-xs" lang="en-US">
@@ -343,7 +353,10 @@ export function SupplierRfqs({ rfqId }: { rfqId?: string | undefined }) {
                 icon="check"
                 title={`报价已提交，待平台审核（${formatZhDate(rfq.submittedAt ?? TODAY)}）`}
               >
-                平台运营核对后转达买家。审核期间您可以撤回报价；已转达的报价只能通过新版本更新。
+                平台运营核对后转达买家。审核期间可撤销提交；已转达的报价可撤回，或通过新版本更新。{" "}
+                <Link href="/design-preview/supplier/quotes?group=qg_sleeve" className="underline">
+                  在“我的报价”中查看
+                </Link>
               </Notice>
             ) : null}
             {rfq.status === "已拒绝" ? (

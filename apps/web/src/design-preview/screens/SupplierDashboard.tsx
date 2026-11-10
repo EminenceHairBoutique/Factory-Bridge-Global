@@ -7,11 +7,41 @@ import Link from "next/link";
 import { useState } from "react";
 import { SUPPLIER_PROFILE, SUPPLIER_PRODUCTS, SUPPLIER_RFQS } from "../demo-data/supplier";
 import { daysUntil, formatZhDate, formatZhMoney, tierRangeZh } from "../supplier-demo";
+import { SUPPLIER_THREADS } from "../demo-data/supplier-messages";
+import { smSummary } from "../supplier-messages-demo";
+import { QUALITY_TRACKS } from "../demo-data/quality";
+import { PRODUCTION_TODAY, SUBMISSIONS, SUPPLIER_ID } from "../demo-data/supplier-production";
+import { pendingActions, supplierTracks } from "../supplier-production-demo";
 import { AppShell } from "../ui/AppShell";
 import { Icon } from "../ui/icons";
-import { Badge, Button, PageHeader, Panel, buttonClasses, cx, type Tone } from "../ui/primitives";
+import {
+  Badge,
+  Button,
+  buttonClasses,
+  cx,
+  Notice,
+  PageHeader,
+  Panel,
+  type Tone,
+} from "../ui/primitives";
 
 const TODAY = "2026-11-07";
+
+const PRODUCTION_PENDING = supplierTracks(SUPPLIER_ID, QUALITY_TRACKS).flatMap((t) =>
+  pendingActions(
+    t,
+    t.milestones,
+    {
+      readinessConfirmed: false,
+      rescheduleRequested: false,
+      correctiveSubmitted: new Set<string>(),
+      lastProgressAt:
+        [...SUBMISSIONS].reverse().find((s) => s.trackId === t.id && s.kind === "milestone")?.at ??
+        null,
+    },
+    PRODUCTION_TODAY,
+  ),
+);
 
 const RFQ_TONE: Record<string, Tone> = {
   待回复: "warn",
@@ -30,6 +60,8 @@ const PRICE_TONE: Record<string, Tone> = {
 };
 
 const VERIFY_TONE: Record<string, Tone> = { 已核验: "ok", 待审核: "neutral", 需补充: "warn" };
+
+const PENDING_MESSAGES = smSummary(SUPPLIER_THREADS).pendingReply;
 
 export function SupplierDashboard() {
   const [confirmed, setConfirmed] = useState<Set<string>>(new Set());
@@ -59,12 +91,53 @@ export function SupplierDashboard() {
             </>
           }
           actions={
-            <Link href="/design-preview/supplier/pricing" className={buttonClasses("primary")}>
-              <Icon name="plus" size={16} />
-              新增阶梯报价
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/design-preview/supplier/catalog" className={buttonClasses("secondary")}>
+                产品目录
+              </Link>
+              <Link href="/design-preview/supplier/pricing" className={buttonClasses("primary")}>
+                <Icon name="plus" size={16} />
+                新增阶梯报价
+              </Link>
+            </div>
           }
         />
+
+        {PENDING_MESSAGES > 0 ? (
+          <Notice
+            tone="warn"
+            icon="message"
+            title={`${PENDING_MESSAGES} 条买家消息待回复`}
+            action={
+              <Link
+                href="/design-preview/supplier/messages"
+                className={buttonClasses("secondary", "sm")}
+              >
+                查看消息
+              </Link>
+            }
+          >
+            买家的澄清问题由平台翻译并转达；您的回复经平台运营核对后转达买家。
+          </Notice>
+        ) : null}
+
+        {PRODUCTION_PENDING.length > 0 ? (
+          <Notice
+            tone="teal"
+            icon="clock"
+            title={`生产与质检：${PRODUCTION_PENDING.length} 项待处理`}
+            action={
+              <Link
+                href="/design-preview/supplier/production"
+                className={buttonClasses("secondary", "sm")}
+              >
+                前往生产与质检
+              </Link>
+            }
+          >
+            {PRODUCTION_PENDING.map((a) => a.text).join("；")}。
+          </Notice>
+        ) : null}
 
         <div className="grid gap-4 xl:grid-cols-3">
           {/* 待处理询价 */}
@@ -155,13 +228,21 @@ export function SupplierDashboard() {
                 </li>
               ))}
             </ul>
-            <Link
-              href="/design-preview/supplier/onboarding"
-              className={cx(buttonClasses("primary"), "mt-3 w-full")}
-            >
-              <Icon name="upload" size={16} />
-              上传生产场地证明
-            </Link>
+            <div className="mt-3 flex flex-col gap-2">
+              <Link
+                href="/design-preview/supplier/documents?upload=premises"
+                className={cx(buttonClasses("primary"), "w-full")}
+              >
+                <Icon name="upload" size={16} />
+                上传生产场地证明
+              </Link>
+              <Link
+                href="/design-preview/supplier/documents"
+                className={cx(buttonClasses("ghost", "sm"), "w-full")}
+              >
+                文件资料
+              </Link>
+            </div>
           </Panel>
         </div>
 
@@ -217,8 +298,13 @@ export function SupplierDashboard() {
           {/* 即将过期报价 */}
           <Panel
             title="即将过期报价"
-            description="到期后价格将标注为“报价已过期”，并从买家的比较中移除。"
+            description="到期后价格将标注为“报价已过期”，并从买家的比较中移除。针对询价提交的报价及其版本见“我的报价”。"
             padded={false}
+            actions={
+              <Link href="/design-preview/supplier/quotes" className={buttonClasses("ghost", "sm")}>
+                我的报价
+              </Link>
+            }
           >
             {expiring.length === 0 ? (
               <p className="px-5 py-6 text-sm text-(--fbg-text-secondary)">

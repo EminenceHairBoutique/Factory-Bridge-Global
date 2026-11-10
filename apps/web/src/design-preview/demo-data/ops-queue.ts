@@ -174,6 +174,7 @@ export const QUEUE_TASKS: QueueTask[] = [
     dueAt: "2026-11-08T09:40:00Z",
     status: "open",
     note: "Compliance review required; no self-service quoting. Reviewer: compliance role.",
+    href: "/design-preview/ops/compliance?hold=h_gloves",
   },
   {
     id: "t8",
@@ -190,6 +191,7 @@ export const QUEUE_TASKS: QueueTask[] = [
     createdAt: "2026-11-06T16:00:00Z",
     dueAt: "2026-11-07T16:00:00Z",
     status: "in_progress",
+    href: "/design-preview/ops/cases?case=c_duty",
   },
   {
     id: "t9",
