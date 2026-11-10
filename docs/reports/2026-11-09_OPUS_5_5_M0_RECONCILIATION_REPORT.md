@@ -4,13 +4,15 @@
 **Track ownership honoured:** migration 0010/0010b, B-18 tests, RLS coverage, CI, narrow reconciliation docs. **Not touched:** `apps/web/src/design-preview/**`, `apps/web/src/app/design-preview/**`, `apps/worker/**`.
 **Nothing was merged, deployed, purchased or reconfigured by Claude.** Every claim below cites the command, run or API response it rests on; where something could not be verified it says so.
 
+> **Update 2026-11-10 ~09:00 UTC.** `main` moved again while #35/#36 waited: **#37 (B-31 public site, a parallel session)** merged at 09:00 UTC → `8a84688`, CI run [42787025258](https://github.com/EminenceHairBoutique/Factory-Bridge-Global/actions/runs/42787025258) green. It replaced the placeholder homepage with the Atlas × Obsidian public site at `/` (route group `(site)`), a fail-closed sourcing-request form (`INQUIRY_DELIVERY` unset ⇒ `disabled`; proposed ADR-040), a branded site-wide 404, and `noindex` + robots disallow until an opt-in. Both M0 branches took `main` in by merge commit (repo convention for keeping PRs up to date; no rewrite): #35 merged cleanly, and #36's only conflict was `STATUS.md`, resolved to the new facts. The production build gate was adapted: it now checks the new homepage headline, the branded 404 ("Page not found"), `noindex` and `robots.txt` disallow. **This container can no longer run `next build`**: B-31's `next/font/google` downloads fonts from fonts.googleapis.com at build time, and that host is not reachable from this session (B-31's own report records the deviation from `next/font/local`). So the adapted gate is verified by CI only; see #36's checks. Local unit suite on the merged tree: 575 passed (web 289). Sections below keep their original 05:00–06:00 UTC evidence; tables were updated where `main` changed.
+
 ---
 
 ## 1. Fresh state (verified 2026-11-10 via the GitHub REST API, git and the Vercel API — read-only)
 
 | Item | Value | Evidence |
 |---|---|---|
-| `main` | **`21c58e6`** — "Merge pull request #34 from …/b-18-ai-review" (2026-11-10 05:25:29 UTC) | `gh api repos/…/commits/main` |
+| `main` | **`21c58e6`** — "Merge pull request #34 from …/b-18-ai-review" (2026-11-10 05:25:29 UTC); **since 09:00 UTC `8a84688`** (#37 B-31 public site) | `gh api repos/…/commits/main` |
 | Latest `main` CI | run [42762050313](https://github.com/EminenceHairBoutique/Factory-Bridge-Global/actions/runs/42762050313): `typecheck · lint · format · unit tests` ✅, `db: migrations on real Postgres …` ✅ | `gh api …/actions/runs/42762050313/jobs` |
 | Changes since the audit snapshot `5351cf5` | #33 (design nav wiring, merged 05:04 UTC) → `58775be`; #34 (B-18 / migration 0010, opened and merged by the founder 05:14–05:25 UTC, **during** this session) → `21c58e6` | merged-PR list |
 | Design PRs | The eleven DESIGN-02 PRs the directive names (#17–#20, #22–#25, #27–#29) **are merged**, plus #31, #32 and #33 since then | `gh api …/pulls?state=closed` |
@@ -33,12 +35,12 @@ Legend: **Tested (env)** names the engine. PGlite = development-time SQL checks.
 | Domain engine (money/FX, tiers, Incoterms, lifecycle) | ✅ partial | ✅ 50 unit tests | ✅ | n/a | spec matching, landed-cost assembly, ranking: not written (B-14) |
 | AI adapter + `quotation_extractor` v1.0.0 + offline eval harness | ✅ | ✅ MockProvider only (48 + 12 tests) | ✅ | ❌ | **live model never called**; needs G2 go-ahead (spends money) |
 | Worker (`apps/worker`) | ◐ config, logging, `GuardedAiRunner`, `PgAiRunStore`, `/health` | ✅ 12 unit tests | ✅ | ❌ not hosted | **not operational**: `/health` reports `queue: "not_configured"`; no pgmq consumer (B-11) |
-| Web app product surface | ◐ homepage = informational placeholder, `/api/health` | ✅ unit tests; ✅ production build gate (#36) | ✅ | ◐ placeholder only, behind Vercel Authentication | no sign-in, no workspace on real data (B-05…) |
+| Web app product surface | ◐ public marketing site at `/` (B-31, #37; form fail-closed, `disabled` by default), `/api/health` | ✅ unit tests (web 289); ✅ production build gate (#36, CI) | ✅ | ◐ public site only, behind Vercel Authentication, `noindex` | no sign-in, no workspace on real data (B-05…) |
 | Design-preview prototypes (Atlas × Obsidian) | ✅ synthetic data only | ✅ unit tests (232 web tests total); ✅ production gate: 7 routes 404 in 3 production configurations, served only in the positive control | ✅ | Off on every Vercel build by code (no env vars). HTTP-checked in CI from #36 on, not against the live URL | ⚠️ the production 404 `<title>` still names the design preview (§4) |
 | Generated DB types | ✅ `packages/db/src/types.ts` (#36) | ✅ byte-identical to the pinned CLI's generation on the real Supabase stack (run 42765216855) | ⏳ #36 | n/a | — |
 | E2E | ❌ none | `test:e2e` now **fails on purpose** (#36) | — | — | Playwright arrives with B-05 |
 
-**Previews vs production.** "Production" on Vercel means the protected build of `main`. It contains only the placeholder homepage: no database, no auth, no AI, no secrets. Previews are the same app built from branches. No customer-facing service is running.
+**Previews vs production.** "Production" on Vercel means the protected build of `main`. It contains only the public marketing site (form switched off, `noindex`): no database, no auth, no AI, no secrets. Previews are the same app built from branches. No customer-facing service is running.
 
 ## 3. B-18 review
 
@@ -89,8 +91,8 @@ Legend: **Tested (env)** names the engine. PGlite = development-time SQL checks.
 - docs
 
 **Production build gate** (`pnpm verify:production-build`, in the required `check` job). `next build` runs first, then `next start` under four runtime environments, checked over real HTTP:
-- `/` renders the homepage headline and `/api/health` returns 200.
-- Seven `/design-preview` routes return 404 with Next's standard not-found page and **no prototype screen content**. The content markers are the theme-boot script, runtime fonts and synthetic data names. This holds with no `APP_ENV`, with `DESIGN_PREVIEW=enabled` alone, and with `APP_ENV=production` plus `DESIGN_PREVIEW=enabled`.
+- `/` renders the public site's headline, is served `noindex`, `/robots.txt` disallows everything (no scenario opts in to indexing), and `/api/health` returns 200.
+- Seven `/design-preview` routes return 404 with the site-wide not-found page ("Page not found", B-31) and **no prototype screen content**. The content markers are the theme-boot script, runtime fonts and synthetic data names. This holds with no `APP_ENV`, with `DESIGN_PREVIEW=enabled` alone, and with `APP_ENV=production` plus `DESIGN_PREVIEW=enabled`.
 - Positive control: `APP_ENV=staging` plus `DESIGN_PREVIEW=enabled` serves all seven routes (200), and each marker must be seen there, so a stale marker fails loudly.
 - Red check: forcing an exposed configuration into a scenario that expects 404 makes the gate exit 1.
 - Results: passed locally (container) and in CI (`check` job of #36 pass 1, run 42763698129).

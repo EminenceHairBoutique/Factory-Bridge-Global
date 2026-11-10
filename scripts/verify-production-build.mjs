@@ -3,7 +3,8 @@
 //
 // Starts the built web app with `next start` (NODE_ENV=production) under several runtime environments and
 // checks over real HTTP that:
-//   1. the public homepage and the liveness route render;
+//   1. the public site (B-31) and the liveness route render, and the site stays out of search engines (noindex +
+//      robots disallow) because no scenario here opts in with APP_ENV=production + SITE_INDEXING=enabled;
 //   2. every probed /design-preview route answers 404 — with no APP_ENV, with DESIGN_PREVIEW=enabled alone,
 //      and with APP_ENV=production + DESIGN_PREVIEW=enabled (gate.ts: a production build can never enable
 //      the prototypes for production or an unset APP_ENV) — and the 404 body carries no prototype content;
@@ -42,7 +43,10 @@ const SCREEN_MARKERS = [
 // track): Next.js still resolves the segment's static `metadata` for the 404, so the <title> names the prototype.
 // Reported as a warning, not a pass and not a failure, until the design track moves the gate into generateMetadata.
 const TITLE_LEAK = /<title>[^<]*design preview[^<]*<\/title>/i;
-const NOT_FOUND_TEXT = "This page could not be found";
+// The site-wide branded 404 (apps/web/src/app/not-found.tsx, copy in apps/web/src/site/content.ts NOT_FOUND).
+const NOT_FOUND_TEXT = "Page not found";
+// The public homepage headline (apps/web/src/site/content.ts HERO.headline) — proves `/` is the real site.
+const HOME_MARKERS = ["Source better.", "Verify quality."];
 
 const SCENARIOS = [
   { name: "no APP_ENV, no DESIGN_PREVIEW", env: {}, previewStatus: 404 },
@@ -118,8 +122,17 @@ async function runScenario(scenario, port) {
     const home = await get(base, "/");
     check(home.status === 200, `/ → ${home.status} (expected 200)`);
     check(
-      home.body.includes("Source Better. Verify Quality."),
-      "/ renders the public homepage headline",
+      HOME_MARKERS.every((marker) => home.body.includes(marker)),
+      "/ renders the public site (homepage headline present)",
+    );
+    check(
+      /<meta name="robots" content="noindex/.test(home.body),
+      "/ is served noindex (no indexing opt-in)",
+    );
+    const robots = await get(base, "/robots.txt");
+    check(
+      robots.status === 200 && /Disallow: \/\s*$/m.test(robots.body),
+      `/robots.txt disallows everything (status ${robots.status})`,
     );
     const health = await get(base, "/api/health");
     check(health.status === 200, `/api/health → ${health.status} (expected 200)`);
@@ -131,7 +144,7 @@ async function runScenario(scenario, port) {
         `${route} → ${res.status} (expected ${scenario.previewStatus})`,
       );
       if (scenario.previewStatus === 404) {
-        check(res.body.includes(NOT_FOUND_TEXT), `${route} renders the standard not-found page`);
+        check(res.body.includes(NOT_FOUND_TEXT), `${route} renders the site-wide not-found page`);
         const leaked = SCREEN_MARKERS.filter((marker) => res.body.includes(marker));
         check(
           leaked.length === 0,
@@ -191,5 +204,5 @@ if (failures.length > 0) {
   process.exit(1);
 }
 log(
-  "\nProduction build gate passed: homepage renders; every probed /design-preview route is a 404 with no prototype screen content in every production configuration, and is served only when a non-production host opts in.",
+  "\nProduction build gate passed: the public site renders noindex with robots disallowed; every probed /design-preview route is a 404 with no prototype screen content in every production configuration, and is served only when a non-production host opts in.",
 );
