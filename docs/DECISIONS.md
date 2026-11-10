@@ -221,6 +221,15 @@ Living document. Append new ADRs; never edit an accepted ADR's substance — sup
 5. Reads/writes follow the project (Pattern B): buyer owner/admin/member and assigned operators write; viewers read; compliance has no access; platform admins read.
 6. Migration numbering: 0011 is applied before 0010 (`ai_review`, Claude Code) exists; the two are independent. Once a remote database exists, migrations must be added only with later timestamps (the CLI refuses out-of-order pushes) — 0010 will therefore get a timestamp after 0011 when it lands.
 
+## ADR-038 — Queues and schedules live in the database where the extensions exist; the worker is the only queue client
+**Status:** accepted 2026-11-08 (B-25 / B-11 schema half; implements ADR-006's pgmq choice — the worker *host* remains founder gate G1)
+**Decision:**
+1. Migration 0012 creates the pgmq queues (`fbg_documents`, `fbg_extraction`, `fbg_notifications`, `fbg_fx`) and the pg_cron schedules (`fbg_expire_quotations` 06:15 UTC, `fbg_notify_expiring_quotations` 06:30 UTC) inside guarded blocks that run only where `pgmq` / `pg_cron` are available. On PGlite the blocks are skipped with a NOTICE; the suite asserts that on the real stack (`engine: postgres`) both extensions are present and the queues/schedules exist — a missing extension on CI is a failure, not a pass. Schema `pgmq` is usable by `service_role` only.
+2. `job_executions` is the worker's idempotency ledger: UNIQUE `(queue, idempotency_key)`; a redelivered message is a unique violation, never a second run. `jobs_dead_letter` holds poison messages with error and attempts; platform admins resolve (`requeued | discarded | fixed_manually`) and may change nothing else; internal staff read.
+3. `notifications` are written only by the worker or `app.notify()` (SECURITY DEFINER; not executable by `authenticated`); a recipient reads their own rows and may change `read_at` only; `dedupe_key` is unique so sweeps are idempotent. Kinds are a CHECK list.
+4. `app.expire_quotations()` expires every current `confirmed` quotation with `valid_until < current_date` through `app.transition_quotation` (key `expire:<id>:<date>`, actor `system` via a transaction-local `request.jwt.claim.role = service_role`), then notifies the buyer org's owners/admins once. NULL `valid_until` never expires automatically. `app.notify_expiring_quotations(n)` reminds owners/admins/members once per quotation within `n` days. Both are callable by `service_role` / cron only.
+5. The worker consumer, retries, visibility timeouts and `/health` (the code half of B-11) are built against these tables; the FX job's provider is ADR-010 (still proposed).
+
 ## ADR-016 — No marketplace or messaging automation; connectors gated by the data-rights matrix
 **Status:** accepted
 **Decision:** S2 and S6 in `INTEGRATIONS_AND_PERMISSIONS.md` are permanently blocked. API connectors (S8–S11) require recorded license/scopes and founder approval before design is turned into code.
