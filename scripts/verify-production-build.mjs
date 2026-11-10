@@ -14,12 +14,28 @@
 // Exit code 0 only when every expectation holds. No network access beyond 127.0.0.1; no secrets read.
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const WEB = join(ROOT, "apps", "web");
-const NEXT_BIN = join(WEB, "node_modules", ".bin", "next");
+// Next's own CLI entry (its package.json "bin", resolved from apps/web), run with this Node binary. Spawning
+// node_modules/.bin/next instead fails on Windows (a shell shim; the .cmd needs a shell), and through a shim kill()
+// would stop the wrapper rather than the server.
+function resolveNextCli() {
+  try {
+    const requireFromWeb = createRequire(join(WEB, "package.json"));
+    const { bin } = requireFromWeb("next/package.json");
+    return join(
+      dirname(requireFromWeb.resolve("next/package.json")),
+      typeof bin === "string" ? bin : bin.next,
+    );
+  } catch {
+    return null;
+  }
+}
+const NEXT_CLI = resolveNextCli();
 
 const PREVIEW_ROUTES = [
   "/design-preview",
@@ -45,8 +61,11 @@ const SCREEN_MARKERS = [
 const PREVIEW_NAME_LEAK = /design preview|demo data/i;
 // The site-wide branded 404 (apps/web/src/app/not-found.tsx, copy in apps/web/src/site/content.ts NOT_FOUND).
 const NOT_FOUND_TEXT = "Page not found";
-// The public homepage headline (apps/web/src/site/content.ts HERO.headline) — proves `/` is the real site.
-const HOME_MARKERS = ["Source better.", "Verify quality."];
+// The public homepage hero — proves `/` is the real site. The <h1 id="hero-heading"> is in
+// apps/web/src/site/components/SiteHome.tsx; its three lines are apps/web/src/site/content.ts HERO.headline, each
+// in its own <span>. Matched by id and text fragments, not exact markup, so styling changes do not break the gate.
+const HERO_HEADING = /<h1\b[^>]*\bid="hero-heading"/;
+const HOME_MARKERS = ["Source better.", "Verify quality.", "Know your true cost"];
 
 const SCENARIOS = [
   { name: "no APP_ENV, no DESIGN_PREVIEW", env: {}, previewStatus: 404 },
@@ -108,11 +127,15 @@ async function get(base, path) {
 async function runScenario(scenario, port) {
   log(`\n▶ ${scenario.name} (port ${port})`);
   const base = `http://127.0.0.1:${port}`;
-  const child = spawn(NEXT_BIN, ["start", "-p", String(port), "-H", "127.0.0.1"], {
-    cwd: WEB,
-    env: cleanEnv(scenario.env),
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const child = spawn(
+    process.execPath,
+    [NEXT_CLI, "start", "-p", String(port), "-H", "127.0.0.1"],
+    {
+      cwd: WEB,
+      env: cleanEnv(scenario.env),
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
   let output = "";
   child.stdout.on("data", (chunk) => (output += chunk));
   child.stderr.on("data", (chunk) => (output += chunk));
@@ -121,9 +144,11 @@ async function runScenario(scenario, port) {
 
     const home = await get(base, "/");
     check(home.status === 200, `/ → ${home.status} (expected 200)`);
+    check(HERO_HEADING.test(home.body), '/ renders the public site hero (<h1 id="hero-heading">)');
+    const missingHome = HOME_MARKERS.filter((marker) => !home.body.includes(marker));
     check(
-      HOME_MARKERS.every((marker) => home.body.includes(marker)),
-      "/ renders the public site (homepage headline present)",
+      missingHome.length === 0,
+      `/ renders the homepage headline${missingHome.length ? ` (missing: ${missingHome.join(", ")})` : ""}`,
     );
     check(
       /<meta name="robots" content="noindex/.test(home.body),
@@ -182,8 +207,10 @@ if (!existsSync(join(WEB, ".next", "BUILD_ID"))) {
   );
   process.exit(1);
 }
-if (!existsSync(NEXT_BIN)) {
-  console.error(`next binary not found at ${NEXT_BIN} — run \`pnpm install\` first.`);
+if (!NEXT_CLI || !existsSync(NEXT_CLI)) {
+  console.error(
+    `next CLI not found (resolved from ${WEB}: ${NEXT_CLI ?? "unresolvable"}) — run \`pnpm install\` first.`,
+  );
   process.exit(1);
 }
 
