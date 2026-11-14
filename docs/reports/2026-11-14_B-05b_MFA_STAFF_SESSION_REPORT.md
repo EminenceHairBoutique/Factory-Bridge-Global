@@ -2,7 +2,7 @@
 
 ## Session report — 2026-11-14
 Phase: 1  |  Slice: B-05b — TOTP (`aal2`) before `/ops`, enforced in the web guard and in RLS; platform-admin staff provisioning without SQL
-Branch `eng/b05b-mfa-staff` from `origin/eng/b05-auth-production` `fc6bd78` (PR #40 was still open, so this is a stacked draft PR to `main`).
+Branch `eng/b05b-mfa-staff` from `origin/eng/b05-auth-production` `fc6bd78` (PR #40 was still open at the start); draft PR [#41](https://github.com/EminenceHairBoutique/Factory-Bridge-Global/pull/41) to `main`. #40 merged into `main` (`ef87ad6`) while this PR was open; `main` is merged into the branch (`d531d32`, no content change), so the PR diff is B-05b only.
 
 **Implemented**
 - **ADR-043** (`docs/DECISIONS.md`):
@@ -61,14 +61,14 @@ Branch `eng/b05b-mfa-staff` from `origin/eng/b05-auth-production` `fc6bd78` (PR 
 - *Rate limits:* Supabase Auth's MFA challenge/verify limits apply; the actions map 429 to a "wait a minute" message.
 
 **Assumptions**
-- Stacked on #40 because #40 had not merged. Recommended order: #40 → this PR (retarget or rebase onto `main` afterwards).
+- Started from the B-05 branch because #40 had not merged; it has since merged.
 - Staff provisioning is an invite, not a direct add. The backlog row says "invite / provisioning flow".
 - Founder-only factor reset is acceptable for a handful of staff until recovery codes exist.
 
 **Budget implications:** none. Supabase MFA (TOTP) is available on the free plan; no paid service was used.
 
 **Founder actions required**
-- Review the draft PR after #40.
+- Review draft PR #41.
 - Before any hosted project: enable TOTP in Authentication → Multi-Factor.
 - Keep the lost-device reset procedure (SECURITY.md §3).
 
