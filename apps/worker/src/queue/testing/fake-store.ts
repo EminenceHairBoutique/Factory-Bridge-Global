@@ -53,6 +53,8 @@ export class FakeQueueStore implements QueueStore {
   /** Handler queries from transactions that rolled back. */
   readonly rolledBack: RecordedQuery[] = [];
   readonly visibilityCalls: { queue: string; msgId: string; seconds: number }[] = [];
+  /** How many complete() transactions are open right now (a staged handler's prepare must see 0). */
+  openTransactions = 0;
   /** Answers handler queries inside complete(); default: no rows. */
   respond: (text: string, params: readonly unknown[]) => unknown[] = () => [];
   /** One-shot injected failures, keyed by method name. */
@@ -194,11 +196,14 @@ export class FakeQueueStore implements QueueStore {
         return Promise.resolve(this.respond(text, params) as T[]);
       },
     };
+    this.openTransactions++;
     try {
       await work(tx);
     } catch (err) {
       this.rolledBack.push(...buffer);
       throw err;
+    } finally {
+      this.openTransactions--;
     }
     const row = this.running(req.executionId);
     if (row === undefined) {

@@ -1,7 +1,7 @@
 /**
  * The queue consumer (B-11). Reads each configured queue with a visibility timeout, validates the envelope, claims
- * the job in the idempotency ledger, runs the queue's handler inside the success transaction, and on failure either
- * schedules a retry with backoff or files a dead letter. Delivery is at-least-once; effects are once (see store.ts).
+ * the job in the idempotency ledger, runs the queue's handler inside the success transaction (a staged handler first
+ * prepares outside any transaction, ADR-044), and on failure either schedules a retry with backoff or files a dead letter. Delivery is at-least-once; effects are once (see store.ts).
  *
  * Fail-closed rules:
  *  - a message that is not a valid envelope, or sits on a queue with no handler, is dead-lettered immediately;
@@ -38,10 +38,42 @@ export interface JobContext {
 
 export type JobHandler = (job: Job, ctx: JobContext) => Promise<void>;
 
+/** Context of a staged handler's preparation: there is deliberately no transaction in it. */
+export interface PrepareContext {
+  /** Aborted when the job exceeds its timeout or the worker is shutting down past its grace period. */
+  readonly signal: AbortSignal;
+  readonly log: Logger;
+}
+
+/**
+ * A handler in two stages, for work that is slow or leaves the database (ADR-044): scanning, parsing, transfers.
+ *
+ *  1. `prepare` runs under the job's ledger claim, visibility heartbeat and timeout, but with NO SQL transaction
+ *     open — nothing is locked while it runs. It may be executed again for the same job (retry, crash take-over,
+ *     a second delivery after a lost lease), so everything it does must be safe to repeat.
+ *  2. `commit` receives what `prepare` returned and runs inside the success transaction, exactly like a plain
+ *     JobHandler: its writes, the ledger's `succeeded` marker and the archive of the message commit together or not
+ *     at all. It must be quick and must not leave the database.
+ *
+ * A failure in either stage is handled like any handler failure (retry with backoff, or dead letter).
+ */
+export interface StagedJobHandler<P = unknown> {
+  prepare(job: Job, ctx: PrepareContext): Promise<P>;
+  commit(job: Job, prepared: P, ctx: JobContext): Promise<void>;
+  /**
+   * Optional housekeeping after the success transaction has committed (again with no transaction open). The job
+   * has already succeeded: whatever this does or fails to do cannot change that — a rejection is logged and
+   * dropped — and it is NOT re-run on a replay, so it may only do what is safe to skip.
+   */
+  afterCommit?(job: Job, prepared: P, ctx: PrepareContext): Promise<void>;
+}
+
+export type QueueHandler = JobHandler | StagedJobHandler;
+
 export interface ConsumerOptions {
   readonly store: QueueStore;
   /** queue name → handler. The consumer reads exactly these queues. */
-  readonly handlers: ReadonlyMap<string, JobHandler>;
+  readonly handlers: ReadonlyMap<string, QueueHandler>;
   readonly log: Logger;
   readonly workerId: string;
   readonly concurrency: number;
@@ -280,16 +312,35 @@ export class Consumer {
       );
       timeout.unref?.();
       try {
+        const jobLog = this.opts.log.child({ queue: job.queue, msgId: job.msgId });
+        const signal = controller.signal;
+        let commit: (tx: SqlClient) => Promise<void>;
+        let afterCommit: (() => Promise<void>) | null = null;
+        if (typeof handler === "function") {
+          commit = (tx) => handler(job, { tx, signal, log: jobLog });
+        } else {
+          // Stage 1 runs here, before store.complete(): no transaction is open while it works.
+          const prepared = await handler.prepare(job, { signal, log: jobLog });
+          if (signal.aborted) throw new Error("job aborted before its commit stage");
+          commit = (tx) => handler.commit(job, prepared, { tx, signal, log: jobLog });
+          if (handler.afterCommit !== undefined) {
+            afterCommit = () =>
+              handler.afterCommit?.(job, prepared, { signal, log: jobLog }) ?? Promise.resolve();
+          }
+        }
         await store.complete(
           { queue: msg.queue, msgId: msg.msgId, executionId: claim.executionId },
-          (tx) =>
-            handler(job, {
-              tx,
-              signal: controller.signal,
-              log: this.opts.log.child({ queue: job.queue, msgId: job.msgId }),
-            }),
+          commit,
         );
         log.info(runCtx, "job succeeded");
+        if (afterCommit !== null) {
+          try {
+            await afterCommit();
+          } catch (err) {
+            // The job is done and acknowledged; housekeeping that failed is reported, never retried through the queue.
+            log.warn({ ...runCtx, error: describeError(err) }, "post-commit housekeeping failed");
+          }
+        }
         return "succeeded";
       } catch (err) {
         if (err instanceof LeaseLostError) {

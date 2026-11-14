@@ -22,6 +22,17 @@ export class NotImplementedJobError extends PermanentJobError {
 }
 
 /**
+ * A queue whose handler exists but is switched off or not fully configured on this worker. Same fail-closed
+ * treatment as "not implemented": dead letter on the first attempt, never a silent ack and never a partial run.
+ */
+export class NotConfiguredJobError extends PermanentJobError {
+  constructor(queue: string, why: string) {
+    super("not_configured", `${queue} is not enabled on this worker (${why})`);
+    this.name = "NotConfiguredJobError";
+  }
+}
+
+/**
  * The success marker found no `running` ledger row for this execution: another delivery already finished or failed
  * the job. The transaction (including the handler's writes) was rolled back; the consumer does nothing further.
  */
