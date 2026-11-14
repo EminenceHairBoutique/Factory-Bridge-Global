@@ -6,7 +6,7 @@
  * result says so (`ocr_unavailable`).
  *
  * libvips is native code, so this is the one parser that needs `--allow-addons`. Node's permission model does not
- * confine native code; see docs/reports/…B12_B13… §3 for what that means and what a deployment must add.
+ * confine native code; see docs/reports/2026-11-14_B12_B13_SECURE_DOCUMENT_PIPELINE_REPORT.md §3 for what that means and what a deployment must add.
  */
 import {
   SandboxReject,
