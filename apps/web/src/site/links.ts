@@ -5,8 +5,8 @@
  * each anchor has a rendered section and that no href points at `/design-preview` (synthetic data, 404 in
  * production) or at an app route that does not exist.
  *
- * Sign in is deliberately absent. B-05 owns `/sign-in` (SCREEN_INVENTORY_AND_SPECS.md); when that route ships,
- * B-05 sets `SITE_LINKS.signIn` to it and the header, phone menu and footer show "Sign in" automatically.
+ * Sign in points at B-05's real `/sign-in` route (SCREEN_INVENTORY_AND_SPECS.md); the header, phone menu and footer
+ * show it. Where Supabase Auth is not configured, that page says so and accepts nothing (fail closed).
  */
 
 export const SECTION_IDS = {
@@ -58,5 +58,5 @@ export interface SiteLinks {
 
 export const SITE_LINKS: SiteLinks = {
   startRequest: `#${SECTION_IDS.contact}`,
-  signIn: null,
+  signIn: "/sign-in",
 };

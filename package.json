@@ -17,7 +17,7 @@
     "format:check": "prettier --check .",
     "test": "pnpm -r test",
     "test:rls": "pnpm --filter @fbg/supabase test",
-    "test:e2e": "node scripts/test-e2e-not-implemented.mjs",
+    "test:e2e": "pnpm --filter @fbg/e2e e2e",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "test:db": "pnpm --filter @fbg/supabase test",
     "db:gen-enums": "pnpm --filter @fbg/supabase gen:enums",

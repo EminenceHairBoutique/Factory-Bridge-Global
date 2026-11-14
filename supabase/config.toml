@@ -245,6 +245,16 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# B-05 (ADR-042 §3): sign-in and sign-up confirmation use a 6-digit code typed into the app, never a magic link, so
+# both templates show {{ .Token }} and carry no link. A hosted project must use the same templates (founder action).
+[auth.email.template.magic_link]
+subject = "Your Factory Bridge Global sign-in code"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.confirmation]
+subject = "Confirm your Factory Bridge Global account"
+content_path = "./supabase/templates/confirmation.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
