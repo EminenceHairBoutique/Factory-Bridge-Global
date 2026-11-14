@@ -78,6 +78,11 @@ jobs:
           version: 3.1.0
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # ClamAV for the document pipeline (B-13). Started first so it loads its signature database while the Supabase
+      # stack boots; bound to loopback only. Free and local: no account, no API key, nothing uploaded anywhere.
+      - name: Start ClamAV (clamd)
+        run: docker run -d --name clamav -p 127.0.0.1:3310:3310 clamav/clamav:stable
+
       # Real PostgreSQL + Supabase auth schema/roles + storage-api (its migrations create the storage.buckets columns
       # and storage.objects shape that migration 0006's bucket rows and policies depend on). Other heavy services are excluded.
       - name: Start local Supabase stack
@@ -111,14 +116,46 @@ jobs:
           path: ${{ runner.temp }}/types.ts
           retention-days: 7
 
-      # Worker × real pgmq (B-11): the consumer's claim / retry / backoff / dead-letter / take-over SQL against this
-      # stack's queues and the 0012b grants, connecting as the worker does (set local role service_role). Its own
-      # vitest config (apps/worker/vitest.integration.config.ts): it fails, never skips, without a database.
-      - name: "Worker queue integration (real pgmq as service_role)"
+      # The worker integration suite reaches Storage over HTTP like the worker does. The URL and service-role key are
+      # this throwaway local stack's own (printed by the CLI), never a hosted project's; masked in the log regardless.
+      - name: Export the local stack's API URL and service-role key
+        run: |
+          eval "$(supabase status -o env)"
+          echo "::add-mask::$SERVICE_ROLE_KEY"
+          echo "SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
+
+      - name: Wait for ClamAV to accept scans
+        run: |
+          for i in $(seq 1 90); do
+            status="$(docker inspect --format '{{.State.Health.Status}}' clamav 2>/dev/null || echo missing)"
+            if [ "$status" = "healthy" ]; then docker exec clamav clamd --version; exit 0; fi
+            sleep 4
+          done
+          echo "ClamAV did not become healthy (last status: $status)"; docker logs --tail 40 clamav; exit 1
+
+      # B-13: the scanner adapter against a REAL engine — the EICAR test file must be detected, clean samples must
+      # pass, a 25 MB file must scan. Fails (never skips) without a daemon, so green means a real scan happened.
+      - name: "Malware scanner (real ClamAV: EICAR detected, clean files pass)"
+        run: pnpm --filter @fbg/worker test:clamav
+        env:
+          CLAMAV_HOST: 127.0.0.1
+          CLAMAV_PORT: "3310"
+
+      # Worker × real pgmq (B-11) and × the document pipeline (B-12 / B-13): the consumer's claim / retry / backoff /
+      # dead-letter / take-over SQL against this stack's queues and the 0012b grants, connecting as the worker does
+      # (set local role service_role); then fbg_documents end to end — real Postgres, real Storage, real ClamAV, the
+      # real sandboxed parser — including EICAR rejection, cross-tenant refusal and the RLS checks as signed-in users.
+      # Its own vitest config (apps/worker/vitest.integration.config.ts): it fails, never skips, without a database.
+      - name: "Worker integration (real pgmq, Storage and ClamAV; as service_role)"
         run: pnpm --filter @fbg/worker test:integration
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          CLAMAV_HOST: 127.0.0.1
+          CLAMAV_PORT: "3310"
 
       - name: Stop stack
         if: always()
-        run: supabase stop --no-backup
+        run: |
+          docker rm -f clamav || true
+          supabase stop --no-backup
