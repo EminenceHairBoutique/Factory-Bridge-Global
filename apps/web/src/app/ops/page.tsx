@@ -4,6 +4,7 @@ import { listProjects } from "@/server/buyer/projects";
 import { WorkspaceShell } from "@/workspace/WorkspaceShell";
 import { OPS_COPY } from "@/workspace/copy";
 import { Badge, EmptyState, Notice, PageHeader } from "@/workspace/ui";
+import { opsNav } from "@/workspace/ops/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -13,12 +14,9 @@ export default async function OpsOverviewPage() {
   // projects this person is assigned to (compliance reviewers: all, for hold review). Unassigned operators see none.
   const projects = await listProjects(ctx.supabase, null);
   return (
-    <WorkspaceShell
-      ctx={ctx}
-      nav={[{ href: "/ops", label: OPS_COPY.overviewTitle, current: true }]}
-    >
+    <WorkspaceShell ctx={ctx} nav={opsNav(ctx.active.role, "overview")}>
       <PageHeader title={OPS_COPY.overviewTitle} lead={OPS_COPY.overviewLead} />
-      <Notice tone="warn" title={OPS_COPY.mfaNotice} />
+      <Notice tone="warn" title={OPS_COPY.dataNotice} />
       {projects.length ? (
         <ul
           aria-label="Projects"

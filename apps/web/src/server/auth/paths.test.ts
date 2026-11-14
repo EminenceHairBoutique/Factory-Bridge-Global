@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isInviteToken, isUuid, safeNextPath, signInHref } from "./paths";
+import { afterMfaPath, isInviteToken, isUuid, mfaHref, safeNextPath, signInHref } from "./paths";
 
 describe("safeNextPath — post-sign-in redirect allow-list (no open redirect)", () => {
   it("keeps same-origin workspace, onboarding and invite paths (with their query)", () => {
@@ -69,5 +69,40 @@ describe("id validators", () => {
     expect(isInviteToken("0123456789ABCDEF".repeat(4))).toBe(false);
     expect(isInviteToken("abc")).toBe(false);
     expect(isInviteToken(`${"a".repeat(64)}/x`)).toBe(false);
+  });
+});
+
+describe("afterMfaPath / mfaHref — where the MFA step continues (ADR-043)", () => {
+  it("continues to an allowed /ops path and keeps its query", () => {
+    expect(afterMfaPath("/ops")).toBe("/ops");
+    expect(afterMfaPath("/ops/projects/123?tab=brief")).toBe("/ops/projects/123?tab=brief");
+    expect(afterMfaPath("/ops/admin/staff")).toBe("/ops/admin/staff");
+  });
+
+  it("falls back to /ops for anything else: other workspaces, the MFA pages themselves, off-site and junk", () => {
+    for (const other of [
+      undefined,
+      null,
+      "",
+      "/app",
+      "/supplier",
+      "/onboarding",
+      "/ops/mfa/verify",
+      "/ops/mfa/enroll?next=/ops",
+      "/ops/mfa",
+      "//evil.example/ops",
+      "https://evil.example/ops",
+      "/opsx",
+      "/ops/../app",
+    ]) {
+      expect(afterMfaPath(other), String(other)).toBe("/ops");
+    }
+  });
+
+  it("builds the step URL, carrying next only when it is not /ops", () => {
+    expect(mfaHref("verify", "/ops")).toBe("/ops/mfa/verify");
+    expect(mfaHref("enroll", "/app")).toBe("/ops/mfa/enroll");
+    expect(mfaHref("verify", "/ops/projects/1")).toBe("/ops/mfa/verify?next=%2Fops%2Fprojects%2F1");
+    expect(mfaHref("enroll", "https://evil.example")).toBe("/ops/mfa/enroll");
   });
 });

@@ -54,3 +54,31 @@ export function isUuid(value: unknown): value is string {
 export function isInviteToken(value: unknown): value is string {
   return typeof value === "string" && /^[0-9a-f]{64}$/.test(value);
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// MFA steps for the internal workspace (B-05b, ADR-043 §1)
+// ---------------------------------------------------------------------------------------------------------------------
+
+export const OPS_PATH = "/ops";
+export const MFA_ENROLL_PATH = "/ops/mfa/enroll";
+export const MFA_VERIFY_PATH = "/ops/mfa/verify";
+
+/**
+ * Where to continue after the MFA step: an allowed `/ops` path from `next` (never back into `/ops/mfa`), else `/ops`.
+ * `next` is untrusted (query string or form field); it goes through safeNextPath first.
+ */
+export function afterMfaPath(raw: unknown): string {
+  const safe = safeNextPath(raw);
+  if (!safe) return OPS_PATH;
+  const path = safe.split("?")[0] ?? "";
+  const inOps = path === OPS_PATH || path.startsWith(`${OPS_PATH}/`);
+  const inMfa = path === "/ops/mfa" || path.startsWith("/ops/mfa/");
+  return inOps && !inMfa ? safe : OPS_PATH;
+}
+
+/** The enrolment or challenge page, carrying where the user was going when it is not just `/ops`. */
+export function mfaHref(step: "verify" | "enroll", next: unknown): string {
+  const base = step === "verify" ? MFA_VERIFY_PATH : MFA_ENROLL_PATH;
+  const target = afterMfaPath(next);
+  return target === OPS_PATH ? base : `${base}?next=${encodeURIComponent(target)}`;
+}

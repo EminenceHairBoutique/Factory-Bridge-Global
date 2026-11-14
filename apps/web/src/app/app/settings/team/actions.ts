@@ -7,9 +7,9 @@
  * The raw invite token is returned to the inviter once and never logged.
  */
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { canManageTeam } from "@fbg/domain/workspace";
 import { requireWorkspace } from "@/server/auth/guard";
+import { requestOrigin } from "@/server/auth/origin";
 import {
   fieldErrors,
   formObject,
@@ -27,15 +27,6 @@ export interface TeamFormState {
   readonly fieldErrors?: Readonly<Record<string, string>>;
 }
 
-async function origin(): Promise<string> {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
-  const proto =
-    h.get("x-forwarded-proto") ??
-    (host.startsWith("localhost") || host.startsWith("127.") ? "http" : "https");
-  return /^[a-z0-9.:[\]-]+$/i.test(host) ? `${proto === "http" ? "http" : "https"}://${host}` : "";
-}
-
 export async function createInvite(_prev: TeamFormState, form: FormData): Promise<TeamFormState> {
   const ctx = await requireWorkspace("buyer", TEAM_PATH);
   if (!canManageTeam(ctx.active.role)) return { error: BUYER_COPY.inviteFailed };
@@ -48,7 +39,7 @@ export async function createInvite(_prev: TeamFormState, form: FormData): Promis
   });
   if (error || typeof token !== "string") return { error: BUYER_COPY.inviteFailed };
   revalidatePath(TEAM_PATH);
-  return { inviteUrl: `${await origin()}/invite/${token}` };
+  return { inviteUrl: `${await requestOrigin()}/invite/${token}` };
 }
 
 export async function changeMembership(

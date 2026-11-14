@@ -25,15 +25,21 @@ const code = (p: string) =>
     .replace(/^\s*\/\/.*$/gm, "");
 
 const WORKSPACES = { app: "buyer", ops: "internal", supplier: "supplier" } as const;
+/** B-05b: the TOTP enrolment / challenge pages are the only /ops pages reachable below aal2 (ADR-043 §1). */
+const MFA_DIR = "app/ops/mfa/";
+const isMfa = (p: string) => rel(p).startsWith(MFA_DIR);
 
 describe("every workspace page gates on its own workspace", () => {
   for (const [segment, kind] of Object.entries(WORKSPACES)) {
-    const pages = files(join(APP, segment)).filter((p) => /[\\/]page\.tsx$/.test(p));
+    const pages = files(join(APP, segment))
+      .filter((p) => /[\\/]page\.tsx$/.test(p))
+      .filter((p) => !isMfa(p));
     it(`/${segment}: ${pages.length} page(s) call requireWorkspace("${kind}", …)`, () => {
       expect(pages.length).toBeGreaterThan(0);
       for (const p of pages) {
         const src = code(p);
         expect(src, rel(p)).toMatch(new RegExp(`requireWorkspace\\(\\s*"${kind}"`));
+        expect(src, `${rel(p)} must not use the MFA-only gate`).not.toMatch(/requireStaffForMfa/);
         for (const other of Object.values(WORKSPACES).filter((k) => k !== kind)) {
           expect(src, `${rel(p)} must not gate on ${other}`).not.toMatch(
             new RegExp(`requireWorkspace\\(\\s*"${other}"`),
@@ -42,6 +48,27 @@ describe("every workspace page gates on its own workspace", () => {
       }
     });
   }
+
+  it("the MFA pages (and only they) use requireStaffForMfa, and never the aal2 gate they lead to", () => {
+    const mfaPages = files(join(APP, "ops", "mfa")).filter((p) => /[\\/]page\.tsx$/.test(p));
+    expect(mfaPages.map(rel).sort()).toEqual([
+      "app/ops/mfa/enroll/page.tsx",
+      "app/ops/mfa/verify/page.tsx",
+    ]);
+    for (const p of mfaPages) {
+      const src = code(p);
+      expect(src, rel(p)).toMatch(/requireStaffForMfa\(/);
+      expect(src, rel(p)).not.toMatch(/requireWorkspace\(/);
+    }
+    const users = files(APP)
+      .concat(files(join(SRC, "workspace")), files(join(SRC, "server")))
+      .filter((p) => /\.(ts|tsx)$/.test(p) && !/\.test\./.test(p))
+      .filter((p) => /requireStaffForMfa\(/.test(code(p)))
+      .map(rel)
+      .filter((r) => r !== "server/auth/guard.ts");
+    expect(users.length).toBeGreaterThan(0);
+    for (const r of users) expect(r.startsWith(MFA_DIR), r).toBe(true);
+  });
 });
 
 describe("every server action re-checks the session", () => {
@@ -58,6 +85,8 @@ describe("every server action re-checks the session", () => {
         "app/invite/[token]/actions.ts",
         "app/app/actions.ts",
         "app/app/settings/team/actions.ts",
+        "app/ops/mfa/actions.ts",
+        "app/ops/admin/staff/actions.ts",
         "server/auth/switch-org.ts",
       ]),
     );
@@ -75,7 +104,8 @@ describe("every server action re-checks the session", () => {
       expect(bodies.length, rel(p)).toBeGreaterThan(0);
       for (const body of bodies) {
         const name = body.slice(0, body.indexOf("("));
-        expect(body, `${rel(p)} → ${name}`).toMatch(/require(Workspace|SignedIn)\(/);
+        // requireStaffForMfa is confined to app/ops/mfa/ by the page test above.
+        expect(body, `${rel(p)} → ${name}`).toMatch(/require(Workspace|SignedIn|StaffForMfa)\(/);
       }
     }
   });

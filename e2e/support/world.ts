@@ -1,9 +1,11 @@
 /**
- * The synthetic world every spec runs in (B-05): two buyer orgs, a supplier org, an assigned and an unassigned
- * internal operator, a newcomer and an invitee. Created once per run by global-setup.ts — users through the Supabase
- * Auth admin API, tenancy rows and the operator assignment through SQL as `postgres` (internal memberships have no
- * self-service path, ADR-042 §7). Emails carry a per-run id so reruns never collide; the password is random per run
- * and lives only in the git-ignored e2e/.auth/world.json.
+ * The synthetic world every spec runs in (B-05, B-05b): two buyer orgs, a supplier org, internal staff (an assigned
+ * and an unassigned operator and a platform admin, all with TOTP enrolled; an operator who has not enrolled yet), a
+ * newcomer, a buyer invitee and a staff invitee (an account with no membership, provisioned by the platform admin in
+ * the UI). Created once per run by global-setup.ts — users through the Supabase Auth admin API, tenancy rows and the
+ * operator assignment through SQL as `postgres` (the bootstrap path, ADR-042 §7), TOTP factors through Supabase Auth
+ * as each user. Emails carry a per-run id so reruns never collide; the password and the TOTP setup keys are random
+ * per run and live only in the git-ignored e2e/.auth/world.json.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -19,20 +21,35 @@ export const USER_KEYS = [
   "supplierOwner",
   "opAssigned",
   "opUnassigned",
+  "opNoMfa",
+  "platformAdmin",
+  "staffInvitee",
   "newcomer",
   "invitee",
 ] as const;
 export type UserKey = (typeof USER_KEYS)[number];
+
+/** Internal staff whose TOTP factor global setup enrols and verifies. */
+export const ENROLLED_STAFF = ["opAssigned", "opUnassigned", "platformAdmin"] as const;
+export type EnrolledStaff = (typeof ENROLLED_STAFF)[number];
 
 export interface WorldUser {
   readonly id: string;
   readonly email: string;
 }
 
+export interface TotpFixture {
+  /** Base32 setup key returned by Supabase Auth at enrolment. */
+  readonly secret: string;
+  /** The 30-second step whose code global setup used, so specs never reuse it. */
+  readonly lastStep: number;
+}
+
 export interface World {
   readonly runId: string;
   readonly password: string;
   readonly users: Readonly<Record<UserKey, WorldUser>>;
+  readonly totp: Readonly<Record<EnrolledStaff, TotpFixture>>;
   readonly orgs: { readonly buyerA: string; readonly buyerB: string; readonly supplier: string };
   readonly names: { readonly buyerA: string; readonly buyerB: string; readonly supplier: string };
   readonly projects: { readonly a: string; readonly b: string };

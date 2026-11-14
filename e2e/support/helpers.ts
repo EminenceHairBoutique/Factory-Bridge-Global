@@ -1,12 +1,40 @@
 import { expect, type Browser, type BrowserContext, type Page } from "@playwright/test";
 import { e2eEnv } from "./env";
-import { loadWorld, type UserKey, type World } from "./world";
+import { freshTotp, rememberStep } from "./totp";
+import { ENROLLED_STAFF, loadWorld, type EnrolledStaff, type UserKey, type World } from "./world";
 
 let cached: World | null = null;
 /** Loaded lazily: Playwright collects spec files before global setup has written world.json. */
 export function world(): World {
-  cached ??= loadWorld();
+  if (!cached) {
+    cached = loadWorld();
+    // Global setup ran in another process; never reuse the step whose code it already spent.
+    for (const key of ENROLLED_STAFF)
+      rememberStep(cached.totp[key].secret, cached.totp[key].lastStep);
+  }
   return cached;
+}
+
+/** A not-yet-used code for an enrolled staff member's authenticator (support/totp.ts). */
+export function staffCode(user: EnrolledStaff): Promise<string> {
+  return freshTotp(world().totp[user].secret);
+}
+
+/** Enter a TOTP code on the challenge or enrolment page and submit it. */
+export async function submitTotp(page: Page, code: string, button: string): Promise<void> {
+  await field(page, "6-digit code").fill(code);
+  await page.getByRole("button", { name: button, exact: true }).click();
+}
+
+/**
+ * Internal staff sign-in (B-05b): password, then the TOTP challenge the app requires before /ops (ADR-043).
+ * Leaves the page wherever the app sends the user after the challenge.
+ */
+export async function signInStaff(page: Page, user: EnrolledStaff, next?: string): Promise<void> {
+  await signIn(page, user, next);
+  await expect(page).toHaveURL(/\/ops\/mfa\/verify(\?|$)/);
+  await submitTotp(page, await staffCode(user), "Continue");
+  await expect(page).not.toHaveURL(/\/ops\/mfa\//);
 }
 
 /** Sign in through the real form (password). Leaves the page wherever the app sends the user. */

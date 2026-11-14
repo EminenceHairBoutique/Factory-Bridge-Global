@@ -105,3 +105,45 @@ export function canManageTeam(role: MemberRole): boolean {
 
 /** Roles an owner/admin may grant through an invite or a role change (mirrors app.create_invite). */
 export const INVITABLE_ROLES: readonly MemberRole[] = ["owner", "admin", "member", "viewer"];
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Multi-factor authentication (B-05b, ADR-043)
+// ---------------------------------------------------------------------------------------------------------------------
+
+/** Supabase Auth's authenticator assurance level, read from the session JWT's `aal` claim. */
+export type AssuranceLevel = "aal1" | "aal2";
+
+/** Workspaces that require aal2 (a TOTP challenge verified in this session). Only the internal workspace. */
+export const WORKSPACE_REQUIRES_AAL2: Readonly<Record<WorkspaceKind, boolean>> = {
+  buyer: false,
+  supplier: false,
+  internal: true,
+};
+
+/** What stands between a signed-in, eligible user and the workspace: nothing, a TOTP challenge, or enrolment. */
+export type MfaStep = "none" | "verify" | "enroll";
+
+export function mfaStep(
+  kind: WorkspaceKind,
+  level: AssuranceLevel,
+  hasVerifiedFactor: boolean,
+): MfaStep {
+  if (!WORKSPACE_REQUIRES_AAL2[kind] || level === "aal2") return "none";
+  return hasVerifiedFactor ? "verify" : "enroll";
+}
+
+/** Anything that is not exactly "aal2" is aal1 (mirrors app.session_aal() in migration 0014). */
+export function assuranceLevel(claim: unknown): AssuranceLevel {
+  return claim === "aal2" ? "aal2" : "aal1";
+}
+
+/** Staff provisioning (mirrors app.create_staff_invite: platform admin only, and only these two roles). */
+export function canProvisionStaff(role: MemberRole): boolean {
+  return role === "platform_admin";
+}
+
+/** Roles a platform admin may grant through a staff invite. platform_admin stays with the bootstrap runbook. */
+export const STAFF_INVITABLE_ROLES = [
+  "operator",
+  "compliance_reviewer",
+] as const satisfies readonly MemberRole[];

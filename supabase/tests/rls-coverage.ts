@@ -199,4 +199,11 @@ export const PUBLIC_FUNCTIONS: ReadonlyArray<{
     wraps: "app.list_org_members",
     coveredBy: "web-auth-rpc.test.ts",
   },
+  // 0014 internal_mfa_staff (B-05b)
+  {
+    name: "create_staff_invite",
+    args: "p_email text, p_role member_role",
+    wraps: "app.create_staff_invite",
+    coveredBy: "internal-mfa.test.ts",
+  },
 ];

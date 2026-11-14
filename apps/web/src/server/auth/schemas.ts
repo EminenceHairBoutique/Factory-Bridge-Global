@@ -3,6 +3,7 @@
  * the browser's `required` / `minLength` attributes are a convenience, never the control.
  */
 import { z } from "zod";
+import { STAFF_INVITABLE_ROLES } from "@fbg/domain/workspace";
 
 export const PASSWORD_MIN = 10; // ADR-042 §3 (hosted projects must set the same minimum)
 export const PASSWORD_MAX = 72; // bcrypt input limit used by Supabase Auth
@@ -104,3 +105,25 @@ export function formObject(form: FormData): Record<string, string> {
   for (const [k, v] of form.entries()) if (typeof v === "string") out[k] = v;
   return out;
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// B-05b (ADR-043): TOTP codes and staff provisioning
+// ---------------------------------------------------------------------------------------------------------------------
+
+const totpCode = z
+  .string()
+  .trim()
+  .regex(/^\d{6}$/, "Enter the 6-digit code from your authenticator app.");
+
+export const mfaCodeSchema = z.object({ code: totpCode, next: z.string().max(512).optional() });
+
+/** The factor id comes back from the browser; Supabase Auth only accepts a factor that belongs to the user. */
+export const mfaEnrollConfirmSchema = mfaCodeSchema.extend({ factorId: z.uuid() });
+
+export const staffInviteSchema = z.object({ email, role: z.enum(STAFF_INVITABLE_ROLES) });
+
+export const staffMembershipChangeSchema = z.object({
+  membershipId: z.uuid(),
+  role: z.enum(STAFF_INVITABLE_ROLES),
+  status: z.enum(["active", "suspended"]),
+});

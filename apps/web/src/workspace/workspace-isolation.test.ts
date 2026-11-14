@@ -9,7 +9,15 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { enUS, zhCN } from "@fbg/i18n";
 import { findProhibitedClaims } from "@/site/claims";
-import { AUTH_COPY, BUYER_COPY, INVITE_COPY, ONBOARDING_COPY, OPS_COPY } from "./copy";
+import {
+  AUTH_COPY,
+  BUYER_COPY,
+  INVITE_COPY,
+  MFA_COPY,
+  ONBOARDING_COPY,
+  OPS_COPY,
+  STAFF_COPY,
+} from "./copy";
 
 const SRC = fileURLToPath(new URL("..", import.meta.url));
 
@@ -109,7 +117,15 @@ describe("workspace copy", () => {
   it("passes the public-claims guard (EN copy and the new supplier / role strings in both locales)", () => {
     // The guard was written for marketing claims; its "no invented savings" rule also matches the button verb "Save",
     // which is removed (button labels only) so every other rule still applies to the rest of the copy.
-    const english = [AUTH_COPY, BUYER_COPY, INVITE_COPY, ONBOARDING_COPY, OPS_COPY]
+    const english = [
+      AUTH_COPY,
+      BUYER_COPY,
+      INVITE_COPY,
+      ONBOARDING_COPY,
+      OPS_COPY,
+      MFA_COPY,
+      STAFF_COPY,
+    ]
       .flatMap((c) => Object.values(c))
       .map((s) => s.replace(/^Save (brief|changes)$/, ""))
       .join(" ¶ ");

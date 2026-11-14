@@ -3,7 +3,8 @@ import { requireWorkspace } from "@/server/auth/guard";
 import { isUuid } from "@/server/auth/paths";
 import { getProject, latestBrief } from "@/server/buyer/projects";
 import { WorkspaceShell } from "@/workspace/WorkspaceShell";
-import { BUYER_COPY, OPS_COPY } from "@/workspace/copy";
+import { BUYER_COPY } from "@/workspace/copy";
+import { opsNav } from "@/workspace/ops/navigation";
 import { Badge, PageHeader, Panel } from "@/workspace/ui";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ export default async function OpsProjectPage({ params }: { params: Promise<{ id:
   if (!project) notFound();
   const brief = await latestBrief(ctx.supabase, project.id);
   return (
-    <WorkspaceShell ctx={ctx} nav={[{ href: "/ops", label: OPS_COPY.overviewTitle }]}>
+    <WorkspaceShell ctx={ctx} nav={opsNav(ctx.active.role, null)}>
       <PageHeader title={project.name} meta={<Badge tone="neutral">{project.status}</Badge>} />
       <Panel
         title={BUYER_COPY.briefLabel}
