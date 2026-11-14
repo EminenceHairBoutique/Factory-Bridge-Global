@@ -11,7 +11,7 @@ It is **not** a marketplace clone of Temu, 1688, Taobao, Weidian or Alibaba.com,
 - **Code exists; the product does not run end to end yet.** Phase 1 (secure internal + buyer quote workspace) is in progress.
 - **Database:** every planned migration up to 0012 is on `main`. Together they cover tenancy, audit, taxonomy, suppliers, documents and storage, evidence, projects and briefs, quotations, FX and landed cost, jobs and notifications, and AI review. Row-level security (RLS) is on, with negative tests. CI applies the chain to a real local Supabase stack on every PR. Migration 0010b (security fixes to 0010) is on PR #35. **No hosted database exists.** No Supabase project has been created (OQ-16 / ADR-028).
 - **Web app (`apps/web`):** the public marketing site (B-31) is at `/`. Its sourcing-request form fails closed: it is switched off unless `INQUIRY_DELIVERY` is configured (proposed ADR-040), and pages stay `noindex` until a production launch opts in. Sign-in (B-05) and the workspaces are not built. The `/design-preview` routes are UI prototypes with synthetic data only. They are switched off in production builds, and CI checks this from #36 on.
-- **Worker (`apps/worker`):** health endpoint only (`queue: "not_configured"`). No queue consumer runs and nothing is hosted (B-11).
+- **Worker (`apps/worker`):** the pgmq queue consumer is on `main` (B-11) with in-app notifications as its one always-on handler. Document scanning and sandboxed parsing (B-13 / B-12: ClamAV, PDF / XLSX / CSV / image) are implemented and tested on a local stack, but can only be switched on in development: the parser sandbox is process-level isolation, not an OS sandbox (ADR-045). Extraction and FX queues still fail closed. Nothing is hosted.
 - **AI:** the provider adapter, the quotation-extraction prompt v1.0.0 and the offline evaluation harness exist, tested against a mock provider only. The live model has never been called (needs founder go-ahead G2; costs API money).
 - **Hosting:** Vercel project `web` (team `eminence1`) is connected to this repository. Every push to `main` creates a production deployment and every branch a preview. All are behind Vercel Authentication, with no custom domain and no environment variables, so only the public site is served, with its form switched off. This conflicts with ADR-028 ("no production deployment"); see the founder actions in `docs/STATUS.md`.
 - **Repository visibility:** GitHub reports this repository as **public**; `OPEN_QUESTIONS.md` OQ-21 records "private". Founder decision pending. Never commit customer, supplier or proprietary data. Fixtures are synthetic.
@@ -38,7 +38,7 @@ It is **not** a marketplace clone of Temu, 1688, Taobao, Weidian or Alibaba.com,
 
 ## Development
 
-Requirements: Node ≥ 22.12, pnpm 10.28 (via corepack), and Docker Desktop for the local Supabase stack. Docker is only needed for real-Postgres tests and for type generation.
+Requirements: Node ≥ 22.13, pnpm 10.28 (via corepack), and Docker Desktop for the local Supabase stack. Docker is only needed for real-Postgres tests and for type generation.
 
 ```
 pnpm install
