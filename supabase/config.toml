@@ -313,9 +313,12 @@ auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 max_enrolled_factors = 10
 
 # Control MFA via App Authenticator (TOTP)
+# B-05b (ADR-043): every internal role must reach assurance level aal2 with an authenticator app before /ops opens,
+# and RLS ignores internal roles below aal2. A hosted project must enable TOTP enrolment and verification too
+# (founder action). Phone and WebAuthn factors stay off.
 [auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
+enroll_enabled = true
+verify_enabled = true
 
 # Configure MFA via Phone Messaging
 [auth.mfa.phone]

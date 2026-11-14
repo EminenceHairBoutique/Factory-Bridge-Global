@@ -3358,6 +3358,10 @@ export type Database = {
         };
         Returns: string;
       };
+      create_staff_invite: {
+        Args: { p_email: string; p_role: Database["public"]["Enums"]["member_role"] };
+        Returns: string;
+      };
       list_org_members: {
         Args: { p_org: string };
         Returns: {

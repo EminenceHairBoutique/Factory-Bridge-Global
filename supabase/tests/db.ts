@@ -192,22 +192,32 @@ export async function applyMigrations(db: Db): Promise<string[]> {
   return applied;
 }
 
-/** Run `fn` as a signed-in user (RLS enforced) or as service_role (BYPASSRLS), then restore the superuser session. */
+/** Supabase Auth's authenticator assurance level, carried in the JWT `aal` claim (ADR-043). */
+export type Aal = "aal1" | "aal2";
+
+/**
+ * Run `fn` as a signed-in user (RLS enforced) or as service_role (BYPASSRLS), then restore the superuser session.
+ * `aal` defaults to aal2: a fully signed-in user who completed MFA when they have it. Internal roles count only at
+ * aal2 (migration 0014), so tests of an internal user who has NOT completed MFA pass "aal1" explicitly.
+ */
 export async function asUser<T>(
   db: Db,
   userId: string | null,
   fn: () => Promise<T>,
   role: "authenticated" | "service_role" = "authenticated",
+  aal: Aal = "aal2",
 ): Promise<T> {
   await db.exec(`set role ${role}`);
   await db.exec(`select set_config('request.jwt.claim.sub', '${userId ?? ""}', false)`);
   await db.exec(`select set_config('request.jwt.claim.role', '${role}', false)`);
+  await db.exec(`select set_config('request.jwt.claim.aal', '${aal}', false)`);
   try {
     return await fn();
   } finally {
     await db.exec("reset role");
     await db.exec("select set_config('request.jwt.claim.sub', '', false)");
     await db.exec("select set_config('request.jwt.claim.role', '', false)");
+    await db.exec("select set_config('request.jwt.claim.aal', '', false)");
   }
 }
 

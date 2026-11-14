@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { MemberRole } from "../enums.js";
 import {
+  assuranceLevel,
   canManageTeam,
+  canProvisionStaff,
   canWriteBuyerProjects,
   eligibleMemberships,
   landingWorkspace,
+  mfaStep,
   resolveWorkspace,
+  STAFF_INVITABLE_ROLES,
   workspaceForOrgType,
   type WorkspaceMembership,
 } from "./workspace.js";
@@ -89,5 +93,42 @@ describe("workspace gating (ADR-042 §4)", () => {
     expect(canManageTeam("admin")).toBe(true);
     expect(canManageTeam("member")).toBe(false);
     expect(canManageTeam("viewer")).toBe(false);
+  });
+});
+
+describe("MFA gating (ADR-043)", () => {
+  it("only the internal workspace needs aal2; verify when a factor exists, else enrol", () => {
+    for (const kind of ["buyer", "supplier"] as const) {
+      expect(mfaStep(kind, "aal1", false)).toBe("none");
+      expect(mfaStep(kind, "aal1", true)).toBe("none");
+    }
+    expect(mfaStep("internal", "aal1", false)).toBe("enroll");
+    expect(mfaStep("internal", "aal1", true)).toBe("verify");
+    expect(mfaStep("internal", "aal2", true)).toBe("none");
+    // aal2 without a listed factor (factor removed by an admin mid-session) still passes this request; RLS reads the
+    // same claim. The next sign-in starts at aal1 and must enrol again.
+    expect(mfaStep("internal", "aal2", false)).toBe("none");
+  });
+
+  it("reads the aal claim strictly: anything but 'aal2' is aal1", () => {
+    expect(assuranceLevel("aal2")).toBe("aal2");
+    for (const v of ["aal1", "AAL2", "aal3", "", null, undefined, 2, { aal: "aal2" }]) {
+      expect(assuranceLevel(v)).toBe("aal1");
+    }
+  });
+
+  it("only platform admins provision staff, and only as operator or compliance reviewer", () => {
+    const all: MemberRole[] = [
+      "owner",
+      "admin",
+      "member",
+      "viewer",
+      "operator",
+      "compliance_reviewer",
+      "platform_admin",
+    ];
+    expect(all.filter(canProvisionStaff)).toEqual(["platform_admin"]);
+    expect([...STAFF_INVITABLE_ROLES]).toEqual(["operator", "compliance_reviewer"]);
+    expect(STAFF_INVITABLE_ROLES).not.toContain("platform_admin");
   });
 });
