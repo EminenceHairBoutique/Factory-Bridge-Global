@@ -85,6 +85,52 @@ export const OPS_COPY = {
     "Buyer projects appear here only while you are assigned to them (compliance reviewers see all projects for hold review).",
   noProjectsTitle: "No assigned projects",
   noProjectsBody: "A platform admin assigns operators to buyer projects.",
-  mfaNotice:
-    "Internal accounts do not yet require multi-factor sign-in (backlog B-05b). Do not use this workspace with real buyer or supplier data until it does.",
+  dataNotice:
+    "Do not enter real buyer or supplier data in this workspace until the founder approves it.",
+} as const;
+
+/** Two-step sign-in (TOTP) for internal accounts (B-05b, ADR-043). */
+export const MFA_COPY = {
+  enrollTitle: "Set up two-step sign-in",
+  enrollLead:
+    "Internal accounts need an authenticator app before the operations workspace opens. You set this up once.",
+  start: "Set up an authenticator app",
+  scanStep:
+    "1. Scan this QR code with an authenticator app (for example 1Password, Google Authenticator or Microsoft Authenticator), or type in the setup key.",
+  qrAlt: "QR code for your authenticator app",
+  secretLabel: "Setup key",
+  confirmStep: "2. Enter the 6-digit code the app shows now.",
+  confirm: "Confirm and continue",
+  verifyTitle: "Two-step sign-in",
+  verifyLead:
+    "Enter the 6-digit code from your authenticator app to open the operations workspace.",
+  verify: "Continue",
+  codeLabel: "6-digit code",
+  badCode:
+    "That code did not match. Check that your device's clock is set automatically, then enter the current code.",
+  rateLimited: "Too many attempts. Wait a minute, then try again.",
+  startFailed: "We could not start the setup. Reload the page and try again.",
+  lostDevice:
+    "Lost your authenticator app? Ask the founder to reset two-step sign-in for your account, then set it up again.",
+  signOut: "Sign out",
+} as const;
+
+/** Internal staff provisioning for platform admins (B-05b, ADR-043 §4). */
+export const STAFF_COPY = {
+  nav: "Staff",
+  title: "Internal staff",
+  lead: "Operators and compliance reviewers. Each person sets up two-step sign-in before the operations workspace opens for them.",
+  members: "Staff members",
+  inviteTitle: "Invite a staff member",
+  invite: "Create staff invitation",
+  inviteHint:
+    "We do not send emails yet. Copy the link and send it to the person yourself. It works once, for that address, for 72 hours.",
+  inviteCreated: "Staff invitation link (shown once):",
+  inviteFailed: "We could not create the staff invitation.",
+  alreadyStaff: "That address already belongs to an active staff member.",
+  pending: "Pending staff invitations",
+  noPending: "No pending staff invitations.",
+  changeSaved: "Staff membership updated. That person must sign in again.",
+  changeFailed: "We could not update that staff membership.",
+  adminRow: "Platform admin roles change only through the bootstrap runbook.",
 } as const;
