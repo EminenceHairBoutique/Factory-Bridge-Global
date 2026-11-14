@@ -7,15 +7,43 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import pg from "pg";
-import { e2eEnv } from "./env";
+import { e2eEnv, type E2eEnv } from "./env";
+import { freshTotpWithStep } from "./totp";
 import {
+  ENROLLED_STAFF,
   INTERNAL_ORG,
   USER_KEYS,
   WORLD_FILE,
+  type EnrolledStaff,
+  type TotpFixture,
   type UserKey,
   type World,
   type WorldUser,
 } from "./world";
+
+/**
+ * Enrol and verify a TOTP factor as the user, through Supabase Auth's public MFA API (the same calls the app's server
+ * actions make). Returns the setup key and the step whose code was used.
+ */
+async function enrolTotp(env: E2eEnv, email: string, password: string): Promise<TotpFixture> {
+  const client = createClient(env.supabaseUrl, env.anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { error: signInError } = await client.auth.signInWithPassword({ email, password });
+  if (signInError)
+    throw new Error(`e2e: staff sign-in for TOTP enrolment failed: ${signInError.message}`);
+  const { data, error } = await client.auth.mfa.enroll({ factorType: "totp", issuer: "FBG e2e" });
+  if (error || !data || data.type !== "totp") {
+    throw new Error(`e2e: TOTP enrolment failed (is [auth.mfa.totp] enabled?): ${error?.message}`);
+  }
+  const { code, step } = await freshTotpWithStep(data.totp.secret);
+  const { error: verifyError } = await client.auth.mfa.challengeAndVerify({
+    factorId: data.id,
+    code,
+  });
+  if (verifyError) throw new Error(`e2e: TOTP verification failed: ${verifyError.message}`);
+  return { secret: data.totp.secret, lastStep: step };
+}
 
 /**
  * Random per run, never committed: 24 base64url characters (144 bits). Long enough for the app's minimum (10) and the
@@ -89,6 +117,9 @@ export default async function globalSetup(): Promise<void> {
       [orgs.supplier, users.supplierOwner.id, "owner"],
       [INTERNAL_ORG, users.opAssigned.id, "operator"],
       [INTERNAL_ORG, users.opUnassigned.id, "operator"],
+      [INTERNAL_ORG, users.opNoMfa.id, "operator"],
+      [INTERNAL_ORG, users.platformAdmin.id, "platform_admin"],
+      // staffInvitee has no membership: the platform admin provisions them in the UI (06-mfa-and-staff.spec.ts).
     ];
     for (const [org, user, role] of memberships) {
       await db.query(
@@ -140,7 +171,12 @@ export default async function globalSetup(): Promise<void> {
     await db.end();
   }
 
-  const world: World = { runId, password, users, orgs, names, projects, briefs };
+  // B-05b: internal roles need aal2 (ADR-043), so the staff the specs sign in as have a verified TOTP factor.
+  // opNoMfa deliberately has none; it enrols through the UI.
+  const totp = {} as Record<EnrolledStaff, TotpFixture>;
+  for (const key of ENROLLED_STAFF) totp[key] = await enrolTotp(env, users[key].email, password);
+
+  const world: World = { runId, password, users, totp, orgs, names, projects, briefs };
   mkdirSync(dirname(WORLD_FILE), { recursive: true });
   writeFileSync(WORLD_FILE, JSON.stringify(world, null, 2), { mode: 0o600 });
 }

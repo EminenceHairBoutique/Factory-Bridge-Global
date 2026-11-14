@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { expectNotFound, signIn, world } from "../support/helpers";
+import { expectNotFound, signIn, signInStaff, world } from "../support/helpers";
 
 test.describe("supplier and internal workspaces", () => {
   test("a supplier lands on the zh-CN supplier workspace and cannot open /app or /ops", async ({
@@ -20,7 +20,7 @@ test.describe("supplier and internal workspaces", () => {
     page,
   }) => {
     const w = world();
-    await signIn(page, "opAssigned");
+    await signInStaff(page, "opAssigned");
     await expect(page).toHaveURL(/\/ops$/);
     const list = page.getByRole("list", { name: "Projects" });
     await expect(list).toContainText(`Kraft mailer boxes ${w.runId}`);
@@ -37,7 +37,7 @@ test.describe("supplier and internal workspaces", () => {
     page,
   }) => {
     const w = world();
-    await signIn(page, "opUnassigned");
+    await signInStaff(page, "opUnassigned");
     await expect(page).toHaveURL(/\/ops$/);
     await expect(page.getByText("No assigned projects")).toBeVisible();
     await expect(page.getByRole("list", { name: "Projects" })).toHaveCount(0);

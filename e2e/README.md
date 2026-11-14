@@ -1,4 +1,4 @@
-# e2e — Playwright suite (B-05)
+# e2e — Playwright suite (B-05, B-05b)
 
 Drives a **production build** of `apps/web` against a **local** Supabase stack. Synthetic users only.
 `support/env.ts` refuses to run if any URL is not loopback, so the service-role key it needs for fixtures can
@@ -13,6 +13,11 @@ never be pointed at a hosted project.
 - Viewer read-only; owner team page; a buyer creates and edits a brief; org creation and the org switcher.
 - Invitations: the link is shown once, another account cannot accept it, the invitee accepts once.
 - Role change and suspension: the member's session ends on their next request (migration 0013 trigger).
+- **MFA for internal roles (B-05b, ADR-043):** staff without a factor are sent to `/ops/mfa/enroll` from every
+  `/ops` URL; with only a password an operator reads nothing, in the app or straight through the Data API (RLS
+  ignores internal roles below `aal2`), and reads after a TOTP challenge; enrolment through the UI; a platform admin
+  provisions an operator who accepts, enrols and reaches `/ops`, and is signed out when suspended.
+  TOTP codes are computed from the setup key Supabase Auth returns (`support/totp.ts`, RFC 6238), never reused.
 
 ## Run it locally (needs Docker)
 
