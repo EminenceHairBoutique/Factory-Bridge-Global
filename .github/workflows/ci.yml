@@ -159,3 +159,73 @@ jobs:
         run: |
           docker rm -f clamav || true
           supabase stop --no-backup
+
+  # B-05: Playwright against a PRODUCTION build of apps/web and the local Supabase stack (auth + rest + storage +
+  # mailpit for the email-code test). Synthetic users only; the local stack's well-known demo keys never leave the
+  # runner, and e2e/support/env.ts refuses any non-loopback URL. Not a required check until the founder adds it.
+  e2e:
+    name: "e2e: Playwright on a production build against the local Supabase stack"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Applies the migration chain and seed on first start. Mailpit stays on (sign-in codes are read from it).
+      - name: Start local Supabase stack
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,realtime
+
+      - name: Export local stack endpoints
+        run: |
+          status="$(supabase status -o json)"
+          anon="$(jq -r '.ANON_KEY // .PUBLISHABLE_KEY // empty' <<<"$status")"
+          service="$(jq -r '.SERVICE_ROLE_KEY // .SECRET_KEY // empty' <<<"$status")"
+          api="$(jq -r '.API_URL // empty' <<<"$status")"
+          mail="$(jq -r '.MAILPIT_URL // .INBUCKET_URL // empty' <<<"$status")"
+          test -n "$anon" && test -n "$service" && test -n "$api" || { echo "supabase status is missing keys"; exit 1; }
+          echo "::add-mask::$service"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$api"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$anon"
+            echo "E2E_SUPABASE_SERVICE_ROLE_KEY=$service"
+            echo "E2E_MAILPIT_URL=${mail:-http://127.0.0.1:54324}"
+            echo "E2E_DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+            echo "E2E_APP_URL=http://127.0.0.1:3000"
+          } >> "$GITHUB_ENV"
+
+      - name: Install Playwright browser
+        run: pnpm --filter @fbg/e2e exec playwright install --with-deps chromium
+
+      - name: Production build of apps/web
+        run: pnpm --filter @fbg/web build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Playwright suite
+        run: pnpm test:e2e
+        env:
+          CI: "true"
+
+      - name: Attach Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 7
+
+      - name: Stop stack
+        if: always()
+        run: supabase stop --no-backup

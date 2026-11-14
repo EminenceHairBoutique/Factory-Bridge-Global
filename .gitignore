@@ -19,6 +19,8 @@ next-env.d.ts
 coverage/
 playwright-report/
 test-results/
+# e2e: per-run synthetic world (random password) written by e2e/support/global-setup.ts
+e2e/.auth/
 
 # supabase local
 supabase/.branches/

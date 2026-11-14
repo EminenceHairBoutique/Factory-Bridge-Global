@@ -107,7 +107,7 @@ pnpm test:db             # same suite; set DATABASE_URL to run against real Post
 pnpm --filter @fbg/worker test:integration  # worker × real pgmq + document pipeline; needs DATABASE_URL, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (loopback only) on a migrated local Supabase stack; add CLAMAV_HOST/CLAMAV_PORT to use real ClamAV instead of the fake scanner
 pnpm --filter @fbg/worker test:clamav       # scanner × real ClamAV (EICAR); needs CLAMAV_HOST/CLAMAV_PORT, e.g. docker run -d -p 127.0.0.1:3310:3310 clamav/clamav:stable
 pnpm db:gen-enums        # regenerate the enum block in migration 0001 from packages/domain/src/enums.ts
-pnpm test:e2e            # fails on purpose until B-05 adds Playwright (no e2e suite exists)
+pnpm test:e2e            # Playwright (e2e/): production build + LOCAL Supabase stack only; fails fast without one (see e2e/README.md)
 pnpm verify:production-build  # next build + /design-preview must 404 in production (CI `check` job)
 supabase start           # local stack (Docker)
 supabase db reset        # apply migrations + seed (dev only)

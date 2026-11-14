@@ -3339,7 +3339,46 @@ export type Database = {
       };
     };
     Functions: {
-      [_ in never]: never;
+      accept_invite: { Args: { p_token: string }; Returns: string };
+      create_invite: {
+        Args: {
+          p_email: string;
+          p_org: string;
+          p_role: Database["public"]["Enums"]["member_role"];
+        };
+        Returns: string;
+      };
+      create_organization: {
+        Args: {
+          p_country?: string;
+          p_display_name: string;
+          p_display_name_zh?: string;
+          p_legal_name: string;
+          p_org_type: Database["public"]["Enums"]["org_type"];
+        };
+        Returns: string;
+      };
+      list_org_members: {
+        Args: { p_org: string };
+        Returns: {
+          accepted_at: string;
+          created_at: string;
+          email: string;
+          full_name: string;
+          membership_id: string;
+          role: Database["public"]["Enums"]["member_role"];
+          status: string;
+          user_id: string;
+        }[];
+      };
+      update_membership: {
+        Args: {
+          p_membership: string;
+          p_role: Database["public"]["Enums"]["member_role"];
+          p_status: string;
+        };
+        Returns: undefined;
+      };
     };
     Enums: {
       check_type:

@@ -20,5 +20,21 @@
   "compare.below_moq": "低于起订量",
   "compare.basis_not_stated": "未注明价格条款 — 请确认",
   "research.internal_only": "内部调研参考 — 非供应商报价",
-  "doc.supplier_provided_unverified": "供应商提供，未核验"
+  "doc.supplier_provided_unverified": "供应商提供，未核验",
+  "supplier.workspace": "供应商工作台",
+  "supplier.dashboard.title": "工作台",
+  "supplier.dashboard.lead": "贵公司在 Factory Bridge Global 的工作台。",
+  "supplier.dashboard.organization": "公司",
+  "supplier.dashboard.role": "您的角色",
+  "supplier.dashboard.foundation": "产品目录、价格梯度、报价与文件功能将在后续版本开放。此处内容不会向采购方公开。",
+  "nav.switch_org": "切换组织",
+  "nav.switch": "切换",
+  "nav.sign_out": "退出登录",
+  "role.owner": "所有者",
+  "role.admin": "管理员",
+  "role.member": "成员",
+  "role.viewer": "只读成员",
+  "role.operator": "运营专员",
+  "role.compliance_reviewer": "合规审核员",
+  "role.platform_admin": "平台管理员"
 }

@@ -58,6 +58,13 @@ create table if not exists auth.users (
   email text,
   created_at timestamptz default now()
 );
+-- Supabase Auth's sessions table (subset): migration 0013's memberships_revoke_sessions trigger deletes a member's
+-- rows here on a role/status change (ADR-042 §5). Deleting a row cascades to refresh tokens on the real stack.
+create table if not exists auth.sessions (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz default now()
+);
 -- Mirrors Supabase's auth.uid(): sub claim from the request JWT settings.
 create or replace function auth.uid() returns uuid
 language sql stable

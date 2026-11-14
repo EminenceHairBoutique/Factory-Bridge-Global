@@ -12,7 +12,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   transpilePackages: ["@fbg/domain", "@fbg/i18n", "@fbg/db"],
   headers() {
-    return Promise.resolve([{ source: "/(.*)", headers: securityHeaders }]);
+    return Promise.resolve([
+      { source: "/(.*)", headers: securityHeaders },
+      // The invite token is in the path (ADR-042 §6): never send it in a Referer header. Last match wins.
+      { source: "/invite/:path*", headers: [{ key: "Referrer-Policy", value: "no-referrer" }] },
+    ]);
   },
 };
 
