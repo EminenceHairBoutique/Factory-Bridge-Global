@@ -66,6 +66,13 @@ Request → Auth (Supabase JWT) → resolve active org + role (memberships)
 4. **Promote** to `documents/<org_id>/...` only on pass; rejected files stay in quarantine 7 days for forensics then purge.
 5. **Serve** only via signed URLs (15 min) issued by server after policy check; every issuance logged in `document_access_log`.
 
+**Implementation status (B-12 / B-13, 2026-11-14).** Steps 2–4 are implemented in `apps/worker/src/documents/` and the `fbg_documents` handler; step 1 and step 5 wait for the B-05 upload integration. What differs from the design above, and what is deliberately not claimed:
+- **Scanner:** ClamAV over `clamd` INSTREAM (proposed ADR-043). A scan that cannot produce a verdict is a retryable failure, never "clean".
+- **Isolation:** the parser runs in a child process under Node's permission model with an empty environment and a runtime network guard, verified by a containment probe (ADR-045). This is process-level, **not** an OS sandbox, so the worker refuses to enable document processing unless `APP_ENV=development` is set explicitly and both the database and Storage are on a loopback host.
+- **Parsers:** `pdfjs-dist` for PDF; an in-repo XLSX/CSV reader instead of `exceljs` (bounded decompression, no formula engine at all); `sharp` for image re-encoding. No OCR: an image or a scanned PDF is stored with `ocr: "unavailable"` and no text.
+- **Promotion** uploads the exact local bytes that were scanned under `<org_id>/<document_id>/<sha256 prefix>-<ascii slug>.<ext>`. For an image that is the re-encoded copy, which is checked and scanned in its own right first. Once `parsed` is committed the quarantined upload is deleted (best effort; leftovers and the 7-day purge of rejected files belong to the retention sweep, B-28, not built).
+- **Additional refusals:** declared MIME ↔ extension ↔ magic bytes must agree; a PDF or image that is also a ZIP (polyglot) is rejected; macro-enabled workbooks and macro sheets, embedded OLE objects and ActiveX controls, encrypted files, decompression bombs (including padding no part references), a workbook that is not where the package says it is, and files over the page / cell / text caps are rejected with a reason code and, where security-relevant, a `security_events` row (`scan_rejected`).
+
 ## 5. Prompt-injection defenses (AI pipeline)
 
 - Extraction/translation/matching prompts: **no tool use, no function calling**, single-turn, output constrained to a JSON schema; temperature 0.

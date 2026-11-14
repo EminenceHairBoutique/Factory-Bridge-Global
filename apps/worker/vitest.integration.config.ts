@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 /**
  * Worker integration suite: real pgmq on the local Supabase stack (CI `db` job). Invoked only deliberately
@@ -7,6 +7,8 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     include: ["src/**/*.integration.test.ts"],
+    // the real-ClamAV suite has its own config and its own required environment (vitest.clamav.config.ts)
+    exclude: [...configDefaults.exclude, "src/**/*.clamav.integration.test.ts"],
     passWithNoTests: false,
     testTimeout: 30_000,
     hookTimeout: 60_000,

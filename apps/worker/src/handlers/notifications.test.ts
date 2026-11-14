@@ -127,13 +127,21 @@ describe("handler registry", () => {
   it("consumes every queue migration 0012 created; the ones without a handler fail closed", async () => {
     const handlers = defaultHandlers();
     expect([...handlers.keys()].sort()).toEqual([...WORKER_QUEUES].sort());
+    // fbg_documents has a handler since B-12 / B-13, but only the entrypoint may enable it: by default it is off.
+    const expected = {
+      fbg_documents: "not_configured",
+      fbg_extraction: "not_implemented",
+      fbg_fx: "not_implemented",
+    } as const;
     for (const queue of ["fbg_documents", "fbg_extraction", "fbg_fx"] as const) {
-      const err = await handlers.get(queue)!(
+      const handler = handlers.get(queue)!;
+      if (typeof handler !== "function") throw new Error(`${queue} must fail closed by default`);
+      const err = await handler(
         { ...job({}), queue },
         { tx: fakeTx(true), signal: new AbortController().signal, log },
       ).catch((e: unknown) => e);
       expect(err).toBeInstanceOf(PermanentJobError);
-      expect((err as PermanentJobError).code).toBe("not_implemented");
+      expect((err as PermanentJobError).code).toBe(expected[queue]);
     }
     expect(handlers.get("fbg_notifications")).toBe(notificationsHandler);
   });

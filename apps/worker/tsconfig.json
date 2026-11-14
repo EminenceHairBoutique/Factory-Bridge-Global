@@ -3,7 +3,14 @@
   "compilerOptions": {
     "noEmit": true,
     "types": ["node"],
-    "rootDir": "."
+    "rootDir": ".",
+    "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*.ts", "vitest.config.ts", "vitest.integration.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.mts",
+    "vitest.config.ts",
+    "vitest.integration.config.ts",
+    "vitest.clamav.config.ts"
+  ]
 }

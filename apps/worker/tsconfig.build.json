@@ -7,8 +7,9 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "types": ["node"],
-    "declaration": false
+    "declaration": false,
+    "rewriteRelativeImportExtensions": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.mts"],
   "exclude": ["src/**/*.test.ts", "src/**/testing/**"]
 }

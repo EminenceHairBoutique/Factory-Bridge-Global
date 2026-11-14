@@ -10,21 +10,24 @@
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "test:integration": "vitest run --config vitest.integration.config.ts"
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:clamav": "vitest run --config vitest.clamav.config.ts"
   },
   "dependencies": {
     "@fbg/ai": "workspace:*",
     "@fbg/db": "workspace:*",
     "@fbg/domain": "workspace:*",
-    "pino": "^10.4.0",
+    "pdfjs-dist": "6.5.438",
     "pg": "^8.16.3",
+    "pino": "^10.4.0",
+    "sharp": "0.35.5",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^22.19.0",
+    "@types/pg": "^8.15.5",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",
-    "vitest": "^5.1.0",
-    "@types/pg": "^8.15.5"
+    "vitest": "^5.1.0"
   }
 }

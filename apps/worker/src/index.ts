@@ -1,12 +1,15 @@
 /**
  * Worker entrypoint (B-11): pgmq consumer over the four queues of migration 0012 + /health + graceful shutdown.
- * Only fbg_notifications has a real handler; the other queues fail closed to the dead letter (handlers/index.ts).
+ * fbg_notifications always has its handler. fbg_documents (B-12 / B-13: scan + parse) gets its handler only when
+ * document processing is enabled, complete and its parser sandbox passes the containment probe at start-up
+ * (documents/bootstrap.ts); otherwise it fails closed like fbg_extraction and fbg_fx (handlers/index.ts).
  * GuardedAiRunner (B-16b) is deliberately not wired here: no handler calls an AI provider until gate G2.
  */
 import { hostname } from "node:os";
 import pino from "pino";
 import { loadConfig } from "./config.js";
 import { createServiceRoleDb, type ServiceRoleDb } from "./db.js";
+import { bootstrapDocuments } from "./documents/bootstrap.js";
 import { WORKER_QUEUES, defaultHandlers } from "./handlers/index.js";
 import { QueueHealthProbe, healthBody, startHealthServer } from "./health.js";
 import { Consumer } from "./queue/consumer.js";
@@ -20,6 +23,7 @@ const log = pino({
     "*.authorization",
     "*.apiKey",
     "*.serviceRoleKey",
+    "*.serviceKey",
     "*.databaseUrl",
     "*.connectionString",
     "req.headers.authorization",
@@ -42,9 +46,13 @@ if (config.databaseUrl !== null) {
     onPoolError: (err) => log.error({ error: describeError(err) }, "idle database client error"),
   });
   store = new PgQueueStore(db);
+  const documents = await bootstrapDocuments(config.documents, db, log);
+  if (documents.enabled) log.info("document processing enabled (scan + sandboxed parse)");
+  else
+    log.info({ reason: documents.reason }, "document processing off: fbg_documents fails closed");
   consumer = new Consumer({
     store,
-    handlers: defaultHandlers(),
+    handlers: defaultHandlers(documents.enabled ? { documents: documents.handler } : {}),
     log,
     workerId,
     concurrency: config.concurrency,
