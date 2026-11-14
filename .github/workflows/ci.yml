@@ -111,6 +111,14 @@ jobs:
           path: ${{ runner.temp }}/types.ts
           retention-days: 7
 
+      # Worker × real pgmq (B-11): the consumer's claim / retry / backoff / dead-letter / take-over SQL against this
+      # stack's queues and the 0012b grants, connecting as the worker does (set local role service_role). Its own
+      # vitest config (apps/worker/vitest.integration.config.ts): it fails, never skips, without a database.
+      - name: "Worker queue integration (real pgmq as service_role)"
+        run: pnpm --filter @fbg/worker test:integration
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
       - name: Stop stack
         if: always()
         run: supabase stop --no-backup

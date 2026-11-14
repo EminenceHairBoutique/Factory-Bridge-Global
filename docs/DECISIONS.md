@@ -262,6 +262,40 @@ Living document. Append new ADRs; never edit an accepted ADR's substance — sup
 **Departure from ARCHITECTURE.md §2** (email via the worker outbox): a direct send from the web request is proposed for this single low-volume internal notification because the worker is not operational; when B-11 lands, move delivery behind `fbg_notifications` with the `job_executions` ledger and keep the same adapter contract.
 **Founder decisions this needs:** provider and account (Resend or other, OQ-16); sending domain and `EMAIL_FROM` (OQ-02); recipient inbox; privacy-notice text and policy (OQ-06, counsel); whether requests should also be stored (retention, OQ-07); honeypot + timing vs a CAPTCHA (a third-party script and account); a CSP for the public pages (SECURITY.md T15).
 **Consequences:** the public page can launch with the form switched off, or switch it on with environment configuration only; a prerendered page picks up a changed mode on the next build. The Resend adapter is unit-tested against a mocked `fetch` only and has never sent a real email.
+## ADR-041 — The queue consumer: ledger-claimed jobs, handler writes commit with the success marker, unbuilt queues fail closed; `service_role` gets pgmq table grants (0012b)
+**Status:** accepted 2026-11-10 (B-11 code half; implements ADR-006's pgmq consumer and ADR-038 §5; the worker *host* is still gate G1)
+**Context:** 0012 created the queues and ledger tables but granted `service_role` only USAGE on schema `pgmq`. Measured on the CI-pinned stack (Supabase CLI 3.1.0, `supabase/postgres` 17.11.0.018, pgmq 1.5.1): every pgmq function is SECURITY INVOKER over per-queue tables owned by `postgres`. So as `service_role`, the role the worker assumes (M0 report §6), `send` / `read` / `set_vt` / `archive` / `metrics` / `list_queues` all fail with "permission denied". The worker could not consume its own queues. The worker integration suite is red without 0012b (8/10 fail) and green with it.
+**Decision:**
+1. **Grants (0012b, `20261110000200_worker_queue_grants.sql`).** On the four fbg queues only, `service_role` gets: `q_<queue>` SELECT/INSERT/UPDATE/DELETE, `a_<queue>` SELECT/INSERT (`archive()` is INSERT … RETURNING), `q_<queue>_msg_id_seq` USAGE/SELECT, and `pgmq.meta` SELECT. It gets no TRUNCATE (`purge_queue`), no CREATE on the schema (queues stay migration-made), and no UPDATE/DELETE on archives or meta. `anon` / `authenticated` still have no USAGE on `pgmq`. A future queue is granted in the migration that creates it. Asserted in `supabase/tests/queue-grants.test.ts` (positive and negative). Guarded like 0012: a no-op on PGlite.
+2. **Envelope.** `{ v: 1, type, idempotency_key, payload }`, strict:
+   - the key is 8–200 printable ASCII characters with no whitespace, because it is logged and stored;
+   - `payload` is an object, and the whole message is ≤ 64 KB;
+   - anything else is dead-lettered with a NULL key and never reaches the ledger.
+3. **Claim.** Insert `job_executions` (queue, key, msg_id, `payload_hash` = sha256 of the canonical envelope, worker_id) ON CONFLICT DO NOTHING. On a conflict, lock the row and decide (pure `decideExisting`):
+   - a different hash under the same key is dead-lettered as `idempotency_key_conflict`, and the existing row is untouched;
+   - `succeeded` / `failed` is a replay: archive without running;
+   - `running` and held by the same msg_id: take over (attempts + 1), because pgmq hands a message to one reader at a time;
+   - `running` and held by another message: *busy* (`set_vt`) unless that message is gone from the queue, in which case take over.
+   `attempts` counts every start, including crashed ones. A claim whose attempt exceeds `JOB_MAX_ATTEMPTS` is dead-lettered without running, so a message that kills the worker cannot loop forever.
+4. **Success is one transaction.** The handler's writes (`ctx.tx`, `service_role`, per-statement timeout), then the ledger `succeeded` marker (only if the row is still `running`, otherwise `LeaseLost`: roll back and do nothing), then `pgmq.archive`. Database effects are exactly-once even under a concurrent take-over.
+5. **Failure.**
+   - `PermanentJobError` (invalid payload, unknown type, not implemented, recipient not a member) is dead-lettered on that attempt.
+   - Anything else is hidden with `set_vt` for `base·2^(n−1)` seconds, capped (defaults 10 s → 900 s, plus up to 20 % jitter), until `JOB_MAX_ATTEMPTS` (default 5). Then the ledger `failed` marker, the `jobs_dead_letter` row and the archive happen in one transaction.
+   - A store failure never acknowledges: the message reappears after its visibility timeout (default 120 s). A heartbeat extends the timeout every vt/2 while a handler runs. The job timeout (default 300 s) aborts the handler's `AbortSignal`.
+   - Error text is bounded, single-line and stack-free. Validation errors name paths and codes, never values.
+6. **Handlers.**
+   - `fbg_notifications` / `notification.create`: in one transaction, the recipient must be an **active member of `org_id`**, then `app.notify` is called with `dedupe_key` (default `job:<queue>:<idempotency_key>`). In-app only: no e-mail until a provider is approved.
+   - `fbg_documents`, `fbg_extraction`, `fbg_fx`: `NotImplementedJobError`, dead letter on the first attempt, never a silent ack.
+   - No handler calls an AI provider, and `GuardedAiRunner` stays unwired (gate G2).
+7. **`failed` is terminal for its key.** Requeuing a dead letter (`resolution = 'requeued'`) needs the ledger row reset by `service_role` or a new idempotency key. That tooling arrives with the ops dead-letter screen.
+8. **`/health`.** 200 only when `pgmq.list_queues()` and `pgmq.metrics()` succeed as `service_role` for all four queues and the poll loop is running; 503 otherwise. The body carries states only: no error text, lengths, host names or worker id. The probe is cached for 5 s and single-flight. Without `WORKER_DATABASE_URL` the worker serves 503 `not_configured` (development only; staging and production refuse to start).
+**Consequences and limits:**
+- The handler runs inside the success transaction. A future handler that calls out for minutes (B-12 parsing, B-19 extraction) must split into claim → external call → finalize, with its own ADR.
+- Delivery is at-least-once; only effects inside the transaction are exactly-once. External effects (e-mail, AI) need their own idempotency; `ai_runs (org_id, job_id)` already provides it.
+- The pgmq archive tables grow without retention (B-28).
+- ADR-040's request-form delivery can now move behind `fbg_notifications` (an `apps/web` follow-up).
+- Nothing is hosted: the consumer runs locally and in CI only.
+
 ## ADR-042 — Web-tier auth: cookie sessions, thin `public` wrappers for `app.*`, authorization re-read on every request
 **Status:** accepted 2026-11-10 (B-05 / M1, branch `eng/b05-auth-production`; migration 0013 `20261110000300_web_auth_rpc.sql`). Answers M0 report §6 blockers 1 and 2. Numbered ADR-042 and versioned `…0300` because B-11 (PR #39) takes ADR-041 and `20261110000200` (0012b); recommended merge order #38 → #39 → #40.
 **Context:** the Data API exposes only `public` and `graphql_public` (`supabase/config.toml`), while every tenancy and review function lives in schema `app`; so `supabase-js .rpc()` cannot reach `app.create_organization` and the rest. Nothing creates `user_profiles` rows. SECURITY.md §3 asks for server-side checks before RLS, and T8 asks for email OTP + password, hashed single-use invites and session revocation on role change.
