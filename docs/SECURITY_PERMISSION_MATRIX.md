@@ -14,6 +14,8 @@
 | `I.admin` | Platform admin | internal membership, role `platform_admin`; every read is audited |
 | `SYS` | Service role (worker / privileged server module) | `BYPASSRLS` — **not** subject to RLS; must call narrow `SECURITY DEFINER` functions that re-check authorization and audit with `acting_as='system'` |
 
+**Assurance level (B-05b, ADR-043):** every `I.*` actor exists only in a session at Supabase Auth level `aal2` (TOTP verified in that session). At `aal1` an internal member is, for every row below, an outsider: the helpers that derive internal privileges ignore internal-role memberships below `aal2` (migration 0014), and `/ops` redirects to MFA enrolment or verification. The only exceptions are the person's own `memberships` rows and the internal org's own `organizations` row, which the web guard reads to route them. Staff provisioning: `I.admin` (at `aal2`) creates operator / compliance-reviewer invites through `app.create_staff_invite`; nobody else can, and `platform_admin` is granted only by the bootstrap path.
+
 Membership is checked **live** on every request (`app.is_member`), never from a cached JWT claim. Removing a membership or changing a role takes effect at the next statement; the server additionally revokes sessions on role change.
 
 ## 2. Resources and actions
