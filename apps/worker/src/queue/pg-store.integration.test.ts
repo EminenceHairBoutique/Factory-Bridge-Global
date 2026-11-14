@@ -279,7 +279,10 @@ describe("queues without a handler fail closed", () => {
     for (const [queue, msgId] of Object.entries(ids)) {
       const dl = (await deadLetters(queue)).filter((d) => d.msg_id === msgId);
       expect(dl, queue).toHaveLength(1);
-      expect(dl[0]!.error, queue).toMatch(/not_implemented/);
+      // fbg_documents has a handler since B-12 / B-13, but it stays off unless the entrypoint enables it
+      expect(dl[0]!.error, queue).toMatch(
+        queue === "fbg_documents" ? /not_configured/ : /not_implemented/,
+      );
       expect((await ledger(queue, key(`ni-${queue}`)))[0], queue).toMatchObject({
         status: "failed",
         attempts: 1,
